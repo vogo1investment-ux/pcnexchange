@@ -1,51 +1,271 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
 
-<title>SETTINGS</title>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+
+PCN SETTINGS
+
+</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<link rel="stylesheet"
+href="dashboard.css">
 
 <style>
 
 body{
+
+background:#000;
+
+color:white;
+
 font-family:Arial;
-background:#f3f3f3;
-padding:20px;
+
+margin:0;
+
+padding:0;
+
+padding-bottom:100px;
+
 }
 
-.card{
-background:white;
+.settings-header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
 padding:20px;
+
+background:#111;
+
+border-bottom:1px solid #222;
+
+}
+
+.settings-logo{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+}
+
+.settings-icon{
+
+width:45px;
+
+height:45px;
+
+background:#00ff88;
+
+color:black;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+border-radius:15px;
+
+font-size:22px;
+
+font-weight:bold;
+
+}
+
+.settings-header h1{
+
+font-size:24px;
+
+font-weight:bold;
+
+}
+
+.settings-header a{
+
+color:#00ff88;
+
+text-decoration:none;
+
+font-weight:bold;
+
+}
+
+.settings-container{
+
+max-width:1000px;
+
+margin:auto;
+
+padding:20px;
+
+}
+
+.settings-card{
+
+background:#111;
+
+border:1px solid #222;
+
+border-radius:30px;
+
+padding:30px;
+
+margin-top:25px;
+
+}
+
+.settings-card h2{
+
+font-size:28px;
+
+margin-bottom:20px;
+
+}
+
+.settings-card p{
+
+color:#777;
+
+margin-top:8px;
+
+}
+
+.settings-card input{
+
+width:100%;
+
+padding:18px;
+
+background:black;
+
+border:1px solid #333;
+
 border-radius:20px;
-margin-bottom:15px;
-}
 
-input{
-width:100%;
-padding:15px;
-margin-top:10px;
-border-radius:10px;
-border:1px solid #ccc;
-}
-
-button{
-width:100%;
-padding:15px;
-margin-top:10px;
-background:#ff6600;
 color:white;
+
+margin-top:15px;
+
+font-size:18px;
+
+}
+
+.settings-btn{
+
+width:100%;
+
+padding:18px;
+
+margin-top:20px;
+
+background:#00ff88;
+
 border:none;
-border-radius:10px;
+
+border-radius:20px;
+
+font-size:18px;
+
 font-weight:bold;
+
+cursor:pointer;
+
+color:black;
+
 }
 
-.top{
-background:#ff6600;
-color:white;
-padding:20px;
+.logout-btn{
+
+width:100%;
+
+padding:18px;
+
+margin-top:20px;
+
+background:red;
+
+border:none;
+
 border-radius:20px;
+
+font-size:18px;
+
 font-weight:bold;
+
+cursor:pointer;
+
+color:white;
+
+}
+
+.bottom-nav{
+
+position:fixed;
+
+bottom:0;
+
+left:0;
+
+right:0;
+
+background:#111;
+
+border-top:1px solid #222;
+
+display:flex;
+
+justify-content:space-around;
+
+padding:15px 0;
+
+}
+
+.bottom-nav a{
+
+display:flex;
+
+flex-direction:column;
+
+align-items:center;
+
+text-decoration:none;
+
+color:#777;
+
+font-size:13px;
+
+}
+
+.bottom-nav a i{
+
+font-size:22px;
+
+margin-bottom:5px;
+
+}
+
+.bottom-nav .active{
+
+color:#00ff88;
+
 }
 
 </style>
@@ -54,20 +274,172 @@ font-weight:bold;
 
 <body>
 
-<div class="top">
-SETTINGS
+<!-- HEADER -->
+
+<div class="settings-header">
+
+<div class="settings-logo">
+
+<div class="settings-icon">
+
+P
+
 </div>
 
-<div class="card">
+<h1>
 
-<p><b>Your Username</b></p>
-<div id="currentName">Loading...</div>
+PCN SETTINGS
 
-<input id="newName" placeholder="Enter new username">
+</h1>
 
-<button id="saveBtn">SAVE USERNAME</button>
+</div>
 
-<button id="logoutBtn">LOG OUT</button>
+<a href="dashboard.html">
+
+Dashboard
+
+</a>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="settings-container">
+
+<!-- PROFILE -->
+
+<div class="settings-card">
+
+<h2>
+
+Profile Settings
+
+</h2>
+
+<p>
+
+Change your username below
+
+</p>
+
+<input
+id="username"
+placeholder="Enter Username">
+
+<button
+id="saveBtn"
+class="settings-btn">
+
+SAVE CHANGES
+
+</button>
+
+</div>
+
+<!-- ACCOUNT -->
+
+<div class="settings-card">
+
+<h2>
+
+Account Information
+
+</h2>
+
+<p id="userEmail">
+
+Loading email...
+
+</p>
+
+<p id="userId">
+
+Loading user ID...
+
+</p>
+
+</div>
+
+<!-- SECURITY -->
+
+<div class="settings-card">
+
+<h2>
+
+Security
+
+</h2>
+
+<p>
+
+Your account is protected with Firebase Authentication.
+
+</p>
+
+<button
+id="logoutBtn"
+class="logout-btn">
+
+LOGOUT
+
+</button>
+
+</div>
+
+</div>
+
+<!-- NAV -->
+
+<div class="bottom-nav">
+
+<a href="dashboard.html">
+
+<i class="fa-solid fa-house"></i>
+
+<span>
+
+Home
+
+</span>
+
+</a>
+
+<a href="markets.html">
+
+<i class="fa-solid fa-chart-line"></i>
+
+<span>
+
+Markets
+
+</span>
+
+</a>
+
+<a href="trade.html">
+
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
+
+<span>
+
+Trade
+
+</span>
+
+</a>
+
+<a href="settings.html"
+class="active">
+
+<i class="fa-solid fa-gear"></i>
+
+<span>
+
+Settings
+
+</span>
+
+</a>
 
 </div>
 
@@ -75,70 +447,157 @@ SETTINGS
 
 import {
 initializeApp
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-import {
-getAuth,
-onAuthStateChanged,
-signOut
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
 getFirestore,
 doc,
 getDoc,
 updateDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+/* FIREBASE */
 
 const firebaseConfig = {
-apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
-authDomain:"jumiastaff-83757.firebaseapp.com",
-projectId:"jumiastaff-83757"
+
+apiKey:
+"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+
+authDomain:
+"jumiastaff-83757.firebaseapp.com",
+
+projectId:
+"jumiastaff-83757",
+
+storageBucket:
+"jumiastaff-83757.firebasestorage.app",
+
+messagingSenderId:
+"1018307795636",
+
+appId:
+"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
+
+measurementId:
+"G-W9M358ZS1G"
+
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app =
+initializeApp(
+firebaseConfig
+);
 
-let userRef;
+const db =
+getFirestore(
+app
+);
 
-onAuthStateChanged(auth, async(user)=>{
+const auth =
+getAuth(
+app
+);
+
+/* USER */
+
+onAuthStateChanged(
+
+auth,
+
+async(user)=>{
 
 if(!user){
-location="index.html";
+
+window.location =
+"index.html";
+
 return;
+
 }
 
-userRef = doc(db,"users",user.uid);
+userEmail.innerText =
+"Email: " + user.email;
 
-let snap = await getDoc(userRef);
+userId.innerText =
+"User ID: " + user.uid;
 
-if(snap.exists()){
-currentName.innerHTML = snap.data().username || "User";
+const userRef =
+doc(
+db,
+"users",
+user.uid
+);
+
+const userSnap =
+await getDoc(
+userRef
+);
+
+if(userSnap.exists()){
+
+const data =
+userSnap.data();
+
+username.value =
+data.username || "";
+
 }
 
-});
+/* SAVE */
 
-saveBtn.onclick = async()=>{
+saveBtn.onclick =
+async()=>{
 
-if(!newName.value) return;
+await updateDoc(
 
-await updateDoc(userRef,{
-username:newName.value
-});
+userRef,
 
-alert("UPDATED");
-currentName.innerHTML = newName.value;
+{
+
+username:
+username.value
+
+}
+
+);
+
+alert(
+"Username updated"
+);
+
 };
 
-logoutBtn.onclick = async()=>{
+/* LOGOUT */
 
-await signOut(auth);
-location="index.html";
+logoutBtn.onclick =
+async()=>{
+
+await signOut(
+auth
+);
+
+window.location =
+"index.html";
 
 };
+
+}
+);
 
 </script>
 
 </body>
+
 </html>
