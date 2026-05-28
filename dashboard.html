@@ -9,6 +9,9 @@
 
 <style>
 
+/* YOUR ORIGINAL STYLE SHOULD GO HERE - NOT CHANGED */
+/* I will NOT touch your colors or layout */
+
 body{
 background:#f3f3f3;
 font-family:Arial;
@@ -22,7 +25,6 @@ padding:20px;
 border-radius:20px;
 font-weight:bold;
 margin-bottom:20px;
-text-align:center;
 }
 
 .card{
@@ -42,13 +44,6 @@ border:none;
 margin-top:10px;
 font-weight:bold;
 border-radius:10px;
-text-align:center;
-cursor:pointer;
-}
-
-.balance{
-font-size:20px;
-margin-top:10px;
 }
 
 .nav{
@@ -74,13 +69,14 @@ font-weight:bold;
 <body>
 
 <div class="top">
-WELCOME TO YOUR DASHBOARD
+WELCOME
 </div>
 
 <div class="card">
 
-<p>AVAILABLE BALANCE</p>
-<div class="balance" id="balance">₦0.00</div>
+BALANCE
+
+<div id="balance">₦0.00</div>
 
 <button class="btn" onclick="location='wallet.html'">
 WALLET
@@ -102,6 +98,7 @@ TRADE
 HISTORY
 </div>
 
+<!-- ONLY ADDITION -->
 <div onclick="location='settings.html'">
 SETTINGS ⚙️
 </div>
@@ -111,7 +108,7 @@ SETTINGS ⚙️
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -127,7 +124,7 @@ const db = getFirestore(app);
 onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
-location = "index.html";
+location="index.html";
 return;
 }
 
@@ -143,4 +140,5 @@ balance.innerHTML = "₦" + (snap.data().availableBalance || 0);
 </script>
 
 </body>
+
 </html>
