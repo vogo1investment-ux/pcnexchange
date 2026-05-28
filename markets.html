@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>
+
+Markets
+
+</title>
+
+<link rel="stylesheet"
+href="dashboard.css">
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<div class="logo">
+
+PCN EXCHANGE
+
+</div>
+
+</div>
+
+<div class="welcome">
+
+<h1>
+
+Crypto Markets
+
+</h1>
+
+<p>
+
+Track all live cryptocurrency prices.
+
+</p>
+
+</div>
+
+<div id="marketContainer">
+
+</div>
+
+<div class="navigation">
+
+<button onclick="location='dashboard.html'">
+
+Dashboard
+
+</button>
+
+<button onclick="location='markets.html'">
+
+Markets
+
+</button>
+
+<button onclick="location='wallet.html'">
+
+Wallet
+
+</button>
+
+<button onclick="location='profile.html'">
+
+Profile
+
+</button>
+
+</div>
+
+<script type="module">
+
+import products from "./market.js";
+
+products.forEach(
+
+coin=>{
+
+marketContainer.innerHTML+=`
+
+<div class="coin">
+
+<div>
+
+<b>
+
+${coin.name}
+
+</b>
+
+<br>
+
+${coin.symbol}
+
+</div>
+
+<div>
+
+${coin.price}
+
+</div>
+
+<div class="green">
+
+${coin.change}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+);
+
+</script>
+
+</body>
+
+</html>
