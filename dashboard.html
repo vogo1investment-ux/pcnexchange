@@ -1,221 +1,388 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
+<meta charset="UTF-8">
+
 <meta name="viewport"
-content="width=device-width,initial-scale=1">
+content="width=device-width, initial-scale=1.0">
 
 <title>
 
-DASHBOARD
+PCN Dashboard
 
 </title>
 
 <link rel="stylesheet"
 href="dashboard.css">
 
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
 </head>
 
 <body>
 
-<div class="top">
+<!-- TOP HEADER -->
+
+<header class="topbar">
 
 <div class="logo">
 
-VOGO EXCHANGE
+PCN EXCHANGE
+
+</div>
+
+<div class="top-icons">
+
+<i class="fa-solid fa-bell"></i>
+
+<a href="settings.html">
+
+<i class="fa-solid fa-gear"></i>
+
+</a>
+
+</div>
+
+</header>
+
+<!-- MAIN -->
+
+<div class="container">
+
+<!-- PROFILE CARD -->
+
+<div class="profile-card">
+
+<div class="profile-top">
+
+<div>
+
+<p class="small">
+
+WELCOME BACK
+
+</p>
+
+<h2 id="username">
+
+Loading...
+
+</h2>
+
+</div>
+
+<div class="online">
+
+ONLINE
 
 </div>
 
 </div>
 
-<div class="card">
+<div class="balance-box">
+
+<p>
 
 TOTAL BALANCE
 
-<div class="balance">
+</p>
 
-₦<span id="balance">
+<h1 id="balance">
 
-0
+$0.00
 
-</span>
-
-</div>
-
-<div class="small">
-
-Live Wallet Balance
+</h1>
 
 </div>
 
+<div class="wallet-buttons">
+
+<button onclick="location='deposit.html'">
+
+Deposit
+
+</button>
+
+<button onclick="location='wallet.html'">
+
+Withdraw
+
+</button>
+
 </div>
 
-<div class="grid">
-
-<div class="btn"
-onclick="location='markets.html'">
-
-MARKETS
-
 </div>
 
-<div class="btn"
+<!-- QUICK ACTIONS -->
+
+<div class="actions-grid">
+
+<div class="action-card"
 onclick="location='trade.html'">
 
-TRADE
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
+
+<p>
+
+Trade
+
+</p>
 
 </div>
 
-<div class="btn"
+<div class="action-card"
+onclick="location='markets.html'">
+
+<i class="fa-solid fa-chart-line"></i>
+
+<p>
+
+Markets
+
+</p>
+
+</div>
+
+<div class="action-card"
 onclick="location='wallet.html'">
 
-WALLET
+<i class="fa-solid fa-wallet"></i>
+
+<p>
+
+Wallet
+
+</p>
 
 </div>
 
-<div class="btn"
-onclick="location='settings.html'">
+<div class="action-card"
+onclick="location='support.html'">
 
-SETTINGS
+<i class="fa-solid fa-headset"></i>
+
+<p>
+
+Support
+
+</p>
 
 </div>
 
 </div>
 
-<div class="card">
+<!-- LIVE MARKET -->
 
-<div class="market">
+<div class="market-box">
 
-<span>BTC/USDT</span>
+<div class="market-top">
 
-<span class="green">
+<h3>
 
-+2.45%
+Live Market
+
+</h3>
+
+<a href="markets.html">
+
+See All
+
+</a>
+
+</div>
+
+<div id="marketList">
+
+</div>
+
+</div>
+
+<!-- REFERRAL -->
+
+<div class="referral-box">
+
+<div>
+
+<h3>
+
+Referral Bonus
+
+</h3>
+
+<p>
+
+Invite friends and earn rewards
+
+</p>
+
+</div>
+
+<button>
+
+Invite
+
+</button>
+
+</div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+<a href="dashboard.html"
+class="active">
+
+<i class="fa-solid fa-house"></i>
+
+<span>
+
+Home
 
 </span>
 
-</div>
+</a>
 
-<div class="market">
+<a href="markets.html">
 
-<span>ETH/USDT</span>
+<i class="fa-solid fa-chart-line"></i>
 
-<span class="red">
+<span>
 
--1.32%
-
-</span>
-
-</div>
-
-<div class="market">
-
-<span>BNB/USDT</span>
-
-<span class="green">
-
-+5.11%
+Markets
 
 </span>
 
-</div>
+</a>
 
-</div>
+<a href="trade.html">
 
-<script type="module">
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
 
-import {
+<span>
 
-initializeApp
+Trade
+
+</span>
+
+</a>
+
+<a href="wallet.html">
+
+<i class="fa-solid fa-wallet"></i>
+
+<span>
+
+Wallet
+
+</span>
+
+</a>
+
+<a href="profile.html">
+
+<i class="fa-solid fa-user"></i>
+
+<span>
+
+Profile
+
+</span>
+
+</a>
+
+</nav>
+
+<script type="module"
+src="main.js">
+
+</script>
+
+<script>
+
+const coins=[
+
+{
+
+name:"BTC",
+
+price:"67,245",
+
+change:"+2.5%"
+
+},
+
+{
+
+name:"ETH",
+
+price:"3,521",
+
+change:"+1.2%"
+
+},
+
+{
+
+name:"SOL",
+
+price:"149",
+
+change:"-0.8%"
 
 }
 
-from
+];
 
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+const marketList=
 
-import {
-
-getAuth,
-
-onAuthStateChanged
-
-}
-
-from
-
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-import {
-
-getFirestore,
-
-doc,
-
-getDoc
-
-}
-
-from
-
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-const firebaseConfig={
-
-apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
-
-authDomain:"jumiastaff-83757.firebaseapp.com",
-
-projectId:"jumiastaff-83757"
-
-};
-
-const app=
-
-initializeApp(firebaseConfig);
-
-const auth=
-
-getAuth(app);
-
-const db=
-
-getFirestore(app);
-
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
-
-if(!user){
-
-location="index.html";
-
-return;
-
-}
-
-const ref=
-
-doc(
-db,
-"users",
-user.uid
+document.getElementById(
+"marketList"
 );
 
-const snap=
+coins.forEach(
 
-await getDoc(ref);
+coin=>{
 
-if(snap.exists()){
+marketList.innerHTML+=`
 
-balance.innerHTML=
+<div class="coin">
 
-snap.data().availableBalance||0;
+<div>
 
-}
+<h4>
+
+${coin.name}
+
+</h4>
+
+<p>
+
+$${coin.price}
+
+</p>
+
+</div>
+
+<span class="${
+coin.change.includes('+')
+?
+'green'
+:
+'red'
+}">
+
+${coin.change}
+
+</span>
+
+</div>
+
+`;
 
 }
 
