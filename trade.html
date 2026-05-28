@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+
+PCN TRADE
+
+</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<link rel="stylesheet"
+href="trade.css">
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="trade-header">
+
+<div class="trade-logo">
+
+<div class="trade-icon">
+
+P
+
+</div>
+
+<h1>
+
+PCN TRADE
+
+</h1>
+
+</div>
+
+<a href="dashboard.html">
+
+Dashboard
+
+</a>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="trade-container">
+
+<!-- COIN CARD -->
+
+<div class="coin-card">
+
+<div class="coin-top">
+
+<div>
+
+<h2 id="coinName">
+
+BTC/USDT
+
+</h2>
+
+<p>
+
+Bitcoin Live Trade
+
+</p>
+
+</div>
+
+<div class="green"
+id="coinPrice">
+
+$67,245
+
+</div>
+
+</div>
+
+<!-- CHART -->
+
+<div class="chart-box">
+
+<div class="chart-bars">
+
+<div class="bar h1"></div>
+
+<div class="bar h2"></div>
+
+<div class="bar h3"></div>
+
+<div class="bar h4"></div>
+
+<div class="bar h5"></div>
+
+<div class="bar h6"></div>
+
+<div class="bar h7"></div>
+
+<div class="bar h8"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- TRADE PANEL -->
+
+<div class="trade-panel">
+
+<h2>
+
+Trade Now
+
+</h2>
+
+<select id="coinSelect">
+
+<option value="BTC">
+
+Bitcoin
+
+</option>
+
+<option value="ETH">
+
+Ethereum
+
+</option>
+
+<option value="SOL">
+
+Solana
+
+</option>
+
+<option value="BNB">
+
+BNB
+
+</option>
+
+</select>
+
+<input
+type="number"
+id="amount"
+placeholder="Enter Amount">
+
+<div class="trade-buttons">
+
+<button id="buyBtn">
+
+BUY
+
+</button>
+
+<button id="sellBtn">
+
+SELL
+
+</button>
+
+</div>
+
+</div>
+
+<!-- BALANCE -->
+
+<div class="balance-box">
+
+<p>
+
+Available Balance
+
+</p>
+
+<h1 id="balance">
+
+$0
+
+</h1>
+
+</div>
+
+<!-- TRADE HISTORY -->
+
+<div class="history-box">
+
+<div class="history-top">
+
+<h2>
+
+Trade History
+
+</h2>
+
+<span>
+
+LIVE
+
+</span>
+
+</div>
+
+<div id="historyList">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+
+<div class="bottom-nav">
+
+<a href="dashboard.html">
+
+<i class="fa-solid fa-house"></i>
+
+<span>
+
+Home
+
+</span>
+
+</a>
+
+<a href="markets.html">
+
+<i class="fa-solid fa-chart-line"></i>
+
+<span>
+
+Markets
+
+</span>
+
+</a>
+
+<a href="trade.html"
+class="active">
+
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
+
+<span>
+
+Trade
+
+</span>
+
+</a>
+
+<a href="wallet.html">
+
+<i class="fa-solid fa-wallet"></i>
+
+<span>
+
+Wallet
+
+</span>
+
+</a>
+
+</div>
+
+<script type="module"
+src="trade.js">
+
+</script>
+
+</body>
+
+</html>
