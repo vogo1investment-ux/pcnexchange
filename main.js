@@ -1,3 +1,5 @@
+// main.js
+
 import {
 
 initializeApp
@@ -40,95 +42,273 @@ from
 
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-const firebaseConfig={
+/* FIREBASE */
 
-apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+const firebaseConfig = {
 
-authDomain:"jumiastaff-83757.firebaseapp.com",
+apiKey:
+"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
 
-projectId:"jumiastaff-83757",
+authDomain:
+"jumiastaff-83757.firebaseapp.com",
 
-storageBucket:"jumiastaff-83757.firebasestorage.app",
+projectId:
+"jumiastaff-83757",
 
-messagingSenderId:"1018307795636",
+storageBucket:
+"jumiastaff-83757.firebasestorage.app",
 
-appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1"
+messagingSenderId:
+"1018307795636",
 
-};
+appId:
+"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
 
-const app=
-
-initializeApp(firebaseConfig);
-
-const auth=
-
-getAuth(app);
-
-const db=
-
-getFirestore(app);
-
-let signupMode=false;
-
-window.openLogin=()=>{
-
-authBox.style.display="flex";
-
-authTitle.innerHTML="LOGIN";
-
-authBtn.innerHTML="LOGIN";
-
-signupMode=false;
+measurementId:
+"G-W9M358ZS1G"
 
 };
 
-window.openSignup=()=>{
-
-authBox.style.display="flex";
-
-authTitle.innerHTML="SIGN UP";
-
-authBtn.innerHTML="CREATE ACCOUNT";
-
-signupMode=true;
-
-};
-
-window.closeAuth=()=>{
-
-authBox.style.display="none";
-
-};
-
-authBtn.onclick=
-
-async()=>{
-
-let userEmail=email.value;
-
-let userPassword=password.value;
-
-if(
-
-!userEmail ||
-
-!userPassword
-
-){
-
-alert(
-
-"Fill all fields"
-
+const app = initializeApp(
+firebaseConfig
 );
 
-return;
+const auth = getAuth(
+app
+);
+
+const db = getFirestore(
+app
+);
+
+/* CREATE AUTH POPUP */
+
+const authBox = document.createElement(
+"div"
+);
+
+authBox.innerHTML = `
+
+<div id="authModal"
+style="
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,0.85);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:99999;
+padding:20px;
+">
+
+<div
+style="
+background:#111;
+padding:35px;
+border-radius:30px;
+width:100%;
+max-width:420px;
+color:white;
+">
+
+<h2
+style="
+font-size:32px;
+margin-bottom:25px;
+color:#00ff88;
+font-weight:bold;
+">
+
+PCN LOGIN
+
+</h2>
+
+<input
+id="email"
+type="email"
+placeholder="Email"
+style="
+width:100%;
+padding:18px;
+margin-bottom:15px;
+border:none;
+border-radius:18px;
+background:#1a1a1a;
+color:white;
+font-size:16px;
+">
+
+<input
+id="password"
+type="password"
+placeholder="Password"
+style="
+width:100%;
+padding:18px;
+margin-bottom:20px;
+border:none;
+border-radius:18px;
+background:#1a1a1a;
+color:white;
+font-size:16px;
+">
+
+<button
+id="loginBtn"
+style="
+width:100%;
+padding:18px;
+background:#00ff88;
+border:none;
+border-radius:20px;
+font-size:18px;
+font-weight:bold;
+color:black;
+margin-bottom:15px;
+">
+
+Login
+
+</button>
+
+<button
+id="signupBtn"
+style="
+width:100%;
+padding:18px;
+background:white;
+border:none;
+border-radius:20px;
+font-size:18px;
+font-weight:bold;
+color:black;
+">
+
+Create Account
+
+</button>
+
+<button
+id="closeAuth"
+style="
+width:100%;
+padding:15px;
+margin-top:15px;
+background:red;
+border:none;
+border-radius:18px;
+font-weight:bold;
+color:white;
+">
+
+Close
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+document.body.appendChild(
+authBox
+);
+
+/* OPEN AUTH */
+
+function openAuth(){
+
+document.getElementById(
+"authModal"
+).style.display="flex";
 
 }
 
+/* CLOSE AUTH */
+
+document.getElementById(
+"closeAuth"
+).onclick=()=>{
+
+document.getElementById(
+"authModal"
+).style.display="none";
+
+};
+
+/* CONNECT BUTTONS */
+
+document.querySelectorAll(
+"a"
+).forEach(
+
+btn=>{
+
+if(
+
+btn.innerText.includes(
+"Login"
+)
+
+||
+
+btn.innerText.includes(
+"Get Started"
+)
+
+||
+
+btn.innerText.includes(
+"Start Trading"
+)
+
+){
+
+btn.addEventListener(
+
+"click",
+
+e=>{
+
+e.preventDefault();
+
+openAuth();
+
+}
+
+);
+
+}
+
+}
+
+);
+
+/* SIGNUP */
+
+document.getElementById(
+"signupBtn"
+).onclick=
+
+async()=>{
+
 try{
 
-if(signupMode){
+const email=
+
+document.getElementById(
+"email"
+).value;
+
+const password=
+
+document.getElementById(
+"password"
+).value;
 
 const userCredential=
 
@@ -136,33 +316,29 @@ await createUserWithEmailAndPassword(
 
 auth,
 
-userEmail,
+email,
 
-userPassword
+password
 
 );
 
 const user=
-
 userCredential.user;
+
+/* SAVE USER */
 
 await setDoc(
 
 doc(
-
 db,
-
 "users",
-
 user.uid
-
 ),
 
 {
 
 username:
-
-userEmail.split("@")[0],
+"PCN USER",
 
 availableBalance:0,
 
@@ -172,61 +348,86 @@ referralCommission:0,
 
 joinedUsers:0,
 
-usedReferral:"",
+cart:[],
 
-cart:[]
+createdAt:
+Date.now()
 
 }
 
 );
 
 alert(
-
 "ACCOUNT CREATED"
-
 );
 
-location="dashboard.html";
-
-}
-
-else{
-
-await signInWithEmailAndPassword(
-
-auth,
-
-userEmail,
-
-userPassword
-
-);
-
-alert(
-
-"LOGIN SUCCESS"
-
-);
-
-location="dashboard.html";
-
-}
+window.location=
+"dashboard.html";
 
 }
 
 catch(e){
 
 alert(
-
 e.message
-
 );
-
-console.log(e);
 
 }
 
 };
+
+/* LOGIN */
+
+document.getElementById(
+"loginBtn"
+).onclick=
+
+async()=>{
+
+try{
+
+const email=
+
+document.getElementById(
+"email"
+).value;
+
+const password=
+
+document.getElementById(
+"password"
+).value;
+
+await signInWithEmailAndPassword(
+
+auth,
+
+email,
+
+password
+
+);
+
+alert(
+"LOGIN SUCCESS"
+);
+
+window.location=
+"dashboard.html";
+
+}
+
+catch(e){
+
+alert(
+e.message
+);
+
+}
+
+};
+
+/* SESSION */
 
 onAuthStateChanged(
 
@@ -236,20 +437,18 @@ user=>{
 
 if(
 
-user &&
+user
 
-location.pathname.includes(
+&&
 
+window.location.pathname.includes(
 "index.html"
-
 )
 
 ){
 
 console.log(
-
 "USER LOGGED IN"
-
 );
 
 }
