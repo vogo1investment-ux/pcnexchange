@@ -7,101 +7,43 @@
 
 <title>DASHBOARD</title>
 
-<style>
-
-/* YOUR ORIGINAL STYLE SHOULD GO HERE - NOT CHANGED */
-/* I will NOT touch your colors or layout */
-
-body{
-background:#f3f3f3;
-font-family:Arial;
-padding:20px;
-}
-
-.top{
-background:#ff6600;
-color:white;
-padding:20px;
-border-radius:20px;
-font-weight:bold;
-margin-bottom:20px;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:20px;
-margin-bottom:15px;
-font-weight:bold;
-}
-
-.btn{
-width:100%;
-padding:15px;
-background:#ff6600;
-color:white;
-border:none;
-margin-top:10px;
-font-weight:bold;
-border-radius:10px;
-}
-
-.nav{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:20px;
-}
-
-.nav div{
-background:#fff;
-padding:15px;
-border-radius:15px;
-text-align:center;
-cursor:pointer;
-font-weight:bold;
-}
-
-</style>
+<link rel="stylesheet" href="dashboard.css">
 
 </head>
 
 <body>
 
 <div class="top">
-WELCOME
+
+<div class="title">DASHBOARD</div>
+
+</div>
+
+<div class="card">
+
+WELCOME BACK
+
+<div id="username">Loading...</div>
+
 </div>
 
 <div class="card">
 
 BALANCE
 
-<div id="balance">₦0.00</div>
-
-<button class="btn" onclick="location='wallet.html'">
-WALLET
-</button>
+<div class="balance">₦<span id="balance">0</span></div>
 
 </div>
 
-<div class="nav">
+<div class="grid">
 
-<div onclick="location='markets.html'">
-MARKET
-</div>
+<div class="btn" onclick="location='wallet.html'">WALLET</div>
 
-<div onclick="location='trade.html'">
-TRADE
-</div>
+<div class="btn" onclick="location='markets.html'">MARKET</div>
 
-<div onclick="location='history.html'">
-HISTORY
-</div>
+<div class="btn" onclick="location='trade.html'">TRADE</div>
 
-<!-- ONLY ADDITION -->
-<div onclick="location='settings.html'">
-SETTINGS ⚙️
-</div>
+<div class="btn" onclick="location='settings.html'">SETTINGS</div>
 
 </div>
 
@@ -132,7 +74,8 @@ const ref = doc(db,"users",user.uid);
 const snap = await getDoc(ref);
 
 if(snap.exists()){
-balance.innerHTML = "₦" + (snap.data().availableBalance || 0);
+username.innerHTML = snap.data().username || "User";
+balance.innerHTML = snap.data().availableBalance || 0;
 }
 
 });
@@ -140,5 +83,4 @@ balance.innerHTML = "₦" + (snap.data().availableBalance || 0);
 </script>
 
 </body>
-
 </html>
