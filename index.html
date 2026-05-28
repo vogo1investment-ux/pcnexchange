@@ -1,318 +1,228 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en" class="dark">
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-<title>
-
-PCN EXCHANGE
-
-</title>
-
-<link rel="stylesheet"
-href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCN EXCHANGE - Trade Crypto Securely</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .hero-gradient { background: linear-gradient(135deg, #0f172a, #1e2937); }
+        .coin-gradient { background: linear-gradient(145deg, #1a1a2e, #16213e); }
+        .review-card { transition: all 0.3s ease; }
+        .review-card:hover { transform: translateY(-5px); }
+    </style>
 </head>
-
-<body>
-
-<header>
-
-<div class="logo">
-
-PCN EXCHANGE
-
-</div>
-
-<div class="navBtns">
-
-<button onclick="openLogin()">
-
-Login
-
-</button>
-
-<button class="signupBtn"
-onclick="openSignup()">
-
-Sign Up
-
-</button>
-
-</div>
-
-</header>
-
-<section class="hero">
-
-<div class="heroLeft">
-
-<h1>
-
-5 MILLION+
-
-<br>
-
-USERS TRUST US
-
-</h1>
-
-<p>
-
-Trade Bitcoin, Ethereum, USDT and hundreds of cryptocurrencies securely on PCN EXCHANGE.
-
-</p>
-
-<div class="heroBtns">
-
-<button class="startBtn"
-onclick="openSignup()">
-
-Start Trading
-
-</button>
-
-<button class="learnBtn">
-
-Learn More
-
-</button>
-
-</div>
-
-<div class="stats">
-
-<div>
-
-<h2>
-
-$15B+
-
-</h2>
-
-<span>
-
-Daily Volume
-
-</span>
-
-</div>
-
-<div>
-
-<h2>
-
-120+
-
-</h2>
-
-<span>
-
-Countries
-
-</span>
-
-</div>
-
-<div>
-
-<h2>
-
-350+
-
-</h2>
-
-<span>
-
-Coins Listed
-
-</span>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="heroRight">
-
-<div class="phoneCard">
-
-<h3>
-
-Portfolio Balance
-
-</h3>
-
-<h1>
-
-$24,560.45
-
-</h1>
-
-<div class="profit">
-
-+12.45%
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<section class="marketSection">
-
-<div class="sectionTop">
-
-<h2>
-
-Live Market
-
-</h2>
-
-<span>
-
-Updated Live
-
-</span>
-
-</div>
-
-<div id="coins">
-
-</div>
-
-</section>
-
-<section class="features">
-
-<div class="featureCard">
-
-<h2>
-
-Secure Wallet
-
-</h2>
-
-<p>
-
-Industry leading wallet security protection.
-
-</p>
-
-</div>
-
-<div class="featureCard">
-
-<h2>
-
-Fast Trading
-
-</h2>
-
-<p>
-
-Execute trades instantly with low latency.
-
-</p>
-
-</div>
-
-<div class="featureCard">
-
-<h2>
-
-24/7 Support
-
-</h2>
-
-<p>
-
-Professional customer support anytime.
-
-</p>
-
-</div>
-
-</section>
-
-<section class="newsBox">
-
-<h2>
-
-Crypto News
-
-</h2>
-
-<div class="news">
-
-Bitcoin hits new trading activity worldwide.
-
-</div>
-
-<div class="news">
-
-Ethereum market volume increases rapidly.
-
-</div>
-
-<div class="news">
-
-Global crypto adoption reaches new highs.
-
-</div>
-
-</section>
-
-<div class="authPopup"
-id="authBox">
-
-<div class="authCard">
-
-<h2 id="authTitle">
-
-LOGIN
-
-</h2>
-
-<input
-id="email"
-placeholder="Email">
-
-<input
-id="password"
-type="password"
-placeholder="Password">
-
-<button id="authBtn">
-
-LOGIN
-
-</button>
-
-<button class="closeBtn"
-onclick="closeAuth()">
-
-Close
-
-</button>
-
-</div>
-
-</div>
-
-<script type="module"
-src="main.js">
-
-</script>
-
+<body class="bg-black text-white min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-zinc-950 border-b border-zinc-800 px-4 py-4 flex items-center justify-between fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="text-white font-bold text-2xl">P</span>
+            </div>
+            <div class="font-bold text-3xl tracking-tighter">PCN</div>
+            <div class="text-zinc-400 font-medium text-xl -ml-1">EXCHANGE</div>
+        </div>
+        <button onclick="toggleMenu()" class="text-3xl text-zinc-300 hover:text-white">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+
+    <div class="pt-20 px-4 max-w-md mx-auto">
+
+        <!-- Hero Section -->
+        <div class="hero-gradient rounded-3xl p-8 text-center mt-4">
+            <h1 class="text-5xl font-bold leading-tight">Trade Crypto<br>With Confidence</h1>
+            <p class="text-zinc-400 mt-4 text-lg">Fast, Secure & Reliable Cryptocurrency Exchange</p>
+            
+            <a href="dashboard.html" 
+               class="mt-8 block bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all text-black font-semibold text-xl py-5 rounded-3xl shadow-xl">
+                Get Started
+            </a>
+            
+            <p class="text-xs text-zinc-500 mt-4">No signup needed for demo • Real account after login</p>
+        </div>
+
+        <!-- Total Balance Demo -->
+        <div class="mt-8 bg-zinc-900 rounded-3xl p-7 coin-gradient shadow-2xl">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-emerald-400 text-sm font-medium tracking-widest">TOTAL BALANCE</p>
+                    <p class="text-5xl font-bold mt-2">$24,560.45</p>
+                    <p class="text-zinc-400 mt-1">≈ 0.654321 BTC</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-emerald-500 text-sm font-medium">+2.8% <span class="text-xs">24h</span></div>
+                    <i class="fa-solid fa-chart-line text-4xl mt-2 opacity-80"></i>
+                </div>
+            </div>
+            
+            <!-- Mini Chart -->
+            <div class="mt-6 h-24 bg-black/40 rounded-2xl relative overflow-hidden">
+                <div class="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-t from-emerald-500/30 to-transparent"></div>
+                <div class="absolute inset-0 flex items-end px-4 gap-1">
+                    <div class="bg-emerald-500 w-4 h-10 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-14 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-8 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-16 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-20 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-12 rounded-t"></div>
+                    <div class="bg-emerald-500 w-4 h-18 rounded-t"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-4 gap-3 mt-8">
+            <a href="deposit.html" class="bg-zinc-900 hover:bg-zinc-800 rounded-2xl py-5 flex flex-col items-center gap-2 transition-all active:scale-95">
+                <i class="fa-solid fa-download text-emerald-500 text-2xl"></i>
+                <span class="text-xs font-medium">Deposit</span>
+            </a>
+            <a href="wallet.html" class="bg-zinc-900 hover:bg-zinc-800 rounded-2xl py-5 flex flex-col items-center gap-2 transition-all active:scale-95">
+                <i class="fa-solid fa-upload text-emerald-500 text-2xl"></i>
+                <span class="text-xs font-medium">Withdraw</span>
+            </a>
+            <a href="trade.html" class="bg-zinc-900 hover:bg-zinc-800 rounded-2xl py-5 flex flex-col items-center gap-2 transition-all active:scale-95">
+                <i class="fa-solid fa-exchange-alt text-emerald-500 text-2xl"></i>
+                <span class="text-xs font-medium">Trade</span>
+            </a>
+            <a href="markets.html" class="bg-zinc-900 hover:bg-zinc-800 rounded-2xl py-5 flex flex-col items-center gap-2 transition-all active:scale-95">
+                <i class="fa-solid fa-chart-simple text-emerald-500 text-2xl"></i>
+                <span class="text-xs font-medium">Markets</span>
+            </a>
+        </div>
+
+        <!-- Market Snapshot -->
+        <div class="mt-10">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold">Live Market</h2>
+                <a href="markets.html" class="text-emerald-500 text-sm flex items-center gap-1">
+                    View All <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+            <div id="live-market" class="space-y-4"></div>
+        </div>
+
+        <!-- Testimonials / Reviews -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-center mb-8">What Our Traders Say</h2>
+            
+            <div class="space-y-6">
+                <!-- Review 1 -->
+                <div class="review-card bg-zinc-900 rounded-3xl p-6">
+                    <div class="flex items-center gap-1 text-yellow-400 mb-3">
+                        ★★★★☆
+                    </div>
+                    <p class="text-zinc-300 italic">"Best exchange I've used. Lightning fast deposits and excellent security. Highly recommended!"</p>
+                    <div class="flex items-center gap-3 mt-6">
+                        <div class="w-9 h-9 bg-zinc-700 rounded-2xl"></div>
+                        <div>
+                            <p class="font-medium">Michael Chen</p>
+                            <p class="text-xs text-zinc-500">Singapore • 3 months ago</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="review-card bg-zinc-900 rounded-3xl p-6">
+                    <div class="flex items-center gap-1 text-yellow-400 mb-3">
+                        ★★★★★
+                    </div>
+                    <p class="text-zinc-300 italic">"Withdrew my profits in under 10 minutes. UI is clean and easy to use. Love PCN Exchange!"</p>
+                    <div class="flex items-center gap-3 mt-6">
+                        <div class="w-9 h-9 bg-zinc-700 rounded-2xl"></div>
+                        <div>
+                            <p class="font-medium">Aisha Okoro</p>
+                            <p class="text-xs text-zinc-500">Nigeria • 2 weeks ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="flex justify-center gap-8 mt-12 opacity-75">
+            <div class="text-center">
+                <i class="fa-solid fa-shield-halved text-3xl text-emerald-500"></i>
+                <p class="text-xs mt-2">SECURE</p>
+            </div>
+            <div class="text-center">
+                <i class="fa-solid fa-bolt text-3xl text-emerald-500"></i>
+                <p class="text-xs mt-2">FAST</p>
+            </div>
+            <div class="text-center">
+                <i class="fa-solid fa-users text-3xl text-emerald-500"></i>
+                <p class="text-xs mt-2">TRUSTED</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer / Final CTA -->
+    <div class="max-w-md mx-auto px-4 mt-16 mb-24 text-center">
+        <a href="dashboard.html" 
+           class="block w-full bg-white text-black font-bold py-6 rounded-3xl text-xl hover:bg-emerald-400 transition-colors">
+            Get Started Now
+        </a>
+        <p class="text-zinc-500 text-sm mt-4">Join thousands of traders worldwide</p>
+    </div>
+
+    <!-- Bottom Nav for Demo -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-800 max-w-md mx-auto py-3">
+        <div class="flex justify-around text-xs">
+            <a href="#" class="flex flex-col items-center text-emerald-500">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="markets.html" class="flex flex-col items-center text-zinc-400">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Markets</span>
+            </a>
+            <a href="trade.html" class="flex flex-col items-center text-zinc-400">
+                <i class="fa-solid fa-exchange-alt"></i>
+                <span>Trade</span>
+            </a>
+            <a href="wallet.html" class="flex flex-col items-center text-zinc-400">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module" src="main.js"></script>
+    <script src="live-market.js"></script>
+    
+    <script>
+        function toggleMenu() {
+            alert("Menu coming soon! → Go to dashboard.html for full experience");
+        }
+
+        // Simple live market demo
+        window.onload = () => {
+            const marketContainer = document.getElementById('live-market');
+            const coins = [
+                {name: "BTC", price: "67,245", change: "+2.35%"},
+                {name: "ETH", price: "3,512", change: "+1.45%"},
+                {name: "SOL", price: "148.75", change: "-0.85%"}
+            ];
+            
+            coins.forEach(coin => {
+                const div = document.createElement('div');
+                div.className = "bg-zinc-900 rounded-2xl p-4 flex justify-between items-center";
+                div.innerHTML = `
+                    <div class="font-semibold">${coin.name}</div>
+                    <div class="text-right">
+                        <div>$${coin.price}</div>
+                        <div class="\( {coin.change.includes('+') ? 'text-emerald-500' : 'text-red-500'} text-sm"> \){coin.change}</div>
+                    </div>
+                `;
+                marketContainer.appendChild(div);
+            });
+        };
+    </script>
 </body>
-
 </html>
