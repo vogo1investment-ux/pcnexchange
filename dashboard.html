@@ -3,11 +3,17 @@
 
 <head>
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
 
-<title>DASHBOARD</title>
+<title>
 
-<link rel="stylesheet" href="dashboard.css">
+DASHBOARD
+
+</title>
+
+<link rel="stylesheet"
+href="dashboard.css">
 
 </head>
 
@@ -15,72 +21,208 @@
 
 <div class="top">
 
-<div class="title">DASHBOARD</div>
+<div class="logo">
+
+VOGO EXCHANGE
+
+</div>
 
 </div>
 
 <div class="card">
 
-WELCOME BACK
+TOTAL BALANCE
 
-<div id="username">Loading...</div>
+<div class="balance">
+
+₦<span id="balance">
+
+0
+
+</span>
 
 </div>
 
-<div class="card">
+<div class="small">
 
-BALANCE
+Live Wallet Balance
 
-<div class="balance">₦<span id="balance">0</span></div>
+</div>
 
 </div>
 
 <div class="grid">
 
-<div class="btn" onclick="location='wallet.html'">WALLET</div>
+<div class="btn"
+onclick="location='markets.html'">
 
-<div class="btn" onclick="location='markets.html'">MARKET</div>
+MARKETS
 
-<div class="btn" onclick="location='trade.html'">TRADE</div>
+</div>
 
-<div class="btn" onclick="location='settings.html'">SETTINGS</div>
+<div class="btn"
+onclick="location='trade.html'">
+
+TRADE
+
+</div>
+
+<div class="btn"
+onclick="location='wallet.html'">
+
+WALLET
+
+</div>
+
+<div class="btn"
+onclick="location='settings.html'">
+
+SETTINGS
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="market">
+
+<span>BTC/USDT</span>
+
+<span class="green">
+
++2.45%
+
+</span>
+
+</div>
+
+<div class="market">
+
+<span>ETH/USDT</span>
+
+<span class="red">
+
+-1.32%
+
+</span>
+
+</div>
+
+<div class="market">
+
+<span>BNB/USDT</span>
+
+<span class="green">
+
++5.11%
+
+</span>
+
+</div>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
 
-const firebaseConfig = {
+initializeApp
+
+}
+
+from
+
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+
+getAuth,
+
+onAuthStateChanged
+
+}
+
+from
+
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+import {
+
+getFirestore,
+
+doc,
+
+getDoc
+
+}
+
+from
+
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig={
+
 apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+
 authDomain:"jumiastaff-83757.firebaseapp.com",
+
 projectId:"jumiastaff-83757"
+
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app=
 
-onAuthStateChanged(auth, async(user)=>{
+initializeApp(firebaseConfig);
+
+const auth=
+
+getAuth(app);
+
+const db=
+
+getFirestore(app);
+
+onAuthStateChanged(
+
+auth,
+
+async(user)=>{
 
 if(!user){
+
 location="index.html";
+
 return;
+
 }
 
-const ref = doc(db,"users",user.uid);
-const snap = await getDoc(ref);
+const ref=
+
+doc(
+db,
+"users",
+user.uid
+);
+
+const snap=
+
+await getDoc(ref);
 
 if(snap.exists()){
-username.innerHTML = snap.data().username || "User";
-balance.innerHTML = snap.data().availableBalance || 0;
+
+balance.innerHTML=
+
+snap.data().availableBalance||0;
+
 }
 
-});
+}
+
+);
 
 </script>
 
 </body>
+
 </html>
