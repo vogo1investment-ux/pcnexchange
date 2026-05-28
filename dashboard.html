@@ -3,396 +3,144 @@
 
 <head>
 
-<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
+<title>DASHBOARD</title>
 
-<title>
+<style>
 
-Dashboard
+body{
+background:#f3f3f3;
+font-family:Arial;
+padding:20px;
+}
 
-</title>
+.top{
+background:#ff6600;
+color:white;
+padding:20px;
+border-radius:20px;
+font-weight:bold;
+margin-bottom:20px;
+text-align:center;
+}
 
-<link rel="stylesheet"
-href="dashboard.css">
+.card{
+background:white;
+padding:20px;
+border-radius:20px;
+margin-bottom:15px;
+font-weight:bold;
+}
+
+.btn{
+width:100%;
+padding:15px;
+background:#ff6600;
+color:white;
+border:none;
+margin-top:10px;
+font-weight:bold;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+}
+
+.balance{
+font-size:20px;
+margin-top:10px;
+}
+
+.nav{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:20px;
+}
+
+.nav div{
+background:#fff;
+padding:15px;
+border-radius:15px;
+text-align:center;
+cursor:pointer;
+font-weight:bold;
+}
+
+</style>
 
 </head>
 
 <body>
 
-<div class="topbar">
-
-<div class="logo">
-
-PCN EXCHANGE
-
+<div class="top">
+WELCOME TO YOUR DASHBOARD
 </div>
 
-<div class="userBox">
+<div class="card">
 
-<span id="username">
+<p>AVAILABLE BALANCE</p>
+<div class="balance" id="balance">₦0.00</div>
 
-Loading...
-
-</span>
-
-</div>
-
-</div>
-
-<div class="welcome">
-
-<h1>
-
-Welcome Back
-
-</h1>
-
-<p>
-
-Manage your crypto assets and trading activities.
-
-</p>
-
-</div>
-
-<div class="balanceCard">
-
-<div class="small">
-
-Total Balance
-
-</div>
-
-<div class="big">
-
-$
-
-<span id="balance">
-
-0
-
-</span>
-
-</div>
-
-<div class="profit">
-
-+2.45%
-
-</div>
-
-</div>
-
-<div class="cards">
-
-<div class="miniCard">
-
-<h2>
-
-Deposit
-
-</h2>
-
-<p>
-
-Add funds
-
-</p>
-
-</div>
-
-<div class="miniCard">
-
-<h2>
-
-Withdraw
-
-</h2>
-
-<p>
-
-Cash out
-
-</p>
-
-</div>
-
-<div class="miniCard">
-
-<h2>
-
-Trade
-
-</h2>
-
-<p>
-
-Start trading
-
-</p>
-
-</div>
-
-<div class="miniCard">
-
-<h2>
-
-History
-
-</h2>
-
-<p>
-
-Transactions
-
-</p>
-
-</div>
-
-</div>
-
-<div class="marketPreview">
-
-<div class="title">
-
-Live Market
-
-</div>
-
-<div id="liveCoins">
-
-</div>
-
-</div>
-
-<div class="navigation">
-
-<button onclick="location='dashboard.html'">
-
-Dashboard
-
+<button class="btn" onclick="location='wallet.html'">
+WALLET
 </button>
 
-<button onclick="location='markets.html'">
+</div>
 
-Markets
+<div class="nav">
 
-</button>
+<div onclick="location='markets.html'">
+MARKET
+</div>
 
-<button onclick="location='wallet.html'">
+<div onclick="location='trade.html'">
+TRADE
+</div>
 
-Wallet
+<div onclick="location='history.html'">
+HISTORY
+</div>
 
-</button>
-
-<button onclick="location='profile.html'">
-
-Profile
-
-</button>
+<div onclick="location='settings.html'">
+SETTINGS ⚙️
+</div>
 
 </div>
 
 <script type="module">
 
-import {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-initializeApp
-
-}
-
-from
-
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-import {
-
-getAuth,
-
-onAuthStateChanged
-
-}
-
-from
-
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-import {
-
-getFirestore,
-
-doc,
-
-getDoc
-
-}
-
-from
-
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-const firebaseConfig={
-
+const firebaseConfig = {
 apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
-
 authDomain:"jumiastaff-83757.firebaseapp.com",
-
-projectId:"jumiastaff-83757",
-
-storageBucket:"jumiastaff-83757.firebasestorage.app",
-
-messagingSenderId:"1018307795636",
-
-appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1"
-
+projectId:"jumiastaff-83757"
 };
 
-const app=
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-initializeApp(firebaseConfig);
-
-const auth=
-
-getAuth(app);
-
-const db=
-
-getFirestore(app);
-
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
+onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
-
-location="index.html";
-
+location = "index.html";
 return;
-
 }
 
-const ref=
-
-doc(
-
-db,
-
-"users",
-
-user.uid
-
-);
-
-const snap=
-
-await getDoc(ref);
+const ref = doc(db,"users",user.uid);
+const snap = await getDoc(ref);
 
 if(snap.exists()){
-
-let d=snap.data();
-
-username.innerHTML=
-
-d.username||"User";
-
-balance.innerHTML=
-
-Number(
-
-d.availableBalance||0
-
-).toLocaleString();
-
+balance.innerHTML = "₦" + (snap.data().availableBalance || 0);
 }
 
-}
-
-);
-
-const coins=[
-
-{
-
-name:"BTC",
-
-price:"$105,430",
-
-move:"+2.5%"
-
-},
-
-{
-
-name:"ETH",
-
-price:"$5,420",
-
-move:"+1.2%"
-
-},
-
-{
-
-name:"SOL",
-
-price:"$245",
-
-move:"+5.8%"
-
-},
-
-{
-
-name:"BNB",
-
-price:"$710",
-
-move:"+3.1%"
-
-}
-
-];
-
-coins.forEach(
-
-c=>{
-
-liveCoins.innerHTML+=`
-
-<div class="coin">
-
-<div>
-
-${c.name}
-
-</div>
-
-<div>
-
-${c.price}
-
-</div>
-
-<div class="green">
-
-${c.move}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-);
+});
 
 </script>
 
 </body>
-
 </html>

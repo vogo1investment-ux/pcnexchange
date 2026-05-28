@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>SETTINGS</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f3f3f3;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:20px;
+margin-bottom:15px;
+}
+
+input{
+width:100%;
+padding:15px;
+margin-top:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:15px;
+margin-top:10px;
+background:#ff6600;
+color:white;
+border:none;
+border-radius:10px;
+font-weight:bold;
+}
+
+.top{
+background:#ff6600;
+color:white;
+padding:20px;
+border-radius:20px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="top">
+SETTINGS
+</div>
+
+<div class="card">
+
+<p><b>Your Username</b></p>
+<div id="currentName">Loading...</div>
+
+<input id="newName" placeholder="Enter new username">
+
+<button id="saveBtn">SAVE USERNAME</button>
+
+<button id="logoutBtn">LOG OUT</button>
+
+</div>
+
+<script type="module">
+
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+getDoc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+authDomain:"jumiastaff-83757.firebaseapp.com",
+projectId:"jumiastaff-83757"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let userRef;
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user){
+location="index.html";
+return;
+}
+
+userRef = doc(db,"users",user.uid);
+
+let snap = await getDoc(userRef);
+
+if(snap.exists()){
+currentName.innerHTML = snap.data().username || "User";
+}
+
+});
+
+saveBtn.onclick = async()=>{
+
+if(!newName.value) return;
+
+await updateDoc(userRef,{
+username:newName.value
+});
+
+alert("UPDATED");
+currentName.innerHTML = newName.value;
+};
+
+logoutBtn.onclick = async()=>{
+
+await signOut(auth);
+location="index.html";
+
+};
+
+</script>
+
+</body>
+</html>
