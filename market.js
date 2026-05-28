@@ -1,41 +1,25 @@
 // market.js
 
 import {
-
 initializeApp
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
-
 getFirestore,
-
 doc,
-
 getDoc,
-
 updateDoc
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import {
-
 getAuth,
-
 onAuthStateChanged
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 /* FIREBASE */
@@ -85,87 +69,51 @@ app
 const coins = [
 
 {
-
 name:"Bitcoin",
-
 symbol:"BTC",
-
-price:67245,
-
+price:"67,245",
 change:"+2.5%",
-
-image:"₿"
-
+icon:"₿"
 },
 
 {
-
 name:"Ethereum",
-
 symbol:"ETH",
-
-price:3521,
-
+price:"3,521",
 change:"+1.2%",
-
-image:"Ξ"
-
+icon:"Ξ"
 },
 
 {
-
 name:"Solana",
-
 symbol:"SOL",
-
-price:149,
-
+price:"149",
 change:"-0.8%",
-
-image:"S"
-
+icon:"S"
 },
 
 {
-
 name:"BNB",
-
 symbol:"BNB",
-
-price:598,
-
+price:"598",
 change:"+4.1%",
-
-image:"B"
-
+icon:"B"
 },
 
 {
-
 name:"XRP",
-
 symbol:"XRP",
-
-price:0.58,
-
+price:"0.58",
 change:"+0.9%",
-
-image:"X"
-
+icon:"X"
 },
 
 {
-
-name:"Dogecoin",
-
+name:"DOGE",
 symbol:"DOGE",
-
-price:0.14,
-
-change:"-1.2%",
-
-image:"D"
-
+price:"0.14",
+change:"-1.1%",
+icon:"D"
 }
 
 ];
@@ -183,15 +131,15 @@ coin=>{
 
 marketBox.innerHTML += `
 
-<div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 shadow-xl">
+<div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
 
 <div class="flex items-center justify-between">
 
 <div class="flex items-center gap-4">
 
-<div class="w-14 h-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center text-2xl font-bold">
+<div class="w-14 h-14 bg-emerald-500 text-black rounded-2xl flex items-center justify-center text-2xl font-bold">
 
-${coin.image}
+${coin.icon}
 
 </div>
 
@@ -219,7 +167,7 @@ coin.change.includes('+')
 'text-emerald-500'
 :
 'text-red-500'
-} font-bold text-lg">
+} font-bold">
 
 ${coin.change}
 
@@ -261,7 +209,7 @@ SELL
 
 `;
 
-}
+});
 
 /* AUTH */
 
@@ -269,7 +217,7 @@ onAuthStateChanged(
 
 auth,
 
-user=>{
+async(user)=>{
 
 if(!user){
 
@@ -280,7 +228,7 @@ return;
 
 }
 
-/* BUY BUTTONS */
+/* BUY BUTTON */
 
 document.querySelectorAll(
 ".buyBtn"
@@ -293,6 +241,8 @@ async()=>{
 
 const coin =
 btn.dataset.coin;
+
+try{
 
 const userRef =
 doc(
@@ -323,9 +273,7 @@ await updateDoc(
 userRef,
 
 {
-
 cart:cart
-
 }
 
 );
@@ -336,11 +284,24 @@ coin + " added to cart"
 
 }
 
+}
+catch(e){
+
+console.log(e);
+
+alert(
+"Error adding to cart"
+);
+
+}
+
 };
 
 }
 
-/* SELL BUTTONS */
+);
+
+/* SELL BUTTON */
 
 document.querySelectorAll(
 ".sellBtn"
@@ -352,7 +313,7 @@ btn.onclick =
 ()=>{
 
 alert(
-"Sell system coming next"
+"Sell system coming soon"
 );
 
 };
