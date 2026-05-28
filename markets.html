@@ -1,129 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
 <meta charset="UTF-8">
 
 <meta name="viewport"
-content="width=device-width,initial-scale=1">
+content="width=device-width, initial-scale=1.0">
 
 <title>
 
-Markets
+PCN MARKETS
 
 </title>
 
 <link rel="stylesheet"
 href="dashboard.css">
 
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
 </head>
 
-<body>
+<body class="bg-black text-white">
 
-<div class="topbar">
+<!-- HEADER -->
 
-<div class="logo">
+<div class="w-full bg-zinc-950 border-b border-zinc-800 px-6 py-5 flex items-center justify-between">
 
-PCN EXCHANGE
+<div class="flex items-center gap-3">
+
+<div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center font-bold text-black text-xl">
+
+P
 
 </div>
 
-</div>
+<h1 class="text-2xl font-bold">
 
-<div class="welcome">
-
-<h1>
-
-Crypto Markets
+PCN MARKETS
 
 </h1>
 
-<p>
-
-Track all live cryptocurrency prices.
-
-</p>
-
 </div>
 
-<div id="marketContainer">
-
-</div>
-
-<div class="navigation">
-
-<button onclick="location='dashboard.html'">
+<a href="dashboard.html"
+class="text-emerald-500 text-lg">
 
 Dashboard
 
-</button>
+</a>
 
-<button onclick="location='markets.html'">
+</div>
+
+<!-- MARKET LIST -->
+
+<div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+id="marketBox">
+
+</div>
+
+<!-- BOTTOM NAV -->
+
+<div class="fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-800 py-4 flex justify-around">
+
+<a href="dashboard.html"
+class="flex flex-col items-center text-zinc-400">
+
+<i class="fa-solid fa-house text-xl"></i>
+
+<span class="text-xs mt-1">
+
+Home
+
+</span>
+
+</a>
+
+<a href="markets.html"
+class="flex flex-col items-center text-emerald-500">
+
+<i class="fa-solid fa-chart-line text-xl"></i>
+
+<span class="text-xs mt-1">
 
 Markets
 
-</button>
+</span>
 
-<button onclick="location='wallet.html'">
+</a>
+
+<a href="trade.html"
+class="flex flex-col items-center text-zinc-400">
+
+<i class="fa-solid fa-arrow-right-arrow-left text-xl"></i>
+
+<span class="text-xs mt-1">
+
+Trade
+
+</span>
+
+</a>
+
+<a href="wallet.html"
+class="flex flex-col items-center text-zinc-400">
+
+<i class="fa-solid fa-wallet text-xl"></i>
+
+<span class="text-xs mt-1">
 
 Wallet
 
-</button>
+</span>
 
-<button onclick="location='profile.html'">
-
-Profile
-
-</button>
+</a>
 
 </div>
 
-<script type="module">
-
-import products from "./market.js";
-
-products.forEach(
-
-coin=>{
-
-marketContainer.innerHTML+=`
-
-<div class="coin">
-
-<div>
-
-<b>
-
-${coin.name}
-
-</b>
-
-<br>
-
-${coin.symbol}
-
-</div>
-
-<div>
-
-${coin.price}
-
-</div>
-
-<div class="green">
-
-${coin.change}
-
-</div>
-
-</div>
-
-`;
-
-}
-
-);
+<script type="module"
+src="market.js">
 
 </script>
 
