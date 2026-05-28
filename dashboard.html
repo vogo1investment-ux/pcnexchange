@@ -10,47 +10,55 @@ content="width=device-width, initial-scale=1.0">
 
 <title>
 
-PCN DASHBOARD
+PCN EXCHANGE DASHBOARD
 
 </title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 <link rel="stylesheet"
 href="dashboard.css">
 
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
 </head>
 
-<body class="bg-black text-white">
+<body>
 
-<!-- HEADER -->
+<!-- TOP HEADER -->
 
-<div class="dashboard-header">
+<header class="top-header">
+
+<div class="logo-area">
 
 <div class="logo-box">
-
-<div class="logo-icon">
 
 P
 
 </div>
 
-<div class="logo-text">
+<div>
+
+<h1>
 
 PCN EXCHANGE
 
-</div>
+</h1>
+
+<p>
+
+Secure Crypto Trading
+
+</p>
 
 </div>
 
-<div class="header-right">
+</div>
 
-<a href="profile.html">
+<div class="header-icons">
 
-<i class="fa-solid fa-user"></i>
+<a href="notifications.html">
+
+<i class="fa-solid fa-bell"></i>
 
 </a>
 
@@ -62,87 +70,94 @@ PCN EXCHANGE
 
 </div>
 
-</div>
+</header>
 
 <!-- MAIN -->
 
-<div class="dashboard-container">
+<div class="main-container">
 
-<!-- WELCOME -->
-
-<div class="welcome-card">
-
-<p>
-
-WELCOME BACK
-
-</p>
-
-<h2 id="welcomeUser">
-
-Loading...
-
-</h2>
-
-<span>
-
-Trade smarter with PCN Exchange
-
-</span>
-
-</div>
-
-<!-- BALANCE -->
+<!-- BALANCE CARD -->
 
 <div class="balance-card">
 
-<div class="balance-top">
-
-<div>
-
-<p>
+<p class="balance-title">
 
 TOTAL BALANCE
 
 </p>
 
-<h1 id="balance">
+<h2 id="balance">
 
-$0
+$0.00
 
-</h1>
+</h2>
 
-</div>
+<p class="profit">
 
-<div class="green">
++2.56% Today
 
-LIVE
+</p>
 
-</div>
+<div class="balance-buttons">
 
-</div>
+<a href="wallet.html">
 
-<div class="chart-box">
+Deposit
 
-<div class="chart-line">
+</a>
 
-<div class="line h1"></div>
+<a href="trade.html">
 
-<div class="line h2"></div>
+Trade
 
-<div class="line h3"></div>
+</a>
 
-<div class="line h4"></div>
+<a href="markets.html">
 
-<div class="line h5"></div>
+Markets
 
-<div class="line h6"></div>
-
-<div class="line h7"></div>
+</a>
 
 </div>
 
 </div>
+
+<!-- USER SECTION -->
+
+<div class="user-box">
+
+<div class="user-left">
+
+<div class="avatar">
+
+<i class="fa-solid fa-user"></i>
+
+</div>
+
+<div>
+
+<h3 id="welcomeUser">
+
+Loading...
+
+</h3>
+
+<p>
+
+Welcome back to PCN Exchange
+
+</p>
+
+</div>
+
+</div>
+
+<a href="profile.html"
+class="profile-btn">
+
+View Profile
+
+</a>
 
 </div>
 
@@ -151,7 +166,7 @@ LIVE
 <div class="action-grid">
 
 <a href="wallet.html"
-class="action-box">
+class="action-card">
 
 <i class="fa-solid fa-wallet"></i>
 
@@ -163,21 +178,8 @@ Wallet
 
 </a>
 
-<a href="markets.html"
-class="action-box">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<span>
-
-Markets
-
-</span>
-
-</a>
-
 <a href="trade.html"
-class="action-box">
+class="action-card">
 
 <i class="fa-solid fa-arrow-right-arrow-left"></i>
 
@@ -189,14 +191,27 @@ Trade
 
 </a>
 
-<a href="profile.html"
-class="action-box">
+<a href="markets.html"
+class="action-card">
 
-<i class="fa-solid fa-user"></i>
+<i class="fa-solid fa-chart-line"></i>
 
 <span>
 
-Profile
+Markets
+
+</span>
+
+</a>
+
+<a href="history.html"
+class="action-card">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+<span>
+
+History
 
 </span>
 
@@ -206,9 +221,9 @@ Profile
 
 <!-- MARKET -->
 
-<div class="market-card">
+<div class="market-box">
 
-<div class="market-top">
+<div class="market-header">
 
 <h2>
 
@@ -218,7 +233,7 @@ Top Markets
 
 <a href="markets.html">
 
-See All
+View All
 
 </a>
 
@@ -232,9 +247,9 @@ See All
 
 </div>
 
-<!-- NAV -->
+<!-- BOTTOM NAV -->
 
-<div class="bottom-nav">
+<nav class="bottom-nav">
 
 <a href="dashboard.html"
 class="active">
@@ -251,7 +266,7 @@ Home
 
 <a href="markets.html">
 
-<i class="fa-solid fa-chart-line"></i>
+<i class="fa-solid fa-chart-simple"></i>
 
 <span>
 
@@ -285,7 +300,19 @@ Wallet
 
 </a>
 
-</div>
+<a href="profile.html">
+
+<i class="fa-solid fa-user"></i>
+
+<span>
+
+Profile
+
+</span>
+
+</a>
+
+</nav>
 
 <script type="module">
 
@@ -310,43 +337,30 @@ onAuthStateChanged
 from
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-/* FIREBASE */
+const firebaseConfig={
 
-const firebaseConfig = {
+apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
 
-apiKey:
-"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+authDomain:"jumiastaff-83757.firebaseapp.com",
 
-authDomain:
-"jumiastaff-83757.firebaseapp.com",
+projectId:"jumiastaff-83757",
 
-projectId:
-"jumiastaff-83757",
+storageBucket:"jumiastaff-83757.firebasestorage.app",
 
-storageBucket:
-"jumiastaff-83757.firebasestorage.app",
+messagingSenderId:"1018307795636",
 
-messagingSenderId:
-"1018307795636",
-
-appId:
-"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
-
-measurementId:
-"G-W9M358ZS1G"
+appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1"
 
 };
 
-const app =
+const app=
 initializeApp(firebaseConfig);
 
-const db =
+const db=
 getFirestore(app);
 
-const auth =
+const auth=
 getAuth(app);
-
-/* USER */
 
 onAuthStateChanged(
 
@@ -356,53 +370,45 @@ async(user)=>{
 
 if(!user){
 
-window.location =
-"index.html";
+window.location="login.html";
 
 return;
 
 }
 
-const userRef =
-doc(
-db,
-"users",
-user.uid
-);
+const ref=
+doc(db,"users",user.uid);
 
-const snap =
-await getDoc(
-userRef
-);
+const snap=
+await getDoc(ref);
 
 if(snap.exists()){
 
-const data =
-snap.data();
+const data=snap.data();
 
 document.getElementById(
 "welcomeUser"
-).innerText =
+).innerText=
 data.username || "PCN USER";
 
 document.getElementById(
 "balance"
-).innerText =
-"$" + (data.availableBalance || 0);
+).innerText=
+"$"+(data.availableBalance || 0);
 
 }
 
 }
 
 );
-
-/* LIVE MARKET */
 
 const coins=[
 
 {
 
-name:"BTC",
+name:"Bitcoin",
+
+symbol:"BTC",
 
 price:"67,245",
 
@@ -412,7 +418,9 @@ change:"+2.5%"
 
 {
 
-name:"ETH",
+name:"Ethereum",
+
+symbol:"ETH",
 
 price:"3,521",
 
@@ -422,7 +430,9 @@ change:"+1.2%"
 
 {
 
-name:"SOL",
+name:"Solana",
+
+symbol:"SOL",
 
 price:"149",
 
@@ -432,7 +442,7 @@ change:"-0.8%"
 
 ];
 
-const market =
+const market=
 document.getElementById(
 "marketList"
 );
@@ -449,17 +459,25 @@ market.innerHTML += `
 
 <h3>
 
-${coin.name}
+${coin.symbol}
 
 </h3>
 
 <p>
 
-$${coin.price}
+${coin.name}
 
 </p>
 
 </div>
+
+<div class="market-right">
+
+<h4>
+
+$${coin.price}
+
+</h4>
 
 <span class="${
 coin.change.includes('+')
@@ -472,6 +490,8 @@ coin.change.includes('+')
 ${coin.change}
 
 </span>
+
+</div>
 
 </div>
 
