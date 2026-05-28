@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+
+PCN WALLET
+
+</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<link rel="stylesheet"
+href="wallet.css">
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="wallet-header">
+
+<div class="wallet-logo">
+
+<div class="wallet-icon">
+
+P
+
+</div>
+
+<h1>
+
+PCN WALLET
+
+</h1>
+
+</div>
+
+<a href="dashboard.html">
+
+Dashboard
+
+</a>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="wallet-container">
+
+<!-- BALANCE -->
+
+<div class="balance-card">
+
+<p>
+
+TOTAL BALANCE
+
+</p>
+
+<h1 id="balance">
+
+$0
+
+</h1>
+
+<span>
+
+Your available wallet balance
+
+</span>
+
+<div class="wallet-buttons">
+
+<button>
+
+Deposit
+
+</button>
+
+<button>
+
+Withdraw
+
+</button>
+
+</div>
+
+</div>
+
+<!-- EXTRA -->
+
+<div class="wallet-grid">
+
+<div class="wallet-box">
+
+<p>
+
+Withdrawable
+
+</p>
+
+<h2 id="withdrawable">
+
+$0
+
+</h2>
+
+</div>
+
+<div class="wallet-box">
+
+<p>
+
+Referral Bonus
+
+</p>
+
+<h2 id="referral">
+
+$0
+
+</h2>
+
+</div>
+
+<div class="wallet-box">
+
+<p>
+
+Cart Items
+
+</p>
+
+<h2 id="cart">
+
+0
+
+</h2>
+
+</div>
+
+</div>
+
+<!-- REF LINK -->
+
+<div class="ref-box">
+
+<h2>
+
+Referral Link
+
+</h2>
+
+<div class="ref-actions">
+
+<input
+id="refLink"
+readonly>
+
+<button
+id="copyBtn">
+
+COPY
+
+</button>
+
+</div>
+
+</div>
+
+<!-- TRANSACTIONS -->
+
+<div class="transactions">
+
+<div class="trans-top">
+
+<h2>
+
+Recent Activity
+
+</h2>
+
+<span>
+
+LIVE
+
+</span>
+
+</div>
+
+<div class="trans-card">
+
+<div>
+
+<h3>
+
+Bitcoin Purchase
+
+</h3>
+
+<p>
+
+Completed
+
+</p>
+
+</div>
+
+<b class="green">
+
++$320
+
+</b>
+
+</div>
+
+<div class="trans-card">
+
+<div>
+
+<h3>
+
+Ethereum Trade
+
+</h3>
+
+<p>
+
+Completed
+
+</p>
+
+</div>
+
+<b class="red">
+
+-$120
+
+</b>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- NAV -->
+
+<div class="bottom-nav">
+
+<a href="dashboard.html">
+
+<i class="fa-solid fa-house"></i>
+
+<span>
+
+Home
+
+</span>
+
+</a>
+
+<a href="markets.html">
+
+<i class="fa-solid fa-chart-line"></i>
+
+<span>
+
+Markets
+
+</span>
+
+</a>
+
+<a href="trade.html">
+
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
+
+<span>
+
+Trade
+
+</span>
+
+</a>
+
+<a href="wallet.html"
+class="active">
+
+<i class="fa-solid fa-wallet"></i>
+
+<span>
+
+Wallet
+
+</span>
+
+</a>
+
+</div>
+
+<script type="module"
+src="wallet.js">
+
+</script>
+
+</body>
+
+</html>
