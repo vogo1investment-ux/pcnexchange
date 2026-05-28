@@ -10,23 +10,17 @@ content="width=device-width, initial-scale=1.0">
 
 <title>
 
-PCN SETTINGS
+SETTINGS
 
 </title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
-<link rel="stylesheet"
-href="dashboard.css">
-
 <style>
 
 body{
 
-background:#000;
+background:black;
 
 color:white;
 
@@ -40,77 +34,9 @@ padding-bottom:100px;
 
 }
 
-.settings-header{
+.container{
 
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-padding:20px;
-
-background:#111;
-
-border-bottom:1px solid #222;
-
-}
-
-.settings-logo{
-
-display:flex;
-
-align-items:center;
-
-gap:12px;
-
-}
-
-.settings-icon{
-
-width:45px;
-
-height:45px;
-
-background:#00ff88;
-
-color:black;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-border-radius:15px;
-
-font-size:22px;
-
-font-weight:bold;
-
-}
-
-.settings-header h1{
-
-font-size:24px;
-
-font-weight:bold;
-
-}
-
-.settings-header a{
-
-color:#00ff88;
-
-text-decoration:none;
-
-font-weight:bold;
-
-}
-
-.settings-container{
-
-max-width:1000px;
+max-width:900px;
 
 margin:auto;
 
@@ -118,7 +44,7 @@ padding:20px;
 
 }
 
-.settings-card{
+.card{
 
 background:#111;
 
@@ -132,73 +58,11 @@ margin-top:25px;
 
 }
 
-.settings-card h2{
-
-font-size:28px;
-
-margin-bottom:20px;
-
-}
-
-.settings-card p{
-
-color:#777;
-
-margin-top:8px;
-
-}
-
-.settings-card input{
-
-width:100%;
-
-padding:18px;
-
-background:black;
-
-border:1px solid #333;
-
-border-radius:20px;
-
-color:white;
-
-margin-top:15px;
-
-font-size:18px;
-
-}
-
-.settings-btn{
-
-width:100%;
-
-padding:18px;
-
-margin-top:20px;
-
-background:#00ff88;
-
-border:none;
-
-border-radius:20px;
-
-font-size:18px;
-
-font-weight:bold;
-
-cursor:pointer;
-
-color:black;
-
-}
-
 .logout-btn{
 
 width:100%;
 
 padding:18px;
-
-margin-top:20px;
 
 background:red;
 
@@ -214,57 +78,7 @@ cursor:pointer;
 
 color:white;
 
-}
-
-.bottom-nav{
-
-position:fixed;
-
-bottom:0;
-
-left:0;
-
-right:0;
-
-background:#111;
-
-border-top:1px solid #222;
-
-display:flex;
-
-justify-content:space-around;
-
-padding:15px 0;
-
-}
-
-.bottom-nav a{
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-text-decoration:none;
-
-color:#777;
-
-font-size:13px;
-
-}
-
-.bottom-nav a i{
-
-font-size:22px;
-
-margin-bottom:5px;
-
-}
-
-.bottom-nav .active{
-
-color:#00ff88;
+margin-top:20px;
 
 }
 
@@ -274,105 +88,19 @@ color:#00ff88;
 
 <body>
 
-<!-- HEADER -->
+<div class="container">
 
-<div class="settings-header">
+<div class="card">
 
-<div class="settings-logo">
+<h2 style="font-size:30px;">
 
-<div class="settings-icon">
-
-P
-
-</div>
-
-<h1>
-
-PCN SETTINGS
-
-</h1>
-
-</div>
-
-<a href="dashboard.html">
-
-Dashboard
-
-</a>
-
-</div>
-
-<!-- MAIN -->
-
-<div class="settings-container">
-
-<!-- PROFILE -->
-
-<div class="settings-card">
-
-<h2>
-
-Profile Settings
+Account Actions
 
 </h2>
 
-<p>
+<p style="color:#777;margin-top:10px;">
 
-Change your username below
-
-</p>
-
-<input
-id="username"
-placeholder="Enter Username">
-
-<button
-id="saveBtn"
-class="settings-btn">
-
-SAVE CHANGES
-
-</button>
-
-</div>
-
-<!-- ACCOUNT -->
-
-<div class="settings-card">
-
-<h2>
-
-Account Information
-
-</h2>
-
-<p id="userEmail">
-
-Loading email...
-
-</p>
-
-<p id="userId">
-
-Loading user ID...
-
-</p>
-
-</div>
-
-<!-- SECURITY -->
-
-<div class="settings-card">
-
-<h2>
-
-Security
-
-</h2>
-
-<p>
-
-Your account is protected with Firebase Authentication.
+Manage your account safely.
 
 </p>
 
@@ -380,66 +108,11 @@ Your account is protected with Firebase Authentication.
 id="logoutBtn"
 class="logout-btn">
 
-LOGOUT
+LOGOUT ACCOUNT
 
 </button>
 
 </div>
-
-</div>
-
-<!-- NAV -->
-
-<div class="bottom-nav">
-
-<a href="dashboard.html">
-
-<i class="fa-solid fa-house"></i>
-
-<span>
-
-Home
-
-</span>
-
-</a>
-
-<a href="markets.html">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<span>
-
-Markets
-
-</span>
-
-</a>
-
-<a href="trade.html">
-
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<span>
-
-Trade
-
-</span>
-
-</a>
-
-<a href="settings.html"
-class="active">
-
-<i class="fa-solid fa-gear"></i>
-
-<span>
-
-Settings
-
-</span>
-
-</a>
 
 </div>
 
@@ -452,149 +125,44 @@ from
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
-getFirestore,
-doc,
-getDoc,
-updateDoc
-}
-from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-import {
 getAuth,
-onAuthStateChanged,
 signOut
 }
 from
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-/* FIREBASE */
+const firebaseConfig={
 
-const firebaseConfig = {
+apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
 
-apiKey:
-"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+authDomain:"jumiastaff-83757.firebaseapp.com",
 
-authDomain:
-"jumiastaff-83757.firebaseapp.com",
+projectId:"jumiastaff-83757",
 
-projectId:
-"jumiastaff-83757",
+storageBucket:"jumiastaff-83757.firebasestorage.app",
 
-storageBucket:
-"jumiastaff-83757.firebasestorage.app",
+messagingSenderId:"1018307795636",
 
-messagingSenderId:
-"1018307795636",
+appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
 
-appId:
-"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
-
-measurementId:
-"G-W9M358ZS1G"
+measurementId:"G-W9M358ZS1G"
 
 };
 
-const app =
-initializeApp(
-firebaseConfig
-);
+const app=
+initializeApp(firebaseConfig);
 
-const db =
-getFirestore(
-app
-);
+const auth=
+getAuth(app);
 
-const auth =
-getAuth(
-app
-);
-
-/* USER */
-
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
-
-if(!user){
-
-window.location =
-"index.html";
-
-return;
-
-}
-
-userEmail.innerText =
-"Email: " + user.email;
-
-userId.innerText =
-"User ID: " + user.uid;
-
-const userRef =
-doc(
-db,
-"users",
-user.uid
-);
-
-const userSnap =
-await getDoc(
-userRef
-);
-
-if(userSnap.exists()){
-
-const data =
-userSnap.data();
-
-username.value =
-data.username || "";
-
-}
-
-/* SAVE */
-
-saveBtn.onclick =
+logoutBtn.onclick=
 async()=>{
 
-await updateDoc(
+await signOut(auth);
 
-userRef,
-
-{
-
-username:
-username.value
-
-}
-
-);
-
-alert(
-"Username updated"
-);
+window.location="index.html";
 
 };
-
-/* LOGOUT */
-
-logoutBtn.onclick =
-async()=>{
-
-await signOut(
-auth
-);
-
-window.location =
-"index.html";
-
-};
-
-}
-);
 
 </script>
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+
+PROFILE
+
+</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet"
+href="dashboard.css">
+
+<style>
+
+body{
+
+background:black;
+
+color:white;
+
+font-family:Arial;
+
+margin:0;
+
+padding:0;
+
+padding-bottom:100px;
+
+}
+
+.header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+padding:20px;
+
+background:#111;
+
+border-bottom:1px solid #222;
+
+}
+
+.logo{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+}
+
+.icon{
+
+width:45px;
+
+height:45px;
+
+background:#00ff88;
+
+color:black;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+border-radius:15px;
+
+font-weight:bold;
+
+font-size:22px;
+
+}
+
+.container{
+
+max-width:1000px;
+
+margin:auto;
+
+padding:20px;
+
+}
+
+.card{
+
+background:#111;
+
+border:1px solid #222;
+
+border-radius:30px;
+
+padding:30px;
+
+margin-top:25px;
+
+}
+
+.card h2{
+
+font-size:28px;
+
+margin-bottom:20px;
+
+}
+
+.card input{
+
+width:100%;
+
+padding:18px;
+
+background:black;
+
+border:1px solid #333;
+
+border-radius:20px;
+
+color:white;
+
+margin-top:15px;
+
+}
+
+.btn{
+
+width:100%;
+
+padding:18px;
+
+margin-top:20px;
+
+background:#00ff88;
+
+border:none;
+
+border-radius:20px;
+
+font-size:18px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+color:black;
+
+}
+
+.info{
+
+margin-top:15px;
+
+color:#777;
+
+}
+
+.bottom-nav{
+
+position:fixed;
+
+bottom:0;
+
+left:0;
+
+right:0;
+
+background:#111;
+
+border-top:1px solid #222;
+
+display:flex;
+
+justify-content:space-around;
+
+padding:15px 0;
+
+}
+
+.bottom-nav a{
+
+display:flex;
+
+flex-direction:column;
+
+align-items:center;
+
+text-decoration:none;
+
+color:#777;
+
+font-size:13px;
+
+}
+
+.bottom-nav .active{
+
+color:#00ff88;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+<div class="logo">
+
+<div class="icon">
+
+P
+
+</div>
+
+<h1>
+
+PCN PROFILE
+
+</h1>
+
+</div>
+
+<a href="dashboard.html"
+style="color:#00ff88;">
+
+Dashboard
+
+</a>
+
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<h2>
+
+Profile Information
+
+</h2>
+
+<input
+id="username"
+placeholder="Username">
+
+<div class="info"
+id="email">
+
+Loading Email...
+
+</div>
+
+<div class="info"
+id="uid">
+
+Loading UID...
+
+</div>
+
+<button
+id="saveBtn"
+class="btn">
+
+SAVE PROFILE
+
+</button>
+
+</div>
+
+</div>
+
+<div class="bottom-nav">
+
+<a href="dashboard.html">
+
+Home
+
+</a>
+
+<a href="markets.html">
+
+Markets
+
+</a>
+
+<a href="trade.html">
+
+Trade
+
+</a>
+
+<a href="profile.html"
+class="active">
+
+Profile
+
+</a>
+
+</div>
+
+<script type="module">
+
+import {
+initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+getFirestore,
+doc,
+getDoc,
+updateDoc
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const firebaseConfig={
+
+apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+
+authDomain:"jumiastaff-83757.firebaseapp.com",
+
+projectId:"jumiastaff-83757",
+
+storageBucket:"jumiastaff-83757.firebasestorage.app",
+
+messagingSenderId:"1018307795636",
+
+appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
+
+measurementId:"G-W9M358ZS1G"
+
+};
+
+const app=
+initializeApp(firebaseConfig);
+
+const db=
+getFirestore(app);
+
+const auth=
+getAuth(app);
+
+onAuthStateChanged(
+
+auth,
+
+async(user)=>{
+
+if(!user){
+
+window.location="index.html";
+
+return;
+
+}
+
+email.innerText=
+"Email: "+user.email;
+
+uid.innerText=
+"UID: "+user.uid;
+
+const userRef=
+doc(db,"users",user.uid);
+
+const snap=
+await getDoc(userRef);
+
+if(snap.exists()){
+
+const data=snap.data();
+
+username.value=
+data.username||"";
+
+}
+
+saveBtn.onclick=
+async()=>{
+
+await updateDoc(
+
+userRef,
+
+{
+
+username:username.value
+
+}
+
+);
+
+alert("Profile Updated");
+
+};
+
+}
+
+);
+
+</script>
+
+</body>
+
+</html>

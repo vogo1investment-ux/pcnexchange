@@ -10,385 +10,119 @@ content="width=device-width, initial-scale=1.0">
 
 <title>
 
-PCN Dashboard
+DASHBOARD FIX
 
 </title>
 
-<link rel="stylesheet"
-href="dashboard.css">
+<script type="module">
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+import {
+initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+getFirestore,
+doc,
+getDoc
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+}
+from
+"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+const firebaseConfig={
+
+apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+
+authDomain:"jumiastaff-83757.firebaseapp.com",
+
+projectId:"jumiastaff-83757",
+
+storageBucket:"jumiastaff-83757.firebasestorage.app",
+
+messagingSenderId:"1018307795636",
+
+appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
+
+measurementId:"G-W9M358ZS1G"
+
+};
+
+const app=
+initializeApp(firebaseConfig);
+
+const db=
+getFirestore(app);
+
+const auth=
+getAuth(app);
+
+onAuthStateChanged(
+
+auth,
+
+async(user)=>{
+
+if(!user){
+
+window.location="index.html";
+
+return;
+
+}
+
+const userRef=
+doc(db,"users",user.uid);
+
+const snap=
+await getDoc(userRef);
+
+if(snap.exists()){
+
+const data=snap.data();
+
+document.getElementById(
+"welcomeUser"
+).innerText=
+data.username||"PCN USER";
+
+document.getElementById(
+"balance"
+).innerText=
+"$"+(data.availableBalance||0);
+
+}
+
+}
+
+);
+
+</script>
 
 </head>
 
 <body>
 
-<!-- TOP HEADER -->
+<!-- PUT THIS INSIDE YOUR REAL DASHBOARD -->
 
-<header class="topbar">
-
-<div class="logo">
-
-PCN EXCHANGE
-
-</div>
-
-<div class="top-icons">
-
-<i class="fa-solid fa-bell"></i>
-
-<a href="settings.html">
-
-<i class="fa-solid fa-gear"></i>
-
-</a>
-
-</div>
-
-</header>
-
-<!-- MAIN -->
-
-<div class="container">
-
-<!-- PROFILE CARD -->
-
-<div class="profile-card">
-
-<div class="profile-top">
-
-<div>
-
-<p class="small">
-
-WELCOME BACK
-
-</p>
-
-<h2 id="username">
+<h2 id="welcomeUser">
 
 Loading...
 
 </h2>
 
-</div>
-
-<div class="online">
-
-ONLINE
-
-</div>
-
-</div>
-
-<div class="balance-box">
-
-<p>
-
-TOTAL BALANCE
-
-</p>
-
 <h1 id="balance">
 
-$0.00
+$0
 
 </h1>
-
-</div>
-
-<div class="wallet-buttons">
-
-<button onclick="location='deposit.html'">
-
-Deposit
-
-</button>
-
-<button onclick="location='wallet.html'">
-
-Withdraw
-
-</button>
-
-</div>
-
-</div>
-
-<!-- QUICK ACTIONS -->
-
-<div class="actions-grid">
-
-<div class="action-card"
-onclick="location='trade.html'">
-
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<p>
-
-Trade
-
-</p>
-
-</div>
-
-<div class="action-card"
-onclick="location='markets.html'">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<p>
-
-Markets
-
-</p>
-
-</div>
-
-<div class="action-card"
-onclick="location='wallet.html'">
-
-<i class="fa-solid fa-wallet"></i>
-
-<p>
-
-Wallet
-
-</p>
-
-</div>
-
-<div class="action-card"
-onclick="location='support.html'">
-
-<i class="fa-solid fa-headset"></i>
-
-<p>
-
-Support
-
-</p>
-
-</div>
-
-</div>
-
-<!-- LIVE MARKET -->
-
-<div class="market-box">
-
-<div class="market-top">
-
-<h3>
-
-Live Market
-
-</h3>
-
-<a href="markets.html">
-
-See All
-
-</a>
-
-</div>
-
-<div id="marketList">
-
-</div>
-
-</div>
-
-<!-- REFERRAL -->
-
-<div class="referral-box">
-
-<div>
-
-<h3>
-
-Referral Bonus
-
-</h3>
-
-<p>
-
-Invite friends and earn rewards
-
-</p>
-
-</div>
-
-<button>
-
-Invite
-
-</button>
-
-</div>
-
-</div>
-
-<!-- BOTTOM NAV -->
-
-<nav class="bottom-nav">
-
-<a href="dashboard.html"
-class="active">
-
-<i class="fa-solid fa-house"></i>
-
-<span>
-
-Home
-
-</span>
-
-</a>
-
-<a href="markets.html">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<span>
-
-Markets
-
-</span>
-
-</a>
-
-<a href="trade.html">
-
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<span>
-
-Trade
-
-</span>
-
-</a>
-
-<a href="wallet.html">
-
-<i class="fa-solid fa-wallet"></i>
-
-<span>
-
-Wallet
-
-</span>
-
-</a>
-
-<a href="profile.html">
-
-<i class="fa-solid fa-user"></i>
-
-<span>
-
-Profile
-
-</span>
-
-</a>
-
-</nav>
-
-<script type="module"
-src="main.js">
-
-</script>
-
-<script>
-
-const coins=[
-
-{
-
-name:"BTC",
-
-price:"67,245",
-
-change:"+2.5%"
-
-},
-
-{
-
-name:"ETH",
-
-price:"3,521",
-
-change:"+1.2%"
-
-},
-
-{
-
-name:"SOL",
-
-price:"149",
-
-change:"-0.8%"
-
-}
-
-];
-
-const marketList=
-
-document.getElementById(
-"marketList"
-);
-
-coins.forEach(
-
-coin=>{
-
-marketList.innerHTML+=`
-
-<div class="coin">
-
-<div>
-
-<h4>
-
-${coin.name}
-
-</h4>
-
-<p>
-
-$${coin.price}
-
-</p>
-
-</div>
-
-<span class="${
-coin.change.includes('+')
-?
-'green'
-:
-'red'
-}">
-
-${coin.change}
-
-</span>
-
-</div>
-
-`;
-
-}
-
-);
-
-</script>
 
 </body>
 
