@@ -264,30 +264,10 @@ document.getElementById(
 /* CONNECT BUTTONS */
 
 document.querySelectorAll(
-"a"
+".auth-open"
 ).forEach(
 
 btn=>{
-
-if(
-
-btn.innerText.includes(
-"Login"
-)
-
-||
-
-btn.innerText.includes(
-"Get Started"
-)
-
-||
-
-btn.innerText.includes(
-"Start Trading"
-)
-
-){
 
 btn.addEventListener(
 
@@ -304,10 +284,6 @@ openAuth();
 );
 
 }
-
-}
-
-);
 
 /* CREATE ACCOUNT */
 
@@ -501,8 +477,6 @@ if(snap.exists()){
 const data=
 snap.data();
 
-/* DASHBOARD USERNAME */
-
 const welcomeUser=
 
 document.getElementById(
@@ -515,8 +489,6 @@ welcomeUser.innerText=
 data.username;
 
 }
-
-/* DASHBOARD BALANCE */
 
 const balance=
 
