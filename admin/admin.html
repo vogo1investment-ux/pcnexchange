@@ -5,102 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCN ADMIN PANEL</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="admin.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:#0a0a0a;
-color:white;
-}
-
-.sidebar{
-width:250px;
-height:100vh;
-background:#111;
-position:fixed;
-left:0;
-top:0;
-padding:20px;
-border-right:1px solid #222;
-}
-
-.sidebar h1{
-color:#00ff88;
-margin-bottom:30px;
-}
-
-.sidebar a{
-display:flex;
-align-items:center;
-gap:10px;
-color:#aaa;
-padding:12px;
-border-radius:10px;
-text-decoration:none;
-margin-bottom:10px;
-}
-
-.sidebar a:hover{
-background:#1a1a1a;
-color:#00ff88;
-}
-
-.main{
-margin-left:260px;
-padding:20px;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:20px;
-}
-
-.card{
-background:#111;
-padding:20px;
-border-radius:20px;
-border:1px solid #222;
-}
-
-.card h2{
-color:#00ff88;
-font-size:20px;
-}
-
-.section{
-margin-top:25px;
-background:#111;
-padding:20px;
-border-radius:20px;
-border:1px solid #222;
-}
-
-table{
-width:100%;
-margin-top:10px;
-}
-
-th,td{
-padding:10px;
-text-align:left;
-border-bottom:1px solid #222;
-color:#aaa;
-}
-
-.status{
-padding:5px 10px;
-border-radius:10px;
-font-size:12px;
-}
-
-.pending{background:#ffb020;color:black;}
-.success{background:#00ff88;color:black;}
-.rejected{background:red;color:white;}
-</style>
+<script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
@@ -108,90 +15,621 @@ font-size:12px;
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-<h1>PCN ADMIN</h1>
 
-<a href="#"><i class="fa fa-users"></i> Users</a>
-<a href="#"><i class="fa fa-id-card"></i> KYC</a>
-<a href="#"><i class="fa fa-wallet"></i> Deposits</a>
-<a href="#"><i class="fa fa-money-bill"></i> Withdrawals</a>
-<a href="#"><i class="fa fa-message"></i> Support</a>
-<a href="#"><i class="fa fa-bell"></i> Notifications</a>
+<div class="logo">
+<h1>
+<span class="green">PCN</span> EXCHANGE
+</h1>
+</div>
+
+<a href="#" class="active">
+<i class="fa-solid fa-chart-line"></i>
+Dashboard
+</a>
+
+<a href="#usersSection">
+<i class="fa-solid fa-users"></i>
+Users
+</a>
+
+<a href="#kycSection">
+<i class="fa-solid fa-id-card"></i>
+KYC Verification
+</a>
+
+<a href="#depositSection">
+<i class="fa-solid fa-wallet"></i>
+Deposits
+</a>
+
+<a href="#withdrawSection">
+<i class="fa-solid fa-money-bill-wave"></i>
+Withdrawals
+</a>
+
+<a href="#supportSection">
+<i class="fa-solid fa-headset"></i>
+Support Messages
+</a>
+
+<a href="#notificationSection">
+<i class="fa-solid fa-bell"></i>
+Notifications
+</a>
+
+<button id="logoutBtn" class="logout-btn">
+Logout
+</button>
+
 </div>
 
 <!-- MAIN -->
-<div class="main">
+<div class="main-content">
+
+<!-- TOP -->
+<div class="topbar">
+<h2>
+Dashboard
+</h2>
+
+<div class="admin-info">
+<span>
+Admin
+</span>
+</div>
+</div>
 
 <!-- STATS -->
-<div class="cards">
+<div class="stats-grid">
 
-<div class="card">
-<h2>Total Users</h2>
-<p id="usersCount">0</p>
+<div class="stat-card">
+<h3>Total Users</h3>
+<h1 id="totalUsers">0</h1>
 </div>
 
-<div class="card">
-<h2>Total Deposits</h2>
-<p id="depositTotal">$0</p>
+<div class="stat-card">
+<h3>Total Deposits</h3>
+<h1 id="totalDeposits">$0</h1>
 </div>
 
-<div class="card">
-<h2>Total Withdrawals</h2>
-<p id="withdrawTotal">$0</p>
+<div class="stat-card">
+<h3>Total Withdrawals</h3>
+<h1 id="totalWithdrawals">$0</h1>
 </div>
 
-<div class="card">
-<h2>Pending KYC</h2>
-<p id="kycCount">0</p>
+<div class="stat-card">
+<h3>Pending KYC</h3>
+<h1 id="pendingKyc">0</h1>
 </div>
+
+</div>
+
+<!-- USERS -->
+<div class="section" id="usersSection">
+
+<div class="section-top">
+<h2>Users</h2>
+</div>
+
+<div id="usersBox"></div>
+
+</div>
+
+<!-- KYC -->
+<div class="section" id="kycSection">
+
+<div class="section-top">
+<h2>KYC Requests</h2>
+</div>
+
+<div id="kycBox"></div>
 
 </div>
 
 <!-- DEPOSITS -->
-<div class="section">
-<h2>Recent Deposits</h2>
-<table>
-<thead>
-<tr>
-<th>User</th>
-<th>Amount</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="depositTable"></tbody>
-</table>
+<div class="section" id="depositSection">
+
+<div class="section-top">
+<h2>Deposits</h2>
+</div>
+
+<div id="depositBox"></div>
+
 </div>
 
 <!-- WITHDRAWALS -->
-<div class="section">
-<h2>Recent Withdrawals</h2>
-<table>
-<thead>
-<tr>
-<th>User</th>
-<th>Amount</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="withdrawTable"></tbody>
-</table>
+<div class="section" id="withdrawSection">
+
+<div class="section-top">
+<h2>Withdrawals</h2>
+</div>
+
+<div id="withdrawBox"></div>
+
 </div>
 
 <!-- SUPPORT -->
-<div class="section">
+<div class="section" id="supportSection">
+
+<div class="section-top">
 <h2>Support Messages</h2>
+</div>
+
 <div id="supportBox"></div>
-</div>
-
-<!-- KYC -->
-<div class="section">
-<h2>KYC Requests</h2>
-<div id="kycBox"></div>
-</div>
 
 </div>
 
-<!-- 🔥 THIS IS WHAT YOU WERE MISSING -->
+<!-- NOTIFICATIONS -->
+<div class="section" id="notificationSection">
+
+<div class="section-top">
+<h2>Send Notification</h2>
+</div>
+
+<input type="text" id="notificationText" placeholder="Enter notification message">
+
+<button id="sendNotificationBtn">
+Send Notification
+</button>
+
+</div>
+
+</div>
+
 <script type="module" src="admin.js"></script>
 
 </body>
 </html>
+
+
+---
+
+admin.css
+
+body{
+margin:0;
+background:#050505;
+font-family:Arial;
+color:white;
+display:flex;
+}
+
+.sidebar{
+width:260px;
+height:100vh;
+background:#0d0d0d;
+border-right:1px solid #1f1f1f;
+padding:20px;
+position:fixed;
+left:0;
+top:0;
+overflow-y:auto;
+}
+
+.logo h1{
+font-size:28px;
+margin-bottom:40px;
+}
+
+.green{
+color:#00ff88;
+}
+
+.sidebar a{
+display:flex;
+align-items:center;
+gap:12px;
+padding:16px;
+text-decoration:none;
+color:#aaa;
+border-radius:14px;
+margin-bottom:10px;
+transition:0.3s;
+}
+
+.sidebar a:hover,
+.sidebar .active{
+background:#00ff88;
+color:black;
+}
+
+.logout-btn{
+width:100%;
+padding:15px;
+margin-top:40px;
+border:none;
+border-radius:14px;
+background:#ff3b3b;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.main-content{
+margin-left:260px;
+padding:25px;
+width:100%;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.stats-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-bottom:30px;
+}
+
+.stat-card{
+background:#111;
+padding:25px;
+border-radius:20px;
+border:1px solid #222;
+}
+
+.stat-card h3{
+color:#aaa;
+margin-bottom:10px;
+}
+
+.stat-card h1{
+font-size:35px;
+color:#00ff88;
+}
+
+.section{
+background:#111;
+border:1px solid #222;
+padding:25px;
+border-radius:20px;
+margin-bottom:25px;
+}
+
+.section-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.user-card,
+.deposit-card,
+.withdraw-card,
+.kyc-card,
+.support-card{
+background:#0a0a0a;
+border:1px solid #222;
+padding:20px;
+border-radius:16px;
+margin-bottom:15px;
+}
+
+.user-card button,
+.deposit-card button,
+.withdraw-card button,
+.kyc-card button,
+#sendNotificationBtn{
+padding:12px 20px;
+border:none;
+border-radius:12px;
+background:#00ff88;
+color:black;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
+}
+
+input{
+width:100%;
+padding:18px;
+background:black;
+color:white;
+border:1px solid #333;
+border-radius:16px;
+margin-bottom:15px;
+}
+
+
+---
+
+admin.js
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+getDocs,
+doc,
+updateDoc,
+addDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+/* FIREBASE */
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+
+authDomain: "pcnexchange.firebaseapp.com",
+
+databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+
+projectId: "pcnexchange",
+
+storageBucket: "pcnexchange.firebasestorage.app",
+
+messagingSenderId: "278761036604",
+
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ADMIN LOGIN */
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user){
+window.location = "../index.html";
+return;
+}
+
+loadUsers();
+loadTransactions();
+loadKyc();
+
+});
+
+/* LOGOUT */
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.onclick = async()=>{
+await signOut(auth);
+window.location = "../index.html";
+};
+
+/* USERS */
+
+async function loadUsers(){
+
+const usersSnap = await getDocs(collection(db,"users"));
+
+let totalUsers = 0;
+
+const usersBox = document.getElementById("usersBox");
+usersBox.innerHTML = "";
+
+usersSnap.forEach(async(userDoc)=>{
+
+const data = userDoc.data();
+
+totalUsers++;
+
+usersBox.innerHTML += `
+<div class="user-card">
+<h3>${data.username || "No Username"}</h3>
+<p>${data.email}</p>
+<p>Balance: $${data.availableBalance || 0}</p>
+
+<input type="number" id="bal-${userDoc.id}" placeholder="Edit Balance">
+
+<button onclick="window.updateBalance('${userDoc.id}')">
+Update Balance
+</button>
+
+</div>
+`;
+
+});
+
+document.getElementById("totalUsers").innerText = totalUsers;
+
+}
+
+/* UPDATE BALANCE */
+
+window.updateBalance = async(uid)=>{
+
+const amount = document.getElementById(`bal-${uid}`).value;
+
+if(!amount){
+alert("Enter Amount");
+return;
+}
+
+await updateDoc(doc(db,"users",uid),{
+availableBalance:Number(amount),
+withdrawableBalance:Number(amount)
+});
+
+alert("Balance Updated");
+
+loadUsers();
+
+};
+
+/* TRANSACTIONS */
+
+async function loadTransactions(){
+
+const transSnap = await getDocs(collection(db,"transactions"));
+
+let totalDeposits = 0;
+let totalWithdrawals = 0;
+
+const depositBox = document.getElementById("depositBox");
+const withdrawBox = document.getElementById("withdrawBox");
+
+depositBox.innerHTML = "";
+withdrawBox.innerHTML = "";
+
+transSnap.forEach(async(transDoc)=>{
+
+const data = transDoc.data();
+
+if(data.type === "deposit"){
+
+totalDeposits += Number(data.amount);
+
+depositBox.innerHTML += `
+<div class="deposit-card">
+<h3>$${data.amount}</h3>
+<p>Status: ${data.status}</p>
+<button onclick="window.approveDeposit('${transDoc.id}','${data.uid}','${data.amount}')">
+Approve Deposit
+</button>
+</div>
+`;
+
+}
+
+if(data.type === "withdraw"){
+
+totalWithdrawals += Number(data.amount);
+
+withdrawBox.innerHTML += `
+<div class="withdraw-card">
+<h3>$${data.amount}</h3>
+<p>${data.bankName || ""}</p>
+<p>Status: ${data.status}</p>
+<button onclick="window.approveWithdraw('${transDoc.id}')">
+Approve Withdrawal
+</button>
+</div>
+`;
+
+}
+
+});
+
+document.getElementById("totalDeposits").innerText = "$" + totalDeposits;
+
+document.getElementById("totalWithdrawals").innerText = "$" + totalWithdrawals;
+
+}
+
+/* APPROVE DEPOSIT */
+
+window.approveDeposit = async(transId,uid,amount)=>{
+
+const userRef = doc(db,"users",uid);
+
+await updateDoc(userRef,{
+availableBalance:Number(amount),
+withdrawableBalance:Number(amount)
+});
+
+await updateDoc(doc(db,"transactions",transId),{
+status:"success"
+});
+
+alert("Deposit Approved");
+
+loadTransactions();
+loadUsers();
+
+};
+
+/* APPROVE WITHDRAW */
+
+window.approveWithdraw = async(transId)=>{
+
+await updateDoc(doc(db,"transactions",transId),{
+status:"success"
+});
+
+alert("Withdrawal Approved");
+
+loadTransactions();
+
+};
+
+/* KYC */
+
+async function loadKyc(){
+
+const usersSnap = await getDocs(collection(db,"users"));
+
+const kycBox = document.getElementById("kycBox");
+kycBox.innerHTML = "";
+
+let pending = 0;
+
+usersSnap.forEach(async(userDoc)=>{
+
+const data = userDoc.data();
+
+if(data.kycStatus === "pending"){
+
+pending++;
+
+kycBox.innerHTML += `
+<div class="kyc-card">
+<h3>${data.username}</h3>
+<p>KYC Pending</p>
+<button onclick="window.verifyUser('${userDoc.id}')">
+Approve KYC
+</button>
+</div>
+`;
+
+}
+
+});
+
+document.getElementById("pendingKyc").innerText = pending;
+
+}
+
+/* VERIFY USER */
+
+window.verifyUser = async(uid)=>{
+
+await updateDoc(doc(db,"users",uid),{
+kycVerified:true,
+kycStatus:"approved"
+});
+
+alert("KYC Approved");
+
+loadKyc();
+
+};
+
+/* SEND NOTIFICATION */
+
+document.getElementById("sendNotificationBtn").onclick = async()=>{
+
+const text = document.getElementById("notificationText").value;
+
+if(!text){
+alert("Enter Message");
+return;
+}
+
+await addDoc(collection(db,"notifications"),{
+message:text,
+createdAt:Date.now()
+});
+
+alert("Notification Sent");
+
+document.getElementById("notificationText").value = "";
+
+};
