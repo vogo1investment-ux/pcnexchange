@@ -1,170 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>
+<title>PCN WALLET
 
-PCN WALLET
+</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet"
+href="wallet.css"></head><body><!-- HEADER --><div class="wallet-header"><div class="wallet-logo"><div class="wallet-icon">P
 
-</title>
+</div><h1>PCN WALLET
 
-<script src="https://cdn.tailwindcss.com"></script>
+</h1></div><a href="dashboard.html">Dashboard
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</a></div><!-- MAIN --><div class="wallet-container"><!-- BALANCE --><div class="balance-card"><p>TOTAL BALANCE
 
-<link rel="stylesheet"
-href="wallet.css">
+</p><h1 id="balance">$0
 
-</head>
+</h1><span>Your available wallet balance
 
-<body>
+</span><div class="wallet-buttons"><a href="deposit.html"><button id="depositBtn">Deposit
 
-<!-- HEADER -->
+</button></a><a href="withdrawal.html"><button id="withdrawBtn">Withdraw
 
-<div class="wallet-header">
+</button></a></div></div><!-- EXTRA --><div class="wallet-grid"><div class="wallet-box"><p>Withdrawable
 
-<div class="wallet-logo">
+</p><h2 id="withdrawable">$0
 
-<div class="wallet-icon">
+</h2></div><div class="wallet-box"><p>Referral Bonus
 
-P
+</p><h2 id="referral">$0
 
-</div>
+</h2></div><div class="wallet-box"><p>Cart Items
 
-<h1>
+</p><h2 id="cart">0
 
-PCN WALLET
+</h2></div></div><!-- REF LINK --><div class="ref-box"><h2>Referral Link
 
-</h1>
-
-</div>
-
-<a href="dashboard.html">
-
-Dashboard
-
-</a>
-
-</div>
-
-<!-- MAIN -->
-
-<div class="wallet-container">
-
-<!-- BALANCE -->
-
-<div class="balance-card">
-
-<p>
-
-TOTAL BALANCE
-
-</p>
-
-<h1 id="balance">
-
-$0
-
-</h1>
-
-<span>
-
-Your available wallet balance
-
-</span>
-
-<div class="wallet-buttons">
-
-<button id="depositBtn">
-
-Deposit
-
-</button>
-
-<button id="withdrawBtn">
-
-Withdraw
-
-</button>
-
-</div>
-
-</div>
-
-<!-- EXTRA -->
-
-<div class="wallet-grid">
-
-<div class="wallet-box">
-
-<p>
-
-Withdrawable
-
-</p>
-
-<h2 id="withdrawable">
-
-$0
-
-</h2>
-
-</div>
-
-<div class="wallet-box">
-
-<p>
-
-Referral Bonus
-
-</p>
-
-<h2 id="referral">
-
-$0
-
-</h2>
-
-</div>
-
-<div class="wallet-box">
-
-<p>
-
-Cart Items
-
-</p>
-
-<h2 id="cart">
-
-0
-
-</h2>
-
-</div>
-
-</div>
-
-<!-- REF LINK -->
-
-<div class="ref-box">
-
-<h2>
-
-Referral Link
-
-</h2>
-
-<div class="ref-actions">
-
-<input
+</h2><div class="ref-actions"><input
 id="refLink"
 readonly>
 
@@ -173,144 +44,42 @@ id="copyBtn">
 
 COPY
 
-</button>
+</button></div></div><!-- TRANSACTIONS --><div class="transactions"><div class="trans-top"><h2>Recent Activity
 
-</div>
+</h2><span>LIVE
 
-</div>
+</span></div><div class="trans-card"><div><h3>Bitcoin Purchase
 
-<!-- TRANSACTIONS -->
+</h3><p>Completed
 
-<div class="transactions">
+</p></div><b class="green">+$320
 
-<div class="trans-top">
+</b></div><div class="trans-card"><div><h3>Ethereum Trade
 
-<h2>
+</h3><p>Completed
 
-Recent Activity
+</p></div><b class="red">-$120
 
-</h2>
+</b></div></div></div><!-- NAV --><div class="bottom-nav"><a href="dashboard.html"><i class="fa-solid fa-house"></i>
 
-<span>
+<span>Home
 
-LIVE
+</span></a><a href="markets.html"><i class="fa-solid fa-chart-line"></i>
 
-</span>
+<span>Markets
 
-</div>
+</span></a><a href="trade.html"><i class="fa-solid fa-arrow-right-arrow-left"></i>
 
-<div class="trans-card">
+<span>Trade
 
-<div>
-
-<h3>
-
-Bitcoin Purchase
-
-</h3>
-
-<p>
-
-Completed
-
-</p>
-
-</div>
-
-<b class="green">
-
-+$320
-
-</b>
-
-</div>
-
-<div class="trans-card">
-
-<div>
-
-<h3>
-
-Ethereum Trade
-
-</h3>
-
-<p>
-
-Completed
-
-</p>
-
-</div>
-
-<b class="red">
-
--$120
-
-</b>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- NAV -->
-
-<div class="bottom-nav">
-
-<a href="dashboard.html">
-
-<i class="fa-solid fa-house"></i>
-
-<span>
-
-Home
-
-</span>
-
-</a>
-
-<a href="markets.html">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<span>
-
-Markets
-
-</span>
-
-</a>
-
-<a href="trade.html">
-
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<span>
-
-Trade
-
-</span>
-
-</a>
-
-<a href="wallet.html"
+</span></a><a href="wallet.html"
 class="active">
 
 <i class="fa-solid fa-wallet"></i>
 
-<span>
+<span>Wallet
 
-Wallet
-
-</span>
-
-</a>
-
-</div>
-
-<script type="module">
+</span></a></div><script type="module">
 
 import {
 initializeApp
@@ -321,9 +90,7 @@ from
 import {
 getFirestore,
 doc,
-getDoc,
-collection,
-addDoc
+getDoc
 }
 from
 "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
@@ -371,8 +138,6 @@ getFirestore(app);
 const auth =
 getAuth(app);
 
-let currentUser = null;
-
 /* LOAD USER */
 
 onAuthStateChanged(
@@ -389,8 +154,6 @@ window.location =
 return;
 
 }
-
-currentUser = user;
 
 try{
 
@@ -471,116 +234,4 @@ alert(
 
 };
 
-/* DEPOSIT BUTTON */
-
-document.getElementById(
-"depositBtn"
-).onclick = async ()=>{
-
-if(!currentUser){
-
-alert("Login First");
-
-return;
-
-}
-
-const amount =
-prompt(
-"Enter Deposit Amount"
-);
-
-if(!amount){
-
-return;
-
-}
-
-await addDoc(
-
-collection(db,"transactions"),
-
-{
-
-uid: currentUser.uid,
-
-type: "deposit",
-
-amount: amount,
-
-status: "pending",
-
-createdAt: Date.now()
-
-}
-
-);
-
-alert(
-"Deposit Request Sent Successfully"
-);
-
-window.location =
-"history.html";
-
-};
-
-/* WITHDRAW BUTTON */
-
-document.getElementById(
-"withdrawBtn"
-).onclick = async ()=>{
-
-if(!currentUser){
-
-alert("Login First");
-
-return;
-
-}
-
-const amount =
-prompt(
-"Enter Withdrawal Amount"
-);
-
-if(!amount){
-
-return;
-
-}
-
-await addDoc(
-
-collection(db,"transactions"),
-
-{
-
-uid: currentUser.uid,
-
-type: "withdraw",
-
-amount: amount,
-
-status: "pending",
-
-createdAt: Date.now()
-
-}
-
-);
-
-alert(
-"Withdrawal Request Sent Successfully"
-);
-
-window.location =
-"history.html";
-
-};
-
-</script>
-
-</body>
-
-</html>
+</script></body></html>
