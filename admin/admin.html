@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN ADMIN PANEL</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#0a0a0a;
+color:white;
+}
+
+.sidebar{
+width:250px;
+height:100vh;
+background:#111;
+position:fixed;
+left:0;
+top:0;
+padding:20px;
+border-right:1px solid #222;
+}
+
+.sidebar h1{
+color:#00ff88;
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:flex;
+align-items:center;
+gap:10px;
+color:#aaa;
+padding:12px;
+border-radius:10px;
+text-decoration:none;
+margin-bottom:10px;
+}
+
+.sidebar a:hover{
+background:#1a1a1a;
+color:#00ff88;
+}
+
+.main{
+margin-left:260px;
+padding:20px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+}
+
+.card{
+background:#111;
+padding:20px;
+border-radius:20px;
+border:1px solid #222;
+}
+
+.card h2{
+color:#00ff88;
+font-size:20px;
+}
+
+.section{
+margin-top:25px;
+background:#111;
+padding:20px;
+border-radius:20px;
+border:1px solid #222;
+}
+
+table{
+width:100%;
+margin-top:10px;
+}
+
+th,td{
+padding:10px;
+text-align:left;
+border-bottom:1px solid #222;
+color:#aaa;
+}
+
+.status{
+padding:5px 10px;
+border-radius:10px;
+font-size:12px;
+}
+
+.pending{background:#ffb020;color:black;}
+.success{background:#00ff88;color:black;}
+.rejected{background:red;color:white;}
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h1>PCN ADMIN</h1>
+
+<a href="#"><i class="fa fa-users"></i> Users</a>
+<a href="#"><i class="fa fa-id-card"></i> KYC</a>
+<a href="#"><i class="fa fa-wallet"></i> Deposits</a>
+<a href="#"><i class="fa fa-money-bill"></i> Withdrawals</a>
+<a href="#"><i class="fa fa-message"></i> Support</a>
+<a href="#"><i class="fa fa-bell"></i> Notifications</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- STATS -->
+<div class="cards">
+
+<div class="card">
+<h2>Total Users</h2>
+<p id="usersCount">0</p>
+</div>
+
+<div class="card">
+<h2>Total Deposits</h2>
+<p id="depositTotal">$0</p>
+</div>
+
+<div class="card">
+<h2>Total Withdrawals</h2>
+<p id="withdrawTotal">$0</p>
+</div>
+
+<div class="card">
+<h2>Pending KYC</h2>
+<p id="kycCount">0</p>
+</div>
+
+</div>
+
+<!-- DEPOSITS -->
+<div class="section">
+<h2>Recent Deposits</h2>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Amount</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="depositTable"></tbody>
+</table>
+</div>
+
+<!-- WITHDRAWALS -->
+<div class="section">
+<h2>Recent Withdrawals</h2>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Amount</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="withdrawTable"></tbody>
+</table>
+</div>
+
+<!-- SUPPORT -->
+<div class="section">
+<h2>Support Messages</h2>
+<div id="supportBox"></div>
+</div>
+
+<!-- KYC -->
+<div class="section">
+<h2>KYC Requests</h2>
+<div id="kycBox"></div>
+</div>
+
+</div>
+
+<!-- 🔥 THIS IS WHAT YOU WERE MISSING -->
+<script type="module" src="admin.js"></script>
+
+</body>
+</html>
