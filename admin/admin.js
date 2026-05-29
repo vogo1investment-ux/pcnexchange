@@ -1,274 +1,73 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-import {
-getAuth,
-onAuthStateChanged,
-signOut
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-import {
-getFirestore,
-collection,
-getDocs,
-doc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-/* FIREBASE */
+import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-
-apiKey:
-"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
-authDomain:
-"pcnexchange.firebaseapp.com",
-
-databaseURL:
-"https://pcnexchange-default-rtdb.firebaseio.com",
-
-projectId:
-"pcnexchange",
-
-storageBucket:
-"pcnexchange.firebasestorage.app",
-
-messagingSenderId:
-"278761036604",
-
-appId:
-"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-
+apiKey: "YOUR_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_PROJECT",
+storageBucket: "YOUR_BUCKET",
+messagingSenderId: "YOUR_ID",
+appId: "YOUR_APP"
 };
 
-const app =
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const auth =
-getAuth(app);
+const adminApp = document.getElementById("adminApp");
 
-const db =
-getFirestore(app);
+// SECURITY CHECK
+onAuthStateChanged(auth, async (user) => {
 
-/* AUTH */
-
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
-
-if(!user){
-
-window.location =
-"../index.html";
-
+if (!user || localStorage.getItem("admin") !== "true") {
+window.location = "adminLogin.html";
 return;
-
 }
 
-loadUsers();
-loadTransactions();
-loadKyc();
+adminApp.classList.remove("hidden");
 
-}
+// LOAD USERS
+const snap = await getDocs(collection(db, "users"));
 
-);
+let totalUsers = 0;
+let html = "";
 
-/* LOGOUT */
+snap.forEach(docu => {
+const d = docu.data();
+totalUsers++;
 
-document.getElementById(
-"logoutBtn"
-).onclick = async()=>{
+html += `
+<div class="userCard">
+<p>${d.email || "No Email"}</p>
 
-await signOut(auth);
+<input value="${d.availableBalance || 0}" id="bal-${docu.id}">
 
-window.location =
-"../index.html";
+<button onclick="updateBalance('${docu.id}')">Update</button>
+</div>
+`;
+});
 
+document.getElementById("usersList").innerHTML = html;
+document.getElementById("totalUsers").innerText = totalUsers;
+
+});
+
+// UPDATE BALANCE
+window.updateBalance = async (id) => {
+
+const value = document.getElementById("bal-" + id).value;
+
+await updateDoc(doc(db, "users", id), {
+availableBalance: Number(value)
+});
+
+alert("Updated");
 };
 
-/* USERS */
-
-async function loadUsers(){
-
-const snap =
-await getDocs(collection(db,"users"));
-
-const usersBox =
-document.getElementById("usersBox");
-
-usersBox.innerHTML = "";
-
-let total = 0;
-
-snap.forEach((docSnap)=>{
-
-total++;
-
-const data =
-docSnap.data();
-
-usersBox.innerHTML += `
-
-<div class="user-card">
-
-<h3>${data.username || "No Username"}</h3>
-
-<p>${data.email}</p>
-
-<p>Balance: $${data.availableBalance || 0}</p>
-
-</div>
-
-`;
-
-});
-
-document.getElementById(
-"totalUsers"
-).innerText = total;
-
-}
-
-/* TRANSACTIONS */
-
-async function loadTransactions(){
-
-const snap =
-await getDocs(collection(db,"transactions"));
-
-const depositBox =
-document.getElementById("depositBox");
-
-const withdrawBox =
-document.getElementById("withdrawBox");
-
-depositBox.innerHTML = "";
-withdrawBox.innerHTML = "";
-
-let totalDeposits = 0;
-let totalWithdrawals = 0;
-
-snap.forEach((docSnap)=>{
-
-const data =
-docSnap.data();
-
-if(data.type === "deposit"){
-
-totalDeposits += Number(data.amount);
-
-depositBox.innerHTML += `
-
-<div class="deposit-card">
-
-<h3>$${data.amount}</h3>
-
-<p>Status: ${data.status}</p>
-
-</div>
-
-`;
-
-}
-
-if(data.type === "withdraw"){
-
-totalWithdrawals += Number(data.amount);
-
-withdrawBox.innerHTML += `
-
-<div class="withdraw-card">
-
-<h3>$${data.amount}</h3>
-
-<p>Status: ${data.status}</p>
-
-</div>
-
-`;
-
-}
-
-});
-
-document.getElementById(
-"totalDeposits"
-).innerText =
-"$"+totalDeposits;
-
-document.getElementById(
-"totalWithdrawals"
-).innerText =
-"$"+totalWithdrawals;
-
-}
-
-/* KYC */
-
-async function loadKyc(){
-
-const snap =
-await getDocs(collection(db,"users"));
-
-const kycBox =
-document.getElementById("kycBox");
-
-kycBox.innerHTML = "";
-
-let pending = 0;
-
-snap.forEach((docSnap)=>{
-
-const data =
-docSnap.data();
-
-if(data.kycStatus === "pending"){
-
-pending++;
-
-kycBox.innerHTML += `
-
-<div class="kyc-card">
-
-<h3>${data.username}</h3>
-
-<p>KYC Pending</p>
-
-<button onclick="approveKyc('${docSnap.id}')">
-
-Approve
-
-</button>
-
-</div>
-
-`;
-
-}
-
-});
-
-document.getElementById(
-"pendingKyc"
-).innerText = pending;
-
-}
-
-/* APPROVE */
-
-window.approveKyc = async(uid)=>{
-
-await updateDoc(doc(db,"users",uid),{
-
-kycVerified:true,
-kycStatus:"approved"
-
-});
-
-alert("KYC Approved");
-
-loadKyc();
-
+// LOGOUT
+document.getElementById("logoutBtn").onclick = async () => {
+await signOut(auth);
+localStorage.removeItem("admin");
+window.location = "adminLogin.html";
 };

@@ -1,145 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-
-PCN ADMIN PANEL
-
-</title>
-
-<link rel="stylesheet"
-href="admin.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="admin.css">
 
 </head>
 
 <body>
 
-<div class="sidebar">
+<div id="adminApp" class="hidden">
 
-<div class="logo">
-<h1>
-<span class="green">PCN</span> EXCHANGE
-</h1>
+<header class="header">
+<h1>ADMIN DASHBOARD</h1>
+<button id="logoutBtn">Logout</button>
+</header>
+
+<section class="grid">
+
+<div class="card">
+<h2>Total Users</h2>
+<p id="totalUsers">0</p>
 </div>
 
-<a href="#" class="active">
-<i class="fa-solid fa-chart-line"></i>
-Dashboard
-</a>
+<div class="card">
+<h2>Total Deposits</h2>
+<p id="totalDeposits">$0</p>
+</div>
 
-<a href="../dashboard.html">
-<i class="fa-solid fa-house"></i>
-Main Dashboard
-</a>
+<div class="card">
+<h2>Total Withdrawals</h2>
+<p id="totalWithdrawals">$0</p>
+</div>
 
-<a href="../wallet.html">
-<i class="fa-solid fa-wallet"></i>
-Wallet
-</a>
+</section>
 
-<a href="../markets.html">
-<i class="fa-solid fa-chart-simple"></i>
-Markets
-</a>
+<section class="panel">
 
-<a href="../profile.html">
-<i class="fa-solid fa-user"></i>
-Profile
-</a>
+<h2>USER CONTROL</h2>
 
-<button id="logoutBtn" class="logout-btn">
-Logout
-</button>
+<div id="usersList"></div>
+
+</section>
 
 </div>
 
-<div class="main-content">
-
-<div class="topbar">
-
-<h2>
-Admin Dashboard
-</h2>
-
-<div class="admin-info">
-Admin
-</div>
-
-</div>
-
-<div class="stats-grid">
-
-<div class="stat-card">
-<h3>Total Users</h3>
-<h1 id="totalUsers">0</h1>
-</div>
-
-<div class="stat-card">
-<h3>Total Deposits</h3>
-<h1 id="totalDeposits">$0</h1>
-</div>
-
-<div class="stat-card">
-<h3>Total Withdrawals</h3>
-<h1 id="totalWithdrawals">$0</h1>
-</div>
-
-<div class="stat-card">
-<h3>Pending KYC</h3>
-<h1 id="pendingKyc">0</h1>
-</div>
-
-</div>
-
-<div class="section">
-
-<h2>Users</h2>
-
-<div id="usersBox"></div>
-
-</div>
-
-<div class="section">
-
-<h2>KYC Requests</h2>
-
-<div id="kycBox"></div>
-
-</div>
-
-<div class="section">
-
-<h2>Deposits</h2>
-
-<div id="depositBox"></div>
-
-</div>
-
-<div class="section">
-
-<h2>Withdrawals</h2>
-
-<div id="withdrawBox"></div>
-
-</div>
-
-</div>
-
-<script type="module"
-src="admin.js"></script>
+<script type="module" src="admin.js"></script>
 
 </body>
-
 </html>
