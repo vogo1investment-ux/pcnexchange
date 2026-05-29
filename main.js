@@ -4,7 +4,7 @@ import {
 initializeApp
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getAuth,
@@ -14,7 +14,7 @@ onAuthStateChanged,
 signOut
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 import {
 getFirestore,
@@ -23,32 +23,32 @@ setDoc,
 getDoc
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 /* FIREBASE */
 
 const firebaseConfig = {
 
 apiKey:
-"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 
 authDomain:
-"jumiastaff-83757.firebaseapp.com",
+"pcnexchange.firebaseapp.com",
+
+databaseURL:
+"https://pcnexchange-default-rtdb.firebaseio.com",
 
 projectId:
-"jumiastaff-83757",
+"pcnexchange",
 
 storageBucket:
-"jumiastaff-83757.appspot.com",
+"pcnexchange.firebasestorage.app",
 
 messagingSenderId:
-"1018307795636",
+"278761036604",
 
 appId:
-"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
-
-measurementId:
-"G-W9M358ZS1G"
+"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 };
 
@@ -110,7 +110,7 @@ Login
 </button>
 
 <button id="signupBtn"
-style="width:100%;padding:18px;background:white;border:none;border-radius:20px;font-weight:bold;">
+style="width:100%;padding:18px;background:white;border:none;border-radius:20px;font-weight:bold;margin-top:15px;">
 Create Account
 </button>
 
@@ -140,16 +140,22 @@ document.getElementById("authModal").style.display = "none";
 /* BUTTON TRIGGERS */
 
 document.querySelectorAll(".auth-open, a").forEach(btn => {
+
 btn.addEventListener("click", e => {
+
 if (
 btn.innerText.includes("Login") ||
 btn.innerText.includes("Get Started") ||
 btn.innerText.includes("Start Trading")
 ) {
+
 e.preventDefault();
 openAuth();
+
 }
+
 });
+
 });
 
 /* SIGNUP */
@@ -163,14 +169,24 @@ const email = document.getElementById("email").value.trim();
 const password = document.getElementById("password").value.trim();
 
 if (!username || !email || !password) {
+
 alert("Fill all fields");
 return;
+
 }
 
-const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+const userCredential = await createUserWithEmailAndPassword(
+auth,
+email,
+password
+);
+
 const user = userCredential.user;
 
+/* SAVE USER */
+
 await setDoc(doc(db, "users", user.uid), {
+
 username: username,
 email: email,
 availableBalance: 0,
@@ -178,14 +194,20 @@ withdrawableBalance: 0,
 referralCommission: 0,
 joinedUsers: 0,
 createdAt: Date.now()
+
 });
 
+console.log("USER SAVED:", user.uid);
+
 alert("ACCOUNT CREATED SUCCESSFULLY");
+
 window.location = "dashboard.html";
 
 } catch (e) {
+
 alert(e.message);
 console.error(e);
+
 }
 
 };
@@ -200,18 +222,27 @@ const email = document.getElementById("email").value.trim();
 const password = document.getElementById("password").value.trim();
 
 if (!email || !password) {
+
 alert("Fill all fields");
 return;
+
 }
 
-await signInWithEmailAndPassword(auth, email, password);
+await signInWithEmailAndPassword(
+auth,
+email,
+password
+);
 
 alert("LOGIN SUCCESSFUL");
+
 window.location = "dashboard.html";
 
 } catch (e) {
+
 alert(e.message);
 console.error(e);
+
 }
 
 };
@@ -223,6 +254,7 @@ onAuthStateChanged(auth, async (user) => {
 if (user) {
 
 const ref = doc(db, "users", user.uid);
+
 const snap = await getDoc(ref);
 
 if (snap.exists()) {
@@ -230,10 +262,20 @@ if (snap.exists()) {
 const data = snap.data();
 
 const welcomeUser = document.getElementById("welcomeUser");
-if (welcomeUser) welcomeUser.innerText = data.username;
+
+if (welcomeUser){
+
+welcomeUser.innerText = data.username;
+
+}
 
 const balance = document.getElementById("balance");
-if (balance) balance.innerText = "$" + data.availableBalance;
+
+if (balance){
+
+balance.innerText = "$" + data.availableBalance;
+
+}
 
 }
 
@@ -246,8 +288,13 @@ if (balance) balance.innerText = "$" + data.availableBalance;
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
+
 logoutBtn.onclick = async () => {
+
 await signOut(auth);
+
 window.location = "index.html";
+
 };
+
 }
