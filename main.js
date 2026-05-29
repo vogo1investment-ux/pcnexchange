@@ -1,84 +1,340 @@
+// main.js
+
 import {
+
 initializeApp
+
 }
+
 from
+
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
+
 getAuth,
+
 createUserWithEmailAndPassword,
+
 signInWithEmailAndPassword,
+
 onAuthStateChanged,
+
 signOut
+
 }
+
 from
+
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
+
 getFirestore,
+
 doc,
+
 setDoc,
+
 getDoc
+
 }
+
 from
+
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* FIREBASE CONFIG */
+/* FIREBASE */
 
 const firebaseConfig = {
 
-apiKey: "AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+apiKey:
+"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
 
-authDomain: "jumiastaff-83757.firebaseapp.com",
+authDomain:
+"jumiastaff-83757.firebaseapp.com",
 
-projectId: "jumiastaff-83757",
+projectId:
+"jumiastaff-83757",
 
-storageBucket: "jumiastaff-83757.firebasestorage.app",
+storageBucket:
+"jumiastaff-83757.firebasestorage.app",
 
-messagingSenderId: "1018307795636",
+messagingSenderId:
+"1018307795636",
 
-appId: "1:1018307795636:web:6545b94e234fe9fb1ad5e1"
+appId:
+"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
+
+measurementId:
+"G-W9M358ZS1G"
 
 };
 
-/* START FIREBASE */
-
-const app =
-initializeApp(firebaseConfig);
-
-const auth =
-getAuth(app);
-
-const db =
-getFirestore(app);
-
-/* =========================
-CREATE ACCOUNT
-========================= */
-
-const signupBtn =
-document.getElementById(
-"signupBtn"
+const app = initializeApp(
+firebaseConfig
 );
 
-if(signupBtn){
+const auth = getAuth(
+app
+);
 
-signupBtn.onclick =
+const db = getFirestore(
+app
+);
+
+/* AUTH POPUP */
+
+const authBox = document.createElement(
+"div"
+);
+
+authBox.innerHTML = `
+
+<div id="authModal"
+style="
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,0.85);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:99999;
+padding:20px;
+">
+
+<div
+style="
+background:#111;
+padding:35px;
+border-radius:30px;
+width:100%;
+max-width:420px;
+color:white;
+border:1px solid #1f1f1f;
+">
+
+<h2
+style="
+font-size:32px;
+margin-bottom:25px;
+color:#00ff88;
+font-weight:bold;
+">
+
+PCN LOGIN
+
+</h2>
+
+<input
+id="username"
+type="text"
+placeholder="Username"
+style="
+width:100%;
+padding:18px;
+margin-bottom:15px;
+border:none;
+border-radius:18px;
+background:#1a1a1a;
+color:white;
+font-size:16px;
+">
+
+<input
+id="email"
+type="email"
+placeholder="Email"
+style="
+width:100%;
+padding:18px;
+margin-bottom:15px;
+border:none;
+border-radius:18px;
+background:#1a1a1a;
+color:white;
+font-size:16px;
+">
+
+<input
+id="password"
+type="password"
+placeholder="Password"
+style="
+width:100%;
+padding:18px;
+margin-bottom:20px;
+border:none;
+border-radius:18px;
+background:#1a1a1a;
+color:white;
+font-size:16px;
+">
+
+<button
+id="loginBtn"
+style="
+width:100%;
+padding:18px;
+background:#00ff88;
+border:none;
+border-radius:20px;
+font-size:18px;
+font-weight:bold;
+color:black;
+margin-bottom:15px;
+cursor:pointer;
+">
+
+Login
+
+</button>
+
+<button
+id="signupBtn"
+style="
+width:100%;
+padding:18px;
+background:white;
+border:none;
+border-radius:20px;
+font-size:18px;
+font-weight:bold;
+color:black;
+cursor:pointer;
+">
+
+Create Account
+
+</button>
+
+<button
+id="closeAuth"
+style="
+width:100%;
+padding:15px;
+margin-top:15px;
+background:red;
+border:none;
+border-radius:18px;
+font-weight:bold;
+color:white;
+cursor:pointer;
+">
+
+Close
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+document.body.appendChild(
+authBox
+);
+
+/* OPEN POPUP */
+
+function openAuth(){
+
+document.getElementById(
+"authModal"
+).style.display="flex";
+
+}
+
+/* CLOSE POPUP */
+
+document.getElementById(
+"closeAuth"
+).onclick=()=>{
+
+document.getElementById(
+"authModal"
+).style.display="none";
+
+};
+
+/* CONNECT BUTTONS */
+
+document.querySelectorAll(
+"a"
+).forEach(
+
+btn=>{
+
+if(
+
+btn.innerText.includes(
+"Login"
+)
+
+||
+
+btn.innerText.includes(
+"Get Started"
+)
+
+||
+
+btn.innerText.includes(
+"Start Trading"
+)
+
+){
+
+btn.addEventListener(
+
+"click",
+
+e=>{
+
+e.preventDefault();
+
+openAuth();
+
+}
+
+);
+
+}
+
+}
+
+);
+
+/* CREATE ACCOUNT */
+
+document.getElementById(
+"signupBtn"
+).onclick=
+
 async()=>{
 
-const username =
+try{
+
+const username=
+
 document.getElementById(
-"signupUsername"
+"username"
 ).value.trim();
 
-const email =
+const email=
+
 document.getElementById(
-"signupEmail"
+"email"
 ).value.trim();
 
-const password =
+const password=
+
 document.getElementById(
-"signupPassword"
+"password"
 ).value.trim();
 
 if(!username || !email || !password){
@@ -91,25 +347,30 @@ return;
 
 }
 
-try{
+const userCredential=
 
-const userCredential =
 await createUserWithEmailAndPassword(
 
 auth,
+
 email,
+
 password
 
 );
 
-const user =
+const user=
 userCredential.user;
 
 /* SAVE USER */
 
 await setDoc(
 
-doc(db,"users",user.uid),
+doc(
+db,
+"users",
+user.uid
+),
 
 {
 
@@ -119,6 +380,12 @@ email:email,
 
 availableBalance:0,
 
+withdrawableBalance:0,
+
+referralCommission:0,
+
+joinedUsers:0,
+
 createdAt:Date.now()
 
 }
@@ -126,48 +393,44 @@ createdAt:Date.now()
 );
 
 alert(
-"Account Created Successfully"
+"ACCOUNT CREATED SUCCESSFULLY"
 );
 
-window.location.href =
+window.location=
 "dashboard.html";
 
 }
 
-catch(error){
+catch(e){
 
 alert(
-error.message
+e.message
 );
 
 }
 
 };
 
-}
+/* LOGIN */
 
-/* =========================
-LOGIN
-========================= */
-
-const loginBtn =
 document.getElementById(
 "loginBtn"
-);
+).onclick=
 
-if(loginBtn){
-
-loginBtn.onclick =
 async()=>{
 
-const email =
+try{
+
+const email=
+
 document.getElementById(
-"loginEmail"
+"email"
 ).value.trim();
 
-const password =
+const password=
+
 document.getElementById(
-"loginPassword"
+"password"
 ).value.trim();
 
 if(!email || !password){
@@ -180,40 +443,36 @@ return;
 
 }
 
-try{
-
 await signInWithEmailAndPassword(
 
 auth,
+
 email,
+
 password
 
 );
 
 alert(
-"Login Successful"
+"LOGIN SUCCESSFUL"
 );
 
-window.location.href =
+window.location=
 "dashboard.html";
 
 }
 
-catch(error){
+catch(e){
 
 alert(
-error.message
+e.message
 );
 
 }
 
 };
 
-}
-
-/* =========================
-LOAD USER
-========================= */
+/* LOAD USER */
 
 onAuthStateChanged(
 
@@ -223,41 +482,51 @@ async(user)=>{
 
 if(user){
 
-const userRef =
-doc(db,"users",user.uid);
+const userRef=
 
-const snap =
-await getDoc(userRef);
+doc(
+db,
+"users",
+user.uid
+);
+
+const snap=
+
+await getDoc(
+userRef
+);
 
 if(snap.exists()){
 
-const data =
+const data=
 snap.data();
 
 /* DASHBOARD USERNAME */
 
-const welcomeUser =
+const welcomeUser=
+
 document.getElementById(
 "welcomeUser"
 );
 
 if(welcomeUser){
 
-welcomeUser.innerText =
+welcomeUser.innerText=
 data.username;
 
 }
 
 /* DASHBOARD BALANCE */
 
-const balance =
+const balance=
+
 document.getElementById(
 "balance"
 );
 
 if(balance){
 
-balance.innerText =
+balance.innerText=
 "$"+data.availableBalance;
 
 }
@@ -268,23 +537,25 @@ balance.innerText =
 
 }
 
-/* =========================
-LOGOUT
-========================= */
+/* LOGOUT */
 
-const logoutBtn =
+const logoutBtn=
+
 document.getElementById(
 "logoutBtn"
 );
 
 if(logoutBtn){
 
-logoutBtn.onclick =
+logoutBtn.onclick=
+
 async()=>{
 
-await signOut(auth);
+await signOut(
+auth
+);
 
-window.location.href =
+window.location=
 "index.html";
 
 };
