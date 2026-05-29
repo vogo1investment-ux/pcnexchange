@@ -102,18 +102,10 @@ border-radius:20px;
 margin-bottom:25px;
 }
 
-.section-top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
 .user-card,
 .deposit-card,
 .withdraw-card,
-.kyc-card,
-.support-card{
+.kyc-card{
 background:#0a0a0a;
 border:1px solid #222;
 padding:20px;
@@ -121,11 +113,7 @@ border-radius:16px;
 margin-bottom:15px;
 }
 
-.user-card button,
-.deposit-card button,
-.withdraw-card button,
-.kyc-card button,
-#sendNotificationBtn{
+button{
 padding:12px 20px;
 border:none;
 border-radius:12px;
@@ -134,14 +122,4 @@ color:black;
 font-weight:bold;
 cursor:pointer;
 margin-top:10px;
-}
-
-input{
-width:100%;
-padding:18px;
-background:black;
-color:white;
-border:1px solid #333;
-border-radius:16px;
-margin-bottom:15px;
 }
