@@ -21,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 /* ADMIN EMAIL (ONLY THIS CAN ACCESS ADMIN) */
-const ADMIN_EMAIL = "YOUR_ADMIN_EMAIL@gmail.com";
+const ADMIN_EMAIL = "kingnnachi11@gmail.com";
 
 document.getElementById("loginBtn").onclick = async () => {
 
