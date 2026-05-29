@@ -1,10 +1,8 @@
-// wallet.js
-
 import {
 initializeApp
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getFirestore,
@@ -12,114 +10,91 @@ doc,
 getDoc
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
 getAuth,
 onAuthStateChanged
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 /* FIREBASE */
 
 const firebaseConfig = {
 
-apiKey:
-"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 
-authDomain:
-"jumiastaff-83757.firebaseapp.com",
+authDomain: "pcnexchange.firebaseapp.com",
 
-projectId:
-"jumiastaff-83757",
+databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
 
-storageBucket:
-"jumiastaff-83757.firebasestorage.app",
+projectId: "pcnexchange",
 
-messagingSenderId:
-"1018307795636",
+storageBucket: "pcnexchange.firebasestorage.app",
 
-appId:
-"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
+messagingSenderId: "278761036604",
 
-measurementId:
-"G-W9M358ZS1G"
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 };
 
-const app =
-initializeApp(
-firebaseConfig
-);
+const app = initializeApp(firebaseConfig);
 
-const db =
-getFirestore(
-app
-);
+const db = getFirestore(app);
 
-const auth =
-getAuth(
-app
-);
+const auth = getAuth(app);
 
-/* USER */
+/* LOAD USER DATA */
 
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
+onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
 
-window.location =
-"index.html";
+window.location.href = "index.html";
 
 return;
 
 }
 
-const userRef =
-doc(
-db,
-"users",
-user.uid
-);
+try{
 
-const userSnap =
-await getDoc(
-userRef
-);
+const userRef = doc(db,"users",user.uid);
 
-if(userSnap.exists()){
+const snap = await getDoc(userRef);
 
-const data =
-userSnap.data();
+if(snap.exists()){
 
-document.getElementById(
-"balance"
-).innerText =
+const data = snap.data();
+
+/* MAIN BALANCE */
+
+document.getElementById("balance").innerText =
 "$" + (data.availableBalance || 0);
 
-document.getElementById(
-"withdrawable"
-).innerText =
+/* WITHDRAWABLE */
+
+document.getElementById("withdrawable").innerText =
 "$" + (data.withdrawableBalance || 0);
 
-document.getElementById(
-"referral"
-).innerText =
+/* REFERRAL */
+
+document.getElementById("referral").innerText =
 "$" + (data.referralCommission || 0);
 
-document.getElementById(
-"cart"
-).innerText =
-(data.cart || []).length;
+/* CART */
 
-document.getElementById(
-"refLink"
-).value =
+document.getElementById("cart").innerText =
+data.joinedUsers || 0;
+
+/* REF LINK */
+
+const refInput =
+document.getElementById("refLink");
+
+if(refInput){
+
+refInput.value =
 window.location.origin +
 "/index.html?ref=" +
 user.uid;
@@ -128,24 +103,38 @@ user.uid;
 
 }
 
-/* COPY */
+}catch(err){
 
-document.getElementById(
-"copyBtn"
-).onclick=()=>{
+console.log(err);
 
-navigator.clipboard.writeText(
+}
 
-document.getElementById(
-"refLink"
-).value
+});
 
-);
+/* COPY BUTTON */
 
-alert(
-"Referral link copied"
-);
+const copyBtn =
+document.getElementById("copyBtn");
+
+if(copyBtn){
+
+copyBtn.onclick = ()=>{
+
+const refInput =
+document.getElementById("refLink");
+
+refInput.select();
+
+document.execCommand("copy");
+
+copyBtn.innerText = "COPIED";
+
+setTimeout(()=>{
+
+copyBtn.innerText = "COPY";
+
+},2000);
 
 };
 
-);
+}
