@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KYC VERIFICATION</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head><body class="bg-black text-white min-h-screen p-5"><h1 class="text-3xl font-bold text-emerald-400 mb-6">
+KYC VERIFICATION
+</h1><div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 space-y-4"><input id="fullName" placeholder="Full Name"
+class="w-full p-4 bg-black border border-zinc-700 rounded-xl">
+
+<input id="idNumber" placeholder="ID Number"
+class="w-full p-4 bg-black border border-zinc-700 rounded-xl">
+
+<input id="idImage" type="file"
+class="w-full p-4 bg-black border border-zinc-700 rounded-xl">
+
+<button id="submitKyc"
+class="w-full bg-emerald-400 text-black font-bold p-4 rounded-xl">
+Submit KYC
+</button>
+
+</div><script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+/* AUTH CHECK */
+onAuthStateChanged(auth, (user) => {
+if (!user) {
+window.location = "index.html";
+return;
+}
+currentUser = user;
+});
+
+/* SUBMIT KYC */
+document.getElementById("submitKyc").onclick = async () => {
+
+const fullName = document.getElementById("fullName").value;
+const idNumber = document.getElementById("idNumber").value;
+const idImage = document.getElementById("idImage").files[0];
+
+if (!fullName || !idNumber || !idImage) {
+alert("Fill all fields");
+return;
+}
+
+await addDoc(collection(db, "kyc"), {
+uid: currentUser.uid,
+fullName: fullName,
+idNumber: idNumber,
+status: "pending",
+createdAt: Date.now()
+});
+
+alert("KYC Submitted Successfully");
+window.location = "dashboard.html";
+
+};
+
+</script></body>
+</html>
