@@ -4,7 +4,7 @@ import {
 initializeApp
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getFirestore,
@@ -13,39 +13,39 @@ getDoc,
 updateDoc
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
 getAuth,
 onAuthStateChanged
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-/* FIREBASE */
+/* NEW PCN FIREBASE */
 
 const firebaseConfig = {
 
 apiKey:
-"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 
 authDomain:
-"jumiastaff-83757.firebaseapp.com",
+"pcnexchange.firebaseapp.com",
+
+databaseURL:
+"https://pcnexchange-default-rtdb.firebaseio.com",
 
 projectId:
-"jumiastaff-83757",
+"pcnexchange",
 
 storageBucket:
-"jumiastaff-83757.firebasestorage.app",
+"pcnexchange.firebasestorage.app",
 
 messagingSenderId:
-"1018307795636",
+"278761036604",
 
 appId:
-"1:1018307795636:web:6545b94e234fe9fb1ad5e1",
-
-measurementId:
-"G-W9M358ZS1G"
+"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 };
 
@@ -131,83 +131,35 @@ coin=>{
 
 marketBox.innerHTML += `
 
-<div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+<div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl"><div class="flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-14 h-14 bg-emerald-500 text-black rounded-2xl flex items-center justify-center text-2xl font-bold">${coin.icon}
 
-<div class="flex items-center justify-between">
+</div><div><h2 class="text-2xl font-bold">${coin.symbol}
 
-<div class="flex items-center gap-4">
+</h2><p class="text-zinc-400">${coin.name}
 
-<div class="w-14 h-14 bg-emerald-500 text-black rounded-2xl flex items-center justify-center text-2xl font-bold">
-
-${coin.icon}
-
-</div>
-
-<div>
-
-<h2 class="text-2xl font-bold">
-
-${coin.symbol}
-
-</h2>
-
-<p class="text-zinc-400">
-
-${coin.name}
-
-</p>
-
-</div>
-
-</div>
-
-<div class="${
+</p></div></div><div class="${
 coin.change.includes('+')
 ?
 'text-emerald-500'
 :
 'text-red-500'
-} font-bold">
+} font-bold">${coin.change}
 
-${coin.change}
+</div></div><div class="mt-6"><h1 class="text-4xl font-bold">$${coin.price}
 
-</div>
-
-</div>
-
-<div class="mt-6">
-
-<h1 class="text-4xl font-bold">
-
-$${coin.price}
-
-</h1>
-
-</div>
-
-<div class="grid grid-cols-2 gap-4 mt-6">
-
-<button
+</h1></div><div class="grid grid-cols-2 gap-4 mt-6"><button
 class="buyBtn bg-emerald-500 text-black py-4 rounded-2xl font-bold"
 data-coin="${coin.symbol}">
 
 BUY
 
-</button>
-
-<button
+</button><button
 class="sellBtn bg-zinc-800 text-white py-4 rounded-2xl font-bold"
 data-coin="${coin.symbol}">
 
 SELL
 
-</button>
-
-</div>
-
-</div>
-
-`;
+</button></div></div>`;
 
 });
 
