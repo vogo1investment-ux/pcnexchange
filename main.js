@@ -1,47 +1,28 @@
 // main.js
 
 import {
-
 initializeApp
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
-
 getAuth,
-
 createUserWithEmailAndPassword,
-
 signInWithEmailAndPassword,
-
 onAuthStateChanged,
-
 signOut
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
-
 getFirestore,
-
 doc,
-
 setDoc,
-
 getDoc
-
 }
-
 from
-
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 /* FIREBASE */
@@ -71,23 +52,15 @@ measurementId:
 
 };
 
-const app = initializeApp(
-firebaseConfig
-);
+const app = initializeApp(firebaseConfig);
 
-const auth = getAuth(
-app
-);
+const auth = getAuth(app);
 
-const db = getFirestore(
-app
-);
+const db = getFirestore(app);
 
 /* AUTH POPUP */
 
-const authBox = document.createElement(
-"div"
-);
+const authBox = document.createElement("div");
 
 authBox.innerHTML = `
 
@@ -235,9 +208,7 @@ Close
 
 `;
 
-document.body.appendChild(
-authBox
-);
+document.body.appendChild(authBox);
 
 /* OPEN POPUP */
 
@@ -253,7 +224,7 @@ document.getElementById(
 
 document.getElementById(
 "closeAuth"
-).onclick=()=>{
+).onclick = ()=>{
 
 document.getElementById(
 "authModal"
@@ -285,68 +256,47 @@ openAuth();
 
 }
 
+);
+
 /* CREATE ACCOUNT */
 
 document.getElementById(
 "signupBtn"
-).onclick=
-
-async()=>{
+).onclick = async()=>{
 
 try{
 
-const username=
+const username =
+document.getElementById("username").value.trim();
 
-document.getElementById(
-"username"
-).value.trim();
+const email =
+document.getElementById("email").value.trim();
 
-const email=
-
-document.getElementById(
-"email"
-).value.trim();
-
-const password=
-
-document.getElementById(
-"password"
-).value.trim();
+const password =
+document.getElementById("password").value.trim();
 
 if(!username || !email || !password){
 
-alert(
-"Fill all fields"
-);
+alert("Fill all fields");
 
 return;
 
 }
 
-const userCredential=
-
+const userCredential =
 await createUserWithEmailAndPassword(
-
 auth,
-
 email,
-
 password
-
 );
 
-const user=
-userCredential.user;
+const user = userCredential.user;
 
 /* SAVE USER */
 
 await setDoc(
 
-doc(
-db,
-"users",
-user.uid
-),
+doc(db,"users",user.uid),
 
 {
 
@@ -368,20 +318,15 @@ createdAt:Date.now()
 
 );
 
-alert(
-"ACCOUNT CREATED SUCCESSFULLY"
-);
+alert("ACCOUNT CREATED SUCCESSFULLY");
 
-window.location=
-"dashboard.html";
+window.location = "dashboard.html";
 
 }
 
 catch(e){
 
-alert(
-e.message
-);
+alert(e.message);
 
 }
 
@@ -391,58 +336,39 @@ e.message
 
 document.getElementById(
 "loginBtn"
-).onclick=
-
-async()=>{
+).onclick = async()=>{
 
 try{
 
-const email=
+const email =
+document.getElementById("email").value.trim();
 
-document.getElementById(
-"email"
-).value.trim();
-
-const password=
-
-document.getElementById(
-"password"
-).value.trim();
+const password =
+document.getElementById("password").value.trim();
 
 if(!email || !password){
 
-alert(
-"Fill all fields"
-);
+alert("Fill all fields");
 
 return;
 
 }
 
 await signInWithEmailAndPassword(
-
 auth,
-
 email,
-
 password
-
 );
 
-alert(
-"LOGIN SUCCESSFUL"
-);
+alert("LOGIN SUCCESSFUL");
 
-window.location=
-"dashboard.html";
+window.location = "dashboard.html";
 
 }
 
 catch(e){
 
-alert(
-e.message
-);
+alert(e.message);
 
 }
 
@@ -458,48 +384,36 @@ async(user)=>{
 
 if(user){
 
-const userRef=
+const userRef =
+doc(db,"users",user.uid);
 
-doc(
-db,
-"users",
-user.uid
-);
-
-const snap=
-
-await getDoc(
-userRef
-);
+const snap =
+await getDoc(userRef);
 
 if(snap.exists()){
 
-const data=
-snap.data();
+const data = snap.data();
 
-const welcomeUser=
+/* USERNAME */
 
-document.getElementById(
-"welcomeUser"
-);
+const welcomeUser =
+document.getElementById("welcomeUser");
 
 if(welcomeUser){
 
-welcomeUser.innerText=
-data.username;
+welcomeUser.innerText = data.username;
 
 }
 
-const balance=
+/* BALANCE */
 
-document.getElementById(
-"balance"
-);
+const balance =
+document.getElementById("balance");
 
 if(balance){
 
-balance.innerText=
-"$"+data.availableBalance;
+balance.innerText =
+"$" + data.availableBalance;
 
 }
 
@@ -508,27 +422,21 @@ balance.innerText=
 }
 
 }
+
+);
 
 /* LOGOUT */
 
-const logoutBtn=
-
-document.getElementById(
-"logoutBtn"
-);
+const logoutBtn =
+document.getElementById("logoutBtn");
 
 if(logoutBtn){
 
-logoutBtn.onclick=
+logoutBtn.onclick = async()=>{
 
-async()=>{
+await signOut(auth);
 
-await signOut(
-auth
-);
-
-window.location=
-"index.html";
+window.location = "index.html";
 
 };
 
