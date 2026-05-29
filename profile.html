@@ -1,26 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
+<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-
-PROFILE
-
-</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet"
-href="dashboard.css">
-
-<style>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROFILE</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="dashboard.css"><style>
 body{
 background:black;
 color:white;
@@ -72,11 +53,6 @@ padding:30px;
 margin-top:25px;
 }
 
-.card h2{
-font-size:28px;
-margin-bottom:20px;
-}
-
 .card input{
 width:100%;
 padding:18px;
@@ -105,6 +81,24 @@ margin-top:15px;
 color:#777;
 }
 
+.badge{
+display:inline-block;
+padding:6px 12px;
+border-radius:12px;
+font-size:12px;
+margin-top:10px;
+}
+
+.verified{
+background:#00ff88;
+color:black;
+}
+
+.pending{
+background:orange;
+color:black;
+}
+
 .bottom-nav{
 position:fixed;
 bottom:0;
@@ -129,247 +123,140 @@ font-size:13px;
 .bottom-nav .active{
 color:#00ff88;
 }
-
-</style>
-
-</head>
-
-<body>
-
-<div class="header">
-
+</style></head><body><div class="header">
 <div class="logo">
+<div class="icon">P</div>
+<h1>PCN PROFILE</h1>
+</div><a href="dashboard.html" style="color:#00ff88;">Dashboard</a>
 
-<div class="icon">
-
-P
-
-</div>
-
-<h1>
-
-PCN PROFILE
-
-</h1>
-
-</div>
-
-<a href="dashboard.html"
-style="color:#00ff88;">
-
-Dashboard
-
-</a>
-
-</div>
-
-<div class="container">
-
-<div class="card">
-
-<h2>
-
-Profile Information
-
-</h2>
-
-<input
-id="username"
-placeholder="Username">
-
-<div class="info"
-id="email">
-
-Loading Email...
-
-</div>
-
-<div class="info"
-id="uid">
-
-Loading UID...
-
-</div>
-
-<button
-id="saveBtn"
-class="btn">
-
+</div><div class="container"><div class="card"><h2>Profile Information</h2><input id="username" placeholder="Username"><div class="info" id="email">Loading Email...</div>
+<div class="info" id="uid">Loading UID...</div><!-- KYC STATUS --><div class="info" id="kycStatus">KYC: Loading...</div><!-- VERIFIED BADGE --><div id="verifiedBadge"></div><!-- COMPLETE KYC BUTTON --><button id="kycBtn" class="btn" style="background:#ff9800;">
+Complete KYC
+</button><button id="saveBtn" class="btn">
 SAVE PROFILE
-
-</button>
-
-</div>
-
-</div>
-
-<div class="bottom-nav">
-
-<a href="dashboard.html">
-
-Home
-
-</a>
-
-<a href="markets.html">
-
-Markets
-
-</a>
-
-<a href="trade.html">
-
-Trade
-
-</a>
-
-<a href="profile.html"
-class="active">
-
-Profile
-
-</a>
-
-</div>
-
-<script type="module">
+</button></div>
+</div><div class="bottom-nav">
+<a href="dashboard.html">Home</a>
+<a href="markets.html">Markets</a>
+<a href="trade.html">Trade</a>
+<a href="profile.html" class="active">Profile</a>
+</div><script type="module">
 
 import {
 initializeApp
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getFirestore,
 doc,
 getDoc,
-updateDoc
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+updateDoc,
+collection,
+query,
+where,
+getDocs
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
 getAuth,
 onAuthStateChanged
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-/* NEW PCN FIREBASE */
-
+/* FIREBASE */
 const firebaseConfig = {
-
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
 authDomain: "pcnexchange.firebaseapp.com",
-
-databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-
 projectId: "pcnexchange",
-
 storageBucket: "pcnexchange.firebasestorage.app",
-
 messagingSenderId: "278761036604",
-
 appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-
 };
 
-const app =
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const db =
-getFirestore(app);
+const username = document.getElementById("username");
+const email = document.getElementById("email");
+const uid = document.getElementById("uid");
 
-const auth =
-getAuth(app);
+const kycStatus = document.getElementById("kycStatus");
+const verifiedBadge = document.getElementById("verifiedBadge");
+const kycBtn = document.getElementById("kycBtn");
+const saveBtn = document.getElementById("saveBtn");
 
-const username =
-document.getElementById("username");
-
-const email =
-document.getElementById("email");
-
-const uid =
-document.getElementById("uid");
-
-const saveBtn =
-document.getElementById("saveBtn");
+let currentUser = null;
 
 /* LOAD USER */
+onAuthStateChanged(auth, async (user) => {
 
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
-
-if(!user){
-
-window.location.href = "index.html";
-
+if (!user) {
+window.location = "index.html";
 return;
-
 }
 
-try{
+currentUser = user;
 
-email.innerText =
-"Email: " + user.email;
+email.innerText = "Email: " + user.email;
+uid.innerText = "UID: " + user.uid;
 
-uid.innerText =
-"UID: " + user.uid;
+/* LOAD PROFILE */
+const userRef = doc(db, "users", user.uid);
+const snap = await getDoc(userRef);
 
-const userRef =
-doc(db,"users",user.uid);
-
-const snap =
-await getDoc(userRef);
-
-if(snap.exists()){
-
-const data =
-snap.data();
-
-username.value =
-data.username || "";
-
+if (snap.exists()) {
+const data = snap.data();
+username.value = data.username || "";
 }
+
+/* LOAD KYC */
+const kycQuery = query(
+collection(db, "kyc"),
+where("uid", "==", user.uid)
+);
+
+const kycSnap = await getDocs(kycQuery);
+
+if (!kycSnap.empty) {
+
+kycSnap.forEach(docu => {
+const kyc = docu.data();
+
+kycStatus.innerText = "KYC: " + kyc.status.toUpperCase();
+
+if (kyc.status === "approved") {
+verifiedBadge.innerHTML = "✅ VERIFIED USER";
+verifiedBadge.className = "badge verified";
+kycBtn.style.display = "none";
+}
+
+if (kyc.status === "pending") {
+kycStatus.className = "badge pending";
+}
+
+});
+} else {
+kycStatus.innerText = "KYC: NOT SUBMITTED";
+}
+
+});
 
 /* SAVE PROFILE */
+saveBtn.onclick = async () => {
 
-saveBtn.onclick =
-async()=>{
+const userRef = doc(db, "users", currentUser.uid);
 
-await updateDoc(
-
-userRef,
-
-{
-
+await updateDoc(userRef, {
 username: username.value
+});
 
-}
-
-);
-
-alert("Profile Updated Successfully");
-
+alert("Profile Updated");
 };
 
-}catch(err){
+/* GO TO KYC PAGE */
+kycBtn.onclick = () => {
+window.location = "kyc.html";
+};
 
-console.log(err);
-
-}
-
-}
-
-);
-
-</script>
-
-</body>
-
+</script></body>
 </html>
