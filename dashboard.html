@@ -320,7 +320,7 @@ import {
 initializeApp
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getFirestore,
@@ -328,28 +328,32 @@ doc,
 getDoc
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
 getAuth,
 onAuthStateChanged
 }
 from
-"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+/* FIREBASE */
 
 const firebaseConfig={
 
-apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 
-authDomain:"jumiastaff-83757.firebaseapp.com",
+authDomain:"pcnexchange.firebaseapp.com",
 
-projectId:"jumiastaff-83757",
+databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
 
-storageBucket:"jumiastaff-83757.firebasestorage.app",
+projectId:"pcnexchange",
 
-messagingSenderId:"1018307795636",
+storageBucket:"pcnexchange.firebasestorage.app",
 
-appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1"
+messagingSenderId:"278761036604",
+
+appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 };
 
@@ -362,6 +366,8 @@ getFirestore(app);
 const auth=
 getAuth(app);
 
+/* LOAD USER */
+
 onAuthStateChanged(
 
 auth,
@@ -370,11 +376,13 @@ async(user)=>{
 
 if(!user){
 
-window.location="login.html";
+window.location="index.html";
 
 return;
 
 }
+
+try{
 
 const ref=
 doc(db,"users",user.uid);
@@ -386,10 +394,14 @@ if(snap.exists()){
 
 const data=snap.data();
 
+/* USERNAME */
+
 document.getElementById(
 "welcomeUser"
 ).innerText=
 data.username || "PCN USER";
+
+/* BALANCE */
 
 document.getElementById(
 "balance"
@@ -398,46 +410,39 @@ document.getElementById(
 
 }
 
+}catch(err){
+
+console.log(err);
+
+}
+
 }
 
 );
 
+/* MARKET */
+
 const coins=[
 
 {
-
 name:"Bitcoin",
-
 symbol:"BTC",
-
 price:"67,245",
-
 change:"+2.5%"
-
 },
 
 {
-
 name:"Ethereum",
-
 symbol:"ETH",
-
 price:"3,521",
-
 change:"+1.2%"
-
 },
 
 {
-
 name:"Solana",
-
 symbol:"SOL",
-
 price:"149",
-
 change:"-0.8%"
-
 }
 
 ];
