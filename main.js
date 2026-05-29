@@ -7,7 +7,9 @@ from
 import {
 getAuth,
 createUserWithEmailAndPassword,
-signInWithEmailAndPassword
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut
 }
 from
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
@@ -15,62 +17,69 @@ from
 import {
 getFirestore,
 doc,
-setDoc
+setDoc,
+getDoc
 }
 from
 "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-const firebaseConfig={
+/* FIREBASE CONFIG */
 
-apiKey:"AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
+const firebaseConfig = {
 
-authDomain:"jumiastaff-83757.firebaseapp.com",
+apiKey: "AIzaSyBp3K3gJtK2XqIm-eVI1osP-Vma3wj1lTs",
 
-projectId:"jumiastaff-83757",
+authDomain: "jumiastaff-83757.firebaseapp.com",
 
-storageBucket:"jumiastaff-83757.firebasestorage.app",
+projectId: "jumiastaff-83757",
 
-messagingSenderId:"1018307795636",
+storageBucket: "jumiastaff-83757.firebasestorage.app",
 
-appId:"1:1018307795636:web:6545b94e234fe9fb1ad5e1"
+messagingSenderId: "1018307795636",
+
+appId: "1:1018307795636:web:6545b94e234fe9fb1ad5e1"
 
 };
 
-const app=
+/* START FIREBASE */
+
+const app =
 initializeApp(firebaseConfig);
 
-const auth=
+const auth =
 getAuth(app);
 
-const db=
+const db =
 getFirestore(app);
 
-/* SIGN UP */
+/* =========================
+CREATE ACCOUNT
+========================= */
 
-const signupBtn=
+const signupBtn =
 document.getElementById(
 "signupBtn"
 );
 
 if(signupBtn){
 
-signupBtn.onclick=
+signupBtn.onclick =
 async()=>{
 
-const username=
+const username =
 document.getElementById(
 "signupUsername"
-).value;
+).value.trim();
 
-const email=
+const email =
 document.getElementById(
 "signupEmail"
-).value;
+).value.trim();
 
-const password=
+const password =
 document.getElementById(
 "signupPassword"
-).value;
+).value.trim();
 
 if(!username || !email || !password){
 
@@ -84,7 +93,7 @@ return;
 
 try{
 
-const userCredential=
+const userCredential =
 await createUserWithEmailAndPassword(
 
 auth,
@@ -93,8 +102,10 @@ password
 
 );
 
-const user=
+const user =
 userCredential.user;
+
+/* SAVE USER */
 
 await setDoc(
 
@@ -118,7 +129,7 @@ alert(
 "Account Created Successfully"
 );
 
-window.location=
+window.location.href =
 "dashboard.html";
 
 }
@@ -135,27 +146,29 @@ error.message
 
 }
 
-/* LOGIN */
+/* =========================
+LOGIN
+========================= */
 
-const loginBtn=
+const loginBtn =
 document.getElementById(
 "loginBtn"
 );
 
 if(loginBtn){
 
-loginBtn.onclick=
+loginBtn.onclick =
 async()=>{
 
-const email=
+const email =
 document.getElementById(
 "loginEmail"
-).value;
+).value.trim();
 
-const password=
+const password =
 document.getElementById(
 "loginPassword"
-).value;
+).value.trim();
 
 if(!email || !password){
 
@@ -181,7 +194,7 @@ alert(
 "Login Successful"
 );
 
-window.location=
+window.location.href =
 "dashboard.html";
 
 }
@@ -193,6 +206,86 @@ error.message
 );
 
 }
+
+};
+
+}
+
+/* =========================
+LOAD USER
+========================= */
+
+onAuthStateChanged(
+
+auth,
+
+async(user)=>{
+
+if(user){
+
+const userRef =
+doc(db,"users",user.uid);
+
+const snap =
+await getDoc(userRef);
+
+if(snap.exists()){
+
+const data =
+snap.data();
+
+/* DASHBOARD USERNAME */
+
+const welcomeUser =
+document.getElementById(
+"welcomeUser"
+);
+
+if(welcomeUser){
+
+welcomeUser.innerText =
+data.username;
+
+}
+
+/* DASHBOARD BALANCE */
+
+const balance =
+document.getElementById(
+"balance"
+);
+
+if(balance){
+
+balance.innerText =
+"$"+data.availableBalance;
+
+}
+
+}
+
+}
+
+}
+
+/* =========================
+LOGOUT
+========================= */
+
+const logoutBtn =
+document.getElementById(
+"logoutBtn"
+);
+
+if(logoutBtn){
+
+logoutBtn.onclick =
+async()=>{
+
+await signOut(auth);
+
+window.location.href =
+"index.html";
 
 };
 
