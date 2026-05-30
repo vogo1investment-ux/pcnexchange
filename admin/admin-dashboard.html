@@ -3,64 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN ADMIN DASHBOARD</title>
+<title>PCN ADMIN PANEL</title>
 <script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+background:#000;
+color:white;
+font-family:Arial;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+border-radius:20px;
+padding:20px;
+transition:0.3s;
+}
+
+.card:hover{
+transform:scale(1.02);
+border-color:#00ff88;
+}
+
+.btn{
+background:#00ff88;
+color:black;
+padding:15px;
+border-radius:15px;
+font-weight:bold;
+}
+</style>
+
 </head>
 
-<body class="bg-black text-white">
+<body>
 
 <!-- HEADER -->
-<div class="p-5 flex justify-between items-center border-b border-zinc-800 bg-zinc-950">
-<h1 class="text-2xl text-emerald-400 font-bold">ADMIN DASHBOARD</h1>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:20px;background:#0a0a0a;border-bottom:1px solid #222;">
+<h1 style="color:#00ff88;font-size:24px;">ADMIN DASHBOARD</h1>
+
+<a href="../index.html" style="color:red;">Logout</a>
 </div>
 
-<!-- STATS CARDS -->
-<div class="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:20px;">
 
-<div class="bg-zinc-900 p-4 rounded-xl">
-<h2 class="text-gray-400">Users</h2>
-<p id="totalUsers" class="text-2xl font-bold">0</p>
+<div class="card">
+<h3>Users</h3>
+<p id="users">0</p>
 </div>
 
-<div class="bg-zinc-900 p-4 rounded-xl">
-<h2 class="text-gray-400">Deposits</h2>
-<p id="totalDeposits" class="text-2xl font-bold">$0</p>
+<div class="card">
+<h3>Total Deposits</h3>
+<p id="deposits">$0</p>
 </div>
 
-<div class="bg-zinc-900 p-4 rounded-xl">
-<h2 class="text-gray-400">Withdrawals</h2>
-<p id="totalWithdrawals" class="text-2xl font-bold">$0</p>
+<div class="card">
+<h3>Total Withdraw</h3>
+<p id="withdraw">$0</p>
 </div>
 
-<div class="bg-zinc-900 p-4 rounded-xl">
-<h2 class="text-gray-400">Pending KYC</h2>
-<p id="pendingKyc" class="text-2xl font-bold">0</p>
+<div class="card">
+<h3>KYC Pending</h3>
+<p id="kyc">0</p>
 </div>
 
 </div>
 
-<!-- NAVIGATION MENU -->
-<div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- BUTTONS -->
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;padding:20px;">
 
-<a href="admin-kyc.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
-🪪 KYC Verification
-</a>
+<a class="card" href="admin-kyc.html">🪪 KYC APPROVAL</a>
 
-<a href="admin-support.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
-💬 Support Messages
-</a>
+<a class="card" href="admin-support.html">💬 SUPPORT MESSAGES</a>
 
-<a href="admin-deposits.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
-💰 Deposits
-</a>
+<a class="card" href="admin-notification.html">🔔 SEND NOTIFICATIONS</a>
 
-<a href="admin-withdraw.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
-🏧 Withdrawals
-</a>
+<a class="card" href="admin-deposits.html">💰 DEPOSITS</a>
 
-<a href="admin-notification.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
-🔔 Notifications
-</a>
+<a class="card" href="admin-withdraw.html">🏧 WITHDRAWALS</a>
+
+<a class="card" href="admin-users.html">👤 USERS</a>
 
 </div>
 
