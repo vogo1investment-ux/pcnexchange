@@ -15,7 +15,7 @@ getAuth,
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-/* FIREBASE CONFIG (use your PCN config) */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
 
 apiKey: "YOUR_API_KEY",
@@ -31,9 +31,11 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* UI ELEMENTS */
-const sentBox = document.getElementById("sentList");
-const receivedBox = document.getElementById("receivedList");
+/* DOM */
+const depositList = document.getElementById("depositList");
+const withdrawList = document.getElementById("withdrawList");
+const sentList = document.getElementById("sentList");
+const receivedList = document.getElementById("receivedList");
 
 onAuthStateChanged(auth, (user) => {
 
@@ -42,28 +44,27 @@ window.location = "index.html";
 return;
 }
 
-/* =========================
-   TRANSFERS (SENT)
-========================= */
-const transferQuery = query(
-collection(db, "transferRequests"),
-where("senderId", "==", user.uid)
+/* =====================
+   DEPOSITS
+===================== */
+const depositQ = query(
+collection(db, "deposits"),
+where("userId", "==", user.uid)
 );
 
-onSnapshot(transferQuery, (snap) => {
+onSnapshot(depositQ, (snap) => {
 
-sentBox.innerHTML = "";
+depositList.innerHTML = "";
 
 snap.forEach(doc => {
 
 const d = doc.data();
 
-sentBox.innerHTML += `
-<div style="background:#111;padding:10px;margin-bottom:8px;border-radius:8px">
-<p><b>Transfer To:</b> ${d.receiver}</p>
-<p><b>Amount:</b> $${d.amount}</p>
-<p><b>Status:</b> ${d.status}</p>
-<p style="color:gray">${new Date(d.createdAt).toLocaleString()}</p>
+depositList.innerHTML += `
+<div class="bg-zinc-900 p-3 rounded-lg">
+<p>Amount: $${d.amount}</p>
+<p>Status: ${d.status || "completed"}</p>
+<p>${new Date(d.time || d.createdAt).toLocaleString()}</p>
 </div>
 `;
 
@@ -71,28 +72,85 @@ sentBox.innerHTML += `
 
 });
 
-/* =========================
-   TRANSFERS (RECEIVED)
-========================= */
-const receiveQuery = query(
-collection(db, "transferRequests"),
-where("receiver", "==", user.email)
+/* =====================
+   WITHDRAWALS
+===================== */
+const withdrawQ = query(
+collection(db, "withdrawals"),
+where("userId", "==", user.uid)
 );
 
-onSnapshot(receiveQuery, (snap) => {
+onSnapshot(withdrawQ, (snap) => {
 
-receivedBox.innerHTML = "";
+withdrawList.innerHTML = "";
 
 snap.forEach(doc => {
 
 const d = doc.data();
 
-receivedBox.innerHTML += `
-<div style="background:#111;padding:10px;margin-bottom:8px;border-radius:8px">
-<p><b>From:</b> ${d.senderId}</p>
-<p><b>Amount:</b> $${d.amount}</p>
-<p><b>Status:</b> ${d.status}</p>
-<p style="color:gray">${new Date(d.createdAt).toLocaleString()}</p>
+withdrawList.innerHTML += `
+<div class="bg-zinc-900 p-3 rounded-lg">
+<p>Amount: $${d.amount}</p>
+<p>Status: ${d.status || "pending"}</p>
+<p>${new Date(d.time || d.createdAt).toLocaleString()}</p>
+</div>
+`;
+
+});
+
+});
+
+/* =====================
+   SENT TRANSFERS
+===================== */
+const sentQ = query(
+collection(db, "transferRequests"),
+where("senderId", "==", user.uid)
+);
+
+onSnapshot(sentQ, (snap) => {
+
+sentList.innerHTML = "";
+
+snap.forEach(doc => {
+
+const d = doc.data();
+
+sentList.innerHTML += `
+<div class="bg-zinc-900 p-3 rounded-lg">
+<p>To: ${d.receiver}</p>
+<p>Amount: $${d.amount}</p>
+<p>Status: ${d.status}</p>
+<p>${new Date(d.createdAt).toLocaleString()}</p>
+</div>
+`;
+
+});
+
+});
+
+/* =====================
+   RECEIVED TRANSFERS
+===================== */
+const receivedQ = query(
+collection(db, "transferRequests"),
+where("receiver", "==", user.email)
+);
+
+onSnapshot(receivedQ, (snap) => {
+
+receivedList.innerHTML = "";
+
+snap.forEach(doc => {
+
+const d = doc.data();
+
+receivedList.innerHTML += `
+<div class="bg-zinc-900 p-3 rounded-lg">
+<p>From: ${d.senderId}</p>
+<p>Amount: $${d.amount}</p>
+<p>Status: ${d.status}</p>
+<p>${new Date(d.createdAt).toLocaleString()}</p>
 </div>
 `;
 

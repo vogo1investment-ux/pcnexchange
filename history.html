@@ -1,28 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transaction History - PCN EXCHANGE</title>
+
+<title>Transaction History</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="style.css">
+
 </head>
 
-<body class="bg-black text-white min-h-screen">
+<body class="bg-black text-white">
 
-<header class="p-5 border-b border-zinc-800 text-xl font-bold text-emerald-400">
-Transaction History
-</header>
-
-<section class="p-4">
-
-<div id="historyList" class="space-y-4">
-
-<!-- Transactions load here -->
-
+<div class="p-5 border-b border-zinc-800">
+<h1 class="text-2xl font-bold text-emerald-500">
+Full History
+</h1>
 </div>
 
-</section>
+<div class="p-5 space-y-8">
+
+<!-- DEPOSITS -->
+<div>
+<h2 class="text-lg font-bold text-emerald-400">Deposits</h2>
+<div id="depositList" class="space-y-2 mt-2"></div>
+</div>
+
+<!-- WITHDRAWALS -->
+<div>
+<h2 class="text-lg font-bold text-red-400">Withdrawals</h2>
+<div id="withdrawList" class="space-y-2 mt-2"></div>
+</div>
+
+<!-- SENT TRANSFERS -->
+<div>
+<h2 class="text-lg font-bold text-yellow-400">Sent Transfers</h2>
+<div id="sentList" class="space-y-2 mt-2"></div>
+</div>
+
+<!-- RECEIVED TRANSFERS -->
+<div>
+<h2 class="text-lg font-bold text-blue-400">Received Transfers</h2>
+<div id="receivedList" class="space-y-2 mt-2"></div>
+</div>
+
+</div>
 
 <script type="module" src="history.js"></script>
 
