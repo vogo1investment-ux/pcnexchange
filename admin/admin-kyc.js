@@ -7,7 +7,7 @@ doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import { getAuth,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -18,7 +18,7 @@ projectId:"pcnexchange"
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const supportList = document.getElementById("supportList");
+const kycList = document.getElementById("kycList");
 
 onAuthStateChanged(auth, async(user)=>{
 
@@ -27,16 +27,21 @@ window.location="admin-login.html";
 return;
 }
 
-const snap = await getDocs(collection(db,"support"));
+const snap = await getDocs(collection(db,"kyc"));
 
 snap.forEach((d)=>{
 
 const data = d.data();
 
-supportList.innerHTML += `
+kycList.innerHTML += `
 <div class="bg-zinc-900 p-4 mb-2">
-<p>${data.message}</p>
-<button onclick="resolve('${d.id}')">Resolve</button>
+<p>${data.name}</p>
+<p>${data.status}</p>
+
+<button onclick="approve('${d.id}','${data.uid}')">
+Approve
+</button>
+
 </div>
 `;
 
@@ -44,12 +49,16 @@ supportList.innerHTML += `
 
 });
 
-window.resolve = async(id)=>{
+window.approve = async(id,uid)=>{
 
-await updateDoc(doc(db,"support",id),{
-status:"resolved"
+await updateDoc(doc(db,"kyc",id),{
+status:"approved"
 });
 
-alert("Done");
+await updateDoc(doc(db,"users",uid),{
+kyc:"verified"
+});
+
+alert("Approved");
 
 };
