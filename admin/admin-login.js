@@ -1,13 +1,6 @@
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-import {
-getAuth,
-signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-/* FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 authDomain: "pcnexchange.firebaseapp.com",
@@ -19,9 +12,6 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-/* ADMIN EMAIL (ONLY THIS CAN ACCESS ADMIN) */
-const ADMIN_EMAIL = "kingnnachi11@gmail.com";
 
 document.getElementById("loginBtn").onclick = async () => {
 
@@ -35,23 +25,18 @@ return;
 
 try {
 
-const userCred = await signInWithEmailAndPassword(auth, email, password);
-const user = userCred.user;
+await signInWithEmailAndPassword(auth, email, password);
 
-/* ADMIN CHECK */
-if (user.email !== ADMIN_EMAIL) {
-alert("You are not allowed to access admin panel");
-return;
-}
+/* 🔥 IMPORTANT FIX */
+localStorage.setItem("adminLoggedIn", "true");
 
-alert("Admin Login Successful");
+alert("Login Successful");
 
-/* GO TO ADMIN PANEL */
-window.location = "admin.html";
+window.location.href = "admin-dashboard.html";
 
 } catch (err) {
-alert("Login Failed");
 console.log(err);
+alert("Login Failed");
 }
 
 };
