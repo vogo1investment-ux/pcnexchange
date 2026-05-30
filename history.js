@@ -1,169 +1,103 @@
 import {
 initializeApp
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-import {
-getAuth,
-onAuthStateChanged
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
 getFirestore,
 collection,
 query,
 where,
-getDocs
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* NEW PCN FIREBASE */
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
+/* FIREBASE CONFIG (use your PCN config) */
 const firebaseConfig = {
 
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
-authDomain: "pcnexchange.firebaseapp.com",
-
-databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-
-projectId: "pcnexchange",
-
-storageBucket: "pcnexchange.firebasestorage.app",
-
-messagingSenderId: "278761036604",
-
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_PROJECT.firebaseapp.com",
+projectId: "YOUR_PROJECT_ID",
+storageBucket: "YOUR_BUCKET",
+messagingSenderId: "YOUR_ID",
+appId: "YOUR_APP_ID"
 
 };
 
-const app =
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const auth =
-getAuth(app);
+/* UI ELEMENTS */
+const sentBox = document.getElementById("sentList");
+const receivedBox = document.getElementById("receivedList");
 
-const db =
-getFirestore(app);
+onAuthStateChanged(auth, (user) => {
 
-const historyList =
-document.getElementById("historyList");
-
-/* LOAD HISTORY */
-
-onAuthStateChanged(auth, async(user)=>{
-
-if(!user){
-
-historyList.innerHTML = `
-<p class="text-red-400">
-Please login first
-</p>
-`;
-
+if (!user) {
+window.location = "index.html";
 return;
-
 }
 
-try{
-
-const q = query(
-
-collection(db,"transactions"),
-
-where("uid","==",user.uid)
-
+/* =========================
+   TRANSFERS (SENT)
+========================= */
+const transferQuery = query(
+collection(db, "transferRequests"),
+where("senderId", "==", user.uid)
 );
 
-const snap =
-await getDocs(q);
+onSnapshot(transferQuery, (snap) => {
 
-/* EMPTY */
+sentBox.innerHTML = "";
 
-if(snap.empty){
+snap.forEach(doc => {
 
-historyList.innerHTML = `
+const d = doc.data();
 
-<div class="bg-zinc-900 p-5 rounded-2xl border border-zinc-800 text-center">
-
-<p class="text-zinc-500">
-
-No transactions yet
-
-</p>
-
+sentBox.innerHTML += `
+<div style="background:#111;padding:10px;margin-bottom:8px;border-radius:8px">
+<p><b>Transfer To:</b> ${d.receiver}</p>
+<p><b>Amount:</b> $${d.amount}</p>
+<p><b>Status:</b> ${d.status}</p>
+<p style="color:gray">${new Date(d.createdAt).toLocaleString()}</p>
 </div>
-
-`;
-
-return;
-
-}
-
-/* CLEAR */
-
-historyList.innerHTML = "";
-
-/* SHOW DATA */
-
-snap.forEach(doc=>{
-
-const t = doc.data();
-
-historyList.innerHTML += `
-
-<div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-
-<p class="text-emerald-400 font-bold">
-
-${t.type ? t.type.toUpperCase() : "TRANSACTION"}
-
-</p>
-
-<p>
-
-Amount: $${t.amount || 0}
-
-</p>
-
-<p class="text-zinc-500 text-sm">
-
-${t.createdAt ? new Date(t.createdAt).toLocaleString() : ""}
-
-</p>
-
-<p class="text-xs ${t.status === 'success'
-? 'text-green-400'
-: 'text-yellow-400'}">
-
-${t.status || "pending"}
-
-</p>
-
-</div>
-
 `;
 
 });
 
-}catch(err){
+});
 
-console.log(err);
+/* =========================
+   TRANSFERS (RECEIVED)
+========================= */
+const receiveQuery = query(
+collection(db, "transferRequests"),
+where("receiver", "==", user.email)
+);
 
-historyList.innerHTML = `
+onSnapshot(receiveQuery, (snap) => {
 
-<p class="text-red-400">
+receivedBox.innerHTML = "";
 
-Failed to load history
+snap.forEach(doc => {
 
-</p>
+const d = doc.data();
 
+receivedBox.innerHTML += `
+<div style="background:#111;padding:10px;margin-bottom:8px;border-radius:8px">
+<p><b>From:</b> ${d.senderId}</p>
+<p><b>Amount:</b> $${d.amount}</p>
+<p><b>Status:</b> ${d.status}</p>
+<p style="color:gray">${new Date(d.createdAt).toLocaleString()}</p>
+</div>
 `;
 
-}
+});
+
+});
 
 });
