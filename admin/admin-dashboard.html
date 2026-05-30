@@ -8,49 +8,71 @@
 <link rel="stylesheet" href="admin.css">
 </head>
 
-<body>
-
-<div id="adminPanel" class="hidden">
+<body class="bg-black text-white">
 
 <!-- HEADER -->
-<div class="header">
-<h1>PCN EXCHANGE ADMIN</h1>
-<button onclick="logout()">Logout</button>
+<div class="flex justify-between items-center p-5 bg-zinc-950 border-b border-zinc-800">
+<h1 class="text-2xl text-emerald-400 font-bold">
+PCN ADMIN PANEL
+</h1>
+
+<button onclick="logout()"
+class="bg-red-500 px-4 py-2 rounded">
+Logout
+</button>
 </div>
 
-<!-- STATS GRID -->
-<div class="grid">
+<!-- STATS -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
 
 <div class="card">
-<h2>Total Users</h2>
+<h2>Users</h2>
 <p id="users">0</p>
 </div>
 
 <div class="card">
-<h2>Total Deposits</h2>
+<h2>Deposits</h2>
 <p id="deposits">$0</p>
 </div>
 
 <div class="card">
-<h2>Total Withdrawals</h2>
+<h2>Withdrawals</h2>
 <p id="withdrawals">$0</p>
 </div>
 
 <div class="card">
-<h2>Pending Requests</h2>
+<h2>Pending</h2>
 <p id="pending">0</p>
 </div>
 
 </div>
 
-<!-- USER PANEL -->
-<div class="panel">
+<!-- NAV BUTTONS (THIS WAS MISSING BEFORE ❗) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
 
-<h2 style="margin-bottom:15px;">User Management</h2>
+<a href="admin-deposits.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+💰 Deposit Requests
+</a>
 
-<div id="userList"></div>
+<a href="admin-withdraw.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+🏧 Withdraw Requests
+</a>
 
-</div>
+<a href="admin-kyc.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+🪪 KYC Verification
+</a>
+
+<a href="admin-support.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+💬 Support Messages
+</a>
+
+<a href="admin-notification.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+🔔 Notifications
+</a>
+
+<a href="admin-users.html" class="bg-zinc-900 p-5 rounded-xl border border-zinc-800">
+👤 Users
+</a>
 
 </div>
 
