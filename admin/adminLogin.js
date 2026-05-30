@@ -1,48 +1,45 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+/* YOUR PCN EXCHANGE FIREBASE */
 const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT",
-storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
-appId: "YOUR_APP"
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ONLY ADMIN EMAIL
-const ADMIN_EMAIL = "admin@gmail.com";
+window.addEventListener("DOMContentLoaded", () => {
 
-document.getElementById("loginBtn").onclick = async () => {
+document.getElementById("loginBtn").addEventListener("click", async () => {
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
 
-try {
-
-const userCred = await signInWithEmailAndPassword(auth, email, password);
-const user = userCred.user;
-
-// SECURITY CHECK
-if (user.email !== ADMIN_EMAIL) {
-alert("Not authorized");
+if (!email || !password) {
+alert("Fill email and password");
 return;
 }
 
-alert("Admin Login Success");
+try {
 
-// SAVE SESSION
-localStorage.setItem("admin", "true");
+await signInWithEmailAndPassword(auth, email, password);
 
-// GO TO ADMIN PANEL
-window.location = "admin.html";
+alert("Admin Login Successful");
+
+// go to admin panel
+window.location.href = "admin.html";
 
 } catch (err) {
-alert("Login failed");
 console.log(err);
+alert("Login Failed (check Firebase user or password)");
 }
 
-};
+});
+
+});
