@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<div id="adminApp" class="hidden">
+
+<header class="header">
+<h1>PCN EXCHANGE ADMIN</h1>
+<button id="logoutBtn">Logout</button>
+</header>
+
+<section class="grid">
+
+<div class="card">
+<h2>Total Users</h2>
+<p id="totalUsers">0</p>
+</div>
+
+<div class="card">
+<h2>Total Deposits</h2>
+<p id="totalDeposits">$0</p>
+</div>
+
+<div class="card">
+<h2>Total Withdrawals</h2>
+<p id="totalWithdrawals">$0</p>
+</div>
+
+</section>
+
+<section class="panel">
+
+<h2>USER MANAGEMENT</h2>
+
+<div id="usersList"></div>
+
+</section>
+
+</div>
+
+<script type="module" src="admin-dashboard.js"></script>
+
+</body>
+</html>

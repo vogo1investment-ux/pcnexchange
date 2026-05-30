@@ -29,13 +29,11 @@ try {
 
 await signInWithEmailAndPassword(auth, email, password);
 
-alert("Login Successful");
-
-// SAVE SESSION
 localStorage.setItem("admin", "true");
 
-// REDIRECT
-window.location.href = "admin.html";
+alert("Login Successful");
+
+window.location.href = "admin-dashboard.html";
 
 } catch (err) {
 console.log(err);
