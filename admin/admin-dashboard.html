@@ -3,37 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN ADMIN</title>
+<title>PCN ADMIN DASHBOARD</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-black text-white">
 
 <!-- HEADER -->
-<div class="p-5 bg-zinc-950 border-b border-zinc-800 flex justify-between">
-<h1 class="text-2xl text-emerald-400 font-bold">ADMIN PANEL</h1>
+<div class="p-5 flex justify-between items-center border-b border-zinc-800 bg-zinc-950">
+<h1 class="text-2xl text-emerald-400 font-bold">ADMIN DASHBOARD</h1>
 </div>
 
-<!-- GRID MENU -->
+<!-- STATS CARDS -->
+<div class="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+
+<div class="bg-zinc-900 p-4 rounded-xl">
+<h2 class="text-gray-400">Users</h2>
+<p id="totalUsers" class="text-2xl font-bold">0</p>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded-xl">
+<h2 class="text-gray-400">Deposits</h2>
+<p id="totalDeposits" class="text-2xl font-bold">$0</p>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded-xl">
+<h2 class="text-gray-400">Withdrawals</h2>
+<p id="totalWithdrawals" class="text-2xl font-bold">$0</p>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded-xl">
+<h2 class="text-gray-400">Pending KYC</h2>
+<p id="pendingKyc" class="text-2xl font-bold">0</p>
+</div>
+
+</div>
+
+<!-- NAVIGATION MENU -->
 <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
 
-<a href="admin-deposits.html" class="bg-zinc-900 p-5 rounded-xl">
-💰 Deposits
-</a>
-
-<a href="admin-withdraw.html" class="bg-zinc-900 p-5 rounded-xl">
-🏧 Withdrawals
-</a>
-
-<a href="admin-kyc.html" class="bg-zinc-900 p-5 rounded-xl">
+<a href="admin-kyc.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
 🪪 KYC Verification
 </a>
 
-<a href="admin-support.html" class="bg-zinc-900 p-5 rounded-xl">
-💬 Support
+<a href="admin-support.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
+💬 Support Messages
 </a>
 
-<a href="admin-notification.html" class="bg-zinc-900 p-5 rounded-xl">
+<a href="admin-deposits.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
+💰 Deposits
+</a>
+
+<a href="admin-withdraw.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
+🏧 Withdrawals
+</a>
+
+<a href="admin-notification.html" class="bg-zinc-900 p-5 rounded-xl hover:bg-zinc-800">
 🔔 Notifications
 </a>
 
