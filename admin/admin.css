@@ -9,48 +9,45 @@ margin:0;
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:20px 25px;
+padding:20px;
 background:#111;
 border-bottom:1px solid #222;
 }
 
 .header h1{
 color:#00ff88;
-letter-spacing:1px;
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:20px;
 padding:20px;
 }
 
 .card{
 background:linear-gradient(145deg,#111,#0f0f0f);
-padding:25px;
+padding:20px;
 border-radius:20px;
-border:1px solid #1f1f1f;
-box-shadow:0 0 10px rgba(0,255,136,0.05);
+border:1px solid #222;
 text-align:center;
 transition:0.3s;
 }
 
 .card:hover{
-transform:translateY(-5px);
+transform:scale(1.05);
 border-color:#00ff88;
 }
 
 .card h2{
 font-size:14px;
 color:#aaa;
-margin-bottom:10px;
 }
 
 .card p{
 font-size:28px;
-font-weight:bold;
 color:#00ff88;
+font-weight:bold;
 }
 
 .panel{
@@ -59,13 +56,13 @@ padding:20px;
 
 .userCard{
 background:#111;
-border:1px solid #222;
 padding:15px;
 border-radius:15px;
 margin-bottom:10px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+border:1px solid #222;
 }
 
 .userCard input{

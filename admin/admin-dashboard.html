@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<title>PCN ADMIN DASHBOARD</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="admin.css">
 </head>
@@ -12,10 +12,13 @@
 
 <div id="adminPanel" class="hidden">
 
+<!-- HEADER -->
 <div class="header">
-<h1>PCN ADMIN DASHBOARD</h1>
+<h1>PCN EXCHANGE ADMIN</h1>
+<button onclick="logout()">Logout</button>
 </div>
 
+<!-- STATS GRID -->
 <div class="grid">
 
 <div class="card">
@@ -25,19 +28,25 @@
 
 <div class="card">
 <h2>Total Deposits</h2>
-<p>$0</p>
+<p id="deposits">$0</p>
 </div>
 
 <div class="card">
 <h2>Total Withdrawals</h2>
-<p>$0</p>
+<p id="withdrawals">$0</p>
+</div>
+
+<div class="card">
+<h2>Pending Requests</h2>
+<p id="pending">0</p>
 </div>
 
 </div>
 
+<!-- USER PANEL -->
 <div class="panel">
 
-<h2>Users</h2>
+<h2 style="margin-bottom:15px;">User Management</h2>
 
 <div id="userList"></div>
 

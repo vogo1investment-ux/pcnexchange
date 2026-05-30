@@ -1,7 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import {
+getFirestore,
+collection,
+getDocs,
+doc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+/* FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
 authDomain: "pcnexchange.firebaseapp.com",
@@ -17,16 +29,10 @@ const auth = getAuth(app);
 
 const panel = document.getElementById("adminPanel");
 
+/* AUTH + SECURITY */
 onAuthStateChanged(auth, async (user) => {
 
-if (!user) {
-window.location = "admin-login.html";
-return;
-}
-
-/* 🔥 FIXED ADMIN CHECK */
-if (localStorage.getItem("adminLoggedIn") !== "true") {
-alert("Not allowed to access admin panel");
+if (!user || localStorage.getItem("adminLoggedIn") !== "true") {
 window.location = "admin-login.html";
 return;
 }
@@ -34,39 +40,68 @@ return;
 panel.classList.remove("hidden");
 
 /* LOAD USERS */
-const snap = await getDocs(collection(db, "users"));
+const usersSnap = await getDocs(collection(db, "users"));
+const txSnap = await getDocs(collection(db, "transactions"));
+
+let users = 0;
+let deposits = 0;
+let withdrawals = 0;
+let pending = 0;
 
 let html = "";
-let count = 0;
 
-snap.forEach(u => {
-count++;
-const d = u.data();
+/* USERS LOOP */
+usersSnap.forEach((docSnap) => {
+users++;
+const d = docSnap.data();
 
 html += `
-<div class="card">
+<div class="userCard">
+<div>
 <p>${d.email || "No Email"}</p>
+</div>
 
-<input id="bal-${u.id}" value="${d.availableBalance || 0}">
+<input id="bal-${docSnap.id}" value="${d.availableBalance || 0}">
 
-<button onclick="updateBalance('${u.id}')">Update</button>
+<button onclick="updateBalance('${docSnap.id}')">Update</button>
 </div>
 `;
 });
 
+/* TRANSACTIONS LOOP */
+txSnap.forEach((docSnap) => {
+const d = docSnap.data();
+
+if (d.type === "deposit") deposits += Number(d.amount || 0);
+if (d.type === "withdraw") withdrawals += Number(d.amount || 0);
+if (d.status === "pending") pending++;
+});
+
+/* UPDATE UI */
+document.getElementById("users").innerText = users;
+document.getElementById("deposits").innerText = "$" + deposits;
+document.getElementById("withdrawals").innerText = "$" + withdrawals;
+document.getElementById("pending").innerText = pending;
+
 document.getElementById("userList").innerHTML = html;
-document.getElementById("users").innerText = count;
 
 });
 
 /* UPDATE BALANCE */
 window.updateBalance = async (id) => {
 
-const val = document.getElementById("bal-" + id).value;
+const value = document.getElementById("bal-" + id).value;
 
 await updateDoc(doc(db, "users", id), {
-availableBalance: Number(val)
+availableBalance: Number(value)
 });
 
-alert("Updated Successfully");
+alert("Balance Updated");
+};
+
+/* LOGOUT */
+window.logout = async () => {
+await signOut(auth);
+localStorage.removeItem("adminLoggedIn");
+window.location = "admin-login.html";
 };
