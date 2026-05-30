@@ -1,14 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT",
-storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
-appId: "YOUR_APP"
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -17,7 +17,7 @@ const auth = getAuth(app);
 
 const adminApp = document.getElementById("adminApp");
 
-// SECURITY CHECK
+/* SECURITY CHECK */
 onAuthStateChanged(auth, async (user) => {
 
 if (!user || localStorage.getItem("admin") !== "true") {
@@ -27,33 +27,33 @@ return;
 
 adminApp.classList.remove("hidden");
 
-// LOAD USERS
+/* LOAD USERS */
 const snap = await getDocs(collection(db, "users"));
 
-let totalUsers = 0;
+let total = 0;
 let html = "";
 
-snap.forEach(docu => {
-const d = docu.data();
-totalUsers++;
+snap.forEach(u => {
+const d = u.data();
+total++;
 
 html += `
 <div class="userCard">
 <p>${d.email || "No Email"}</p>
 
-<input value="${d.availableBalance || 0}" id="bal-${docu.id}">
+<input id="bal-${u.id}" value="${d.availableBalance || 0}">
 
-<button onclick="updateBalance('${docu.id}')">Update</button>
+<button onclick="updateBalance('${u.id}')">Update</button>
 </div>
 `;
 });
 
 document.getElementById("usersList").innerHTML = html;
-document.getElementById("totalUsers").innerText = totalUsers;
+document.getElementById("totalUsers").innerText = total;
 
 });
 
-// UPDATE BALANCE
+/* UPDATE BALANCE */
 window.updateBalance = async (id) => {
 
 const value = document.getElementById("bal-" + id).value;
@@ -62,10 +62,10 @@ await updateDoc(doc(db, "users", id), {
 availableBalance: Number(value)
 });
 
-alert("Updated");
+alert("Updated Successfully");
 };
 
-// LOGOUT
+/* LOGOUT */
 document.getElementById("logoutBtn").onclick = async () => {
 await signOut(auth);
 localStorage.removeItem("admin");
