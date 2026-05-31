@@ -1,101 +1,32 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receive Wallet</title><link rel="stylesheet" href="dashboard.css"><style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receive Funds</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body class="bg-black text-white p-5 min-h-screen">
 
-.container{
-max-width:500px;
-margin:80px auto;
-background:#111;
-padding:25px;
-border-radius:20px;
-text-align:center;
-border:1px solid #1f1f1f;
-}
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Receive Funds</h1>
 
-.title{
-color:#00ff88;
-font-weight:900;
-font-size:22px;
-}
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6 text-center">
+  <h2 class="text-2xl font-bold text-emerald-400 mb-4">Your Wallet Info</h2>
 
-.box{
-margin-top:20px;
-background:#000;
-padding:15px;
-border-radius:10px;
-border:1px solid #00ff88;
-word-break:break-all;
-font-weight:900;
-color:white;
-min-height:50px;
-display:flex;
-align-items:center;
-justify-content:center;
-}
+  <p class="mb-2">Email:</p>
+  <input id="userEmail" type="text" readonly class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4 text-center">
 
-button{
-margin-top:15px;
-padding:10px 15px;
-background:#00ff88;
-border:none;
-font-weight:900;
-cursor:pointer;
-}
+  <p class="mb-2">UID:</p>
+  <input id="userUid" type="text" readonly class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4 text-center">
 
-</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p>Your email is your wallet address</p><div id="emailBox" class="box">
-Loading email...
-</div><button onclick="copyEmail()">Copy Email</button>
+  <button id="copyBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-2xl mb-4">Copy Info</button>
 
-</div><script type="module">
+  <h2 class="text-xl font-bold text-emerald-400 mb-2">Your QR Code</h2>
+  <canvas id="qrcode"></canvas>
+</div>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+<script type="module" src="receive.js"></script>
 
-const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-let email = "";
-
-/* SAFE AUTH */
-onAuthStateChanged(auth, (user) => {
-
-const box = document.getElementById("emailBox");
-
-if (!user) {
-box.innerText = "Not logged in";
-return;
-}
-
-/* 🔥 EMAIL IS YOUR WALLET */
-email = user.email;
-
-/* SHOW EMAIL */
-box.innerText = email;
-
-});
-
-/* COPY EMAIL */
-window.copyEmail = function () {
-
-if (!email) return;
-
-navigator.clipboard.writeText(email);
-
-alert("Email copied!");
-
-};
-
-</script></body>
+</body>
 </html>
