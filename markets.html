@@ -1,130 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-
-PCN MARKETS
-
-</title>
-
-<link rel="stylesheet"
-href="dashboard.css">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<style>
+body { background: #000; color: #fff; }
+.market-container { max-width: 1000px; margin: auto; padding: 20px; }
+.coin-card { background: #111; border: 1px solid #0f0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer; }
+.coin-name { font-weight: bold; }
+.coin-price { font-weight: bold; }
+.coin-change { font-weight: bold; }
+.coin-change.red { color: #ff4444; }
+.coin-change.blue { color: #1E90FF; }
+</style>
 </head>
-
-<body class="bg-black text-white">
-
-<!-- HEADER -->
-
-<div class="w-full bg-zinc-950 border-b border-zinc-800 px-6 py-5 flex items-center justify-between">
-
-<div class="flex items-center gap-3">
-
-<div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center font-bold text-black text-xl">
-
-P
-
+<body>
+<div class="market-container">
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Crypto Market</h1>
+<div id="coinsList"></div>
 </div>
 
-<h1 class="text-2xl font-bold">
-
-PCN MARKETS
-
-</h1>
-
-</div>
-
-<a href="dashboard.html"
-class="text-emerald-500 text-lg">
-
-Dashboard
-
-</a>
-
-</div>
-
-<!-- MARKET LIST -->
-
-<div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-id="marketBox">
-
-</div>
-
-<!-- BOTTOM NAV -->
-
-<div class="fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-800 py-4 flex justify-around">
-
-<a href="dashboard.html"
-class="flex flex-col items-center text-zinc-400">
-
-<i class="fa-solid fa-house text-xl"></i>
-
-<span class="text-xs mt-1">
-
-Home
-
-</span>
-
-</a>
-
-<a href="markets.html"
-class="flex flex-col items-center text-emerald-500">
-
-<i class="fa-solid fa-chart-line text-xl"></i>
-
-<span class="text-xs mt-1">
-
-Markets
-
-</span>
-
-</a>
-
-<a href="trade.html"
-class="flex flex-col items-center text-zinc-400">
-
-<i class="fa-solid fa-arrow-right-arrow-left text-xl"></i>
-
-<span class="text-xs mt-1">
-
-Trade
-
-</span>
-
-</a>
-
-<a href="wallet.html"
-class="flex flex-col items-center text-zinc-400">
-
-<i class="fa-solid fa-wallet text-xl"></i>
-
-<span class="text-xs mt-1">
-
-Wallet
-
-</span>
-
-</a>
-
-</div>
-
-<script type="module"
-src="market.js">
-
-</script>
-
+<script type="module" src="market.js"></script>
 </body>
-
 </html>

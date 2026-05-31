@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Details</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<style>
+body { background: #000; color: #fff; padding: 20px; }
+.coin-header { text-align: center; margin-bottom: 20px; }
+.coin-header h1 { color: #0f0; font-size: 2rem; }
+.coin-header p { color: #aaa; }
+.action-btn { width: 100%; padding: 15px; font-weight: bold; border-radius: 15px; margin-bottom: 10px; cursor: pointer; }
+.transfer { background: #ff4444; color: #fff; }
+.receive { background: #0f0; color: #000; }
+.swap { background: #1E90FF; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="coin-header">
+  <h1 id="coinName">Coin Name</h1>
+  <p id="coinSymbol">Symbol</p>
+  <p id="coinPrice">$0</p>
+</div>
+
+<div class="actions">
+  <button class="action-btn transfer" id="transferBtn">Transfer</button>
+  <button class="action-btn receive" id="receiveBtn">Receive</button>
+  <button class="action-btn swap" id="swapBtn">Swap</button>
+</div>
+
+<!-- Transfer Form -->
+<div id="transferForm" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+<h2 class="text-2xl font-bold mb-4 text-emerald-400">Transfer Coin</h2>
+<input id="recipient" type="text" placeholder="Recipient UID or Email" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+<input id="amount" type="number" placeholder="Amount to Transfer" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+<input id="password" type="password" placeholder="Your Password" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+<button id="submitTransfer" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Send Transfer</button>
+</div>
+
+<!-- Receive Form -->
+<div id="receiveForm" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+<h2 class="text-2xl font-bold mb-4 text-emerald-400">Receive Coin</h2>
+<input id="userEmail" type="text" readonly class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4 text-center">
+<input id="userUid" type="text" readonly class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4 text-center">
+<button id="copyBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-2xl mb-4">Copy Info</button>
+<canvas id="qrcode"></canvas>
+</div>
+
+<!-- Swap Form -->
+<div id="swapForm" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+<h2 class="text-2xl font-bold mb-4 text-emerald-400">Swap Balance to Coin</h2>
+<input id="swapAmount" type="number" placeholder="Amount from balance" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+<button id="submitSwap" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Swap</button>
+</div>
+
+<script type="module" src="coin.js"></script>
+</body>
+</html>
