@@ -1,73 +1,58 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE</title><link rel="stylesheet" href="dashboard.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE DASHBOARD</title><link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head><body><!-- HEADER --><header class="top-header"><div class="logo-area">
-<div class="logo-box">P</div><div>
+</head><body><header class="top-header"><div class="logo-area">
+<div class="logo-box">P</div>
+<div>
 <h1>PCN EXCHANGE</h1>
 <p>Secure Crypto Trading</p>
 </div>
-</div><!-- SETTINGS + PROFILE --><div class="header-icons"><a href="profile.html" title="Profile">
-<i class="fa-solid fa-user"></i>
-</a><a href="settings.html" title="Settings">
-<i class="fa-solid fa-gear"></i>
-</a></div></header><!-- MAIN --><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()">Hide / Show Balance</button>
+</div><div class="header-icons">
+<a href="profile.html"><i class="fa-solid fa-user"></i></a>
+<a href="settings.html"><i class="fa-solid fa-gear"></i></a>
+</div></header><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()">Hide / Show</button>
 
-<!-- 💱 BOLD CURRENCY SECTION --><div style="margin-top:25px; padding:15px; border:2px solid #00ff88; border-radius:15px;"><h3 style="font-weight:900; font-size:18px; color:#00ff88;">
-⚡ CONVERT CURRENCY
-</h3><select id="currencySelect" style="width:100%; padding:10px; margin-top:10px; font-weight:900; background:#111; color:white; border:1px solid #00ff88;">
-<option value="USD">USD ($)</option>
-<option value="NGN">NGN (₦)</option>
-<option value="GBP">GBP (£)</option>
-<option value="EUR">EUR (€)</option>
-<option value="CAD">CAD (C$)</option>
-</select></div></div><!-- USER --><div class="user-box"><h3 id="welcomeUser">Loading user...</h3></div><!-- ACTION BUTTONS --><div class="action-grid"><a href="wallet.html" class="action-card">
-<i class="fa-solid fa-wallet"></i>
-<span>Wallet</span>
-</a><a href="trade.html" class="action-card">
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-<span>Trade</span>
-</a><a href="transfer.html" class="action-card">
-<i class="fa-solid fa-money-bill-transfer"></i>
-<span>Transfer</span>
-</a><a href="receive.html" class="action-card">
-<i class="fa-solid fa-qrcode"></i>
-<span>Receive</span>
-</a><a href="history.html" class="action-card">
-<i class="fa-solid fa-clock-rotate-left"></i>
-<span>History</span>
-</a><a href="support.html" class="action-card">
-<i class="fa-solid fa-headset"></i>
-<span>Support</span>
-</a><a href="airdrop.html" class="action-card">
-<i class="fa-solid fa-gift"></i>
-<span>Airdrop</span>
-</a><a href="explore.html" class="action-card">
-<i class="fa-solid fa-compass"></i>
-<span>Explore</span>
-</a><a href="assets.html" class="action-card">
-<i class="fa-solid fa-coins"></i>
-<span>Crypto Assets</span>
-</a></div></div><!-- NAV --><nav class="bottom-nav"><a href="dashboard.html" class="active">Home</a>
-<a href="wallet.html">Wallet</a>
-<a href="trade.html">Trade</a>
-<a href="assets.html">Assets</a>
-<a href="history.html">History</a>
+<br><br>
 
-</nav><script type="module">
+<label style="font-weight:900;color:#00ff88;">
+Convert Currency
+</label><select id="currencySelect">
+<option value="USD">USD</option>
+<option value="NGN">NGN</option>
+<option value="GBP">GBP</option>
+<option value="EUR">EUR</option>
+<option value="CAD">CAD</option>
+</select></div><!-- USER --><div class="user-box">
+<h3 id="welcomeUser">Loading user...</h3>
+</div><!-- ACTIONS --><div class="action-grid"><a href="wallet.html" class="action-card"><i class="fa fa-wallet"></i><span>Wallet</span></a>
+<a href="trade.html" class="action-card"><i class="fa fa-exchange"></i><span>Trade</span></a>
+<a href="transfer.html" class="action-card"><i class="fa fa-money-bill-transfer"></i><span>Transfer</span></a>
+<a href="receive.html" class="action-card"><i class="fa fa-qrcode"></i><span>Receive</span></a>
+<a href="history.html" class="action-card"><i class="fa fa-clock"></i><span>History</span></a>
+<a href="support.html" class="action-card"><i class="fa fa-headset"></i><span>Support</span></a>
+
+</div></div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import {
+getFirestore,
+doc,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// FIREBASE
+import {
+getAuth,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+/* 🔥 YOUR FIREBASE CONFIG (PASTE YOUR REAL VALUES HERE) */
 const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
+apiKey: "YOUR_API_KEY_HERE",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
 projectId: "YOUR_PROJECT_ID",
 storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
+messagingSenderId: "YOUR_SENDER_ID",
 appId: "YOUR_APP_ID"
 };
 
@@ -75,13 +60,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// STABLE LOGIN
-setPersistence(auth, browserLocalPersistence);
-
 let balance = 0;
 let hidden = false;
 
-// TOGGLE BALANCE
+/* TOGGLE BALANCE */
 window.toggleBalance = function () {
 
 const el = document.getElementById("balance");
@@ -96,27 +78,57 @@ hidden = !hidden;
 
 };
 
-// AUTH
-onAuthStateChanged(auth, async (user) => {
+/* CURRENCY RATES */
+const rates = {
+USD: 1,
+NGN: 1310,
+GBP: 0.78,
+EUR: 0.92,
+CAD: 1.35
+};
+
+function convertCurrency(cur) {
+const value = balance * rates[cur];
+document.getElementById("balance").innerText =
+value.toLocaleString() + " " + cur;
+}
+
+/* AUTH + REALTIME FIX */
+onAuthStateChanged(auth, (user) => {
 
 if (!user) return;
 
 const ref = doc(db, "users", user.uid);
-const snap = await getDoc(ref);
 
-if (snap.exists()) {
+/* 🔥 LIVE LISTENER (FIX EVERYTHING) */
+onSnapshot(ref, (snap) => {
+
+if (!snap.exists()) return;
 
 const data = snap.data();
 
-balance = data.availableBalance || 0;
-
+/* USERNAME FIX */
 document.getElementById("welcomeUser").innerText =
-data.username || "PCN USER";
+data.username || data.email || "PCN USER";
+
+/* BALANCE FIX */
+balance = data.availableBalance || 0;
 
 document.getElementById("balance").innerText =
 "$" + balance;
 
-}
+});
+
+});
+
+/* CURRENCY SELECT */
+document.addEventListener("DOMContentLoaded", () => {
+
+const select = document.getElementById("currencySelect");
+
+select.addEventListener("change", (e) => {
+convertCurrency(e.target.value);
+});
 
 });
 
