@@ -1,170 +1,94 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
-initializeApp
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
+  getFirestore,
+  doc,
+  collection,
+  addDoc,
+  updateDoc,
+  arrayUnion,
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import {
-getAuth,
-onAuthStateChanged
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-import {
-getFirestore,
-collection,
-addDoc,
-serverTimestamp,
-doc,
-getDoc
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-/* FIREBASE */
-
+// FIREBASE CONFIG
 const firebaseConfig = {
-
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
-authDomain: "pcnexchange.firebaseapp.com",
-
-databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-
-projectId: "pcnexchange",
-
-storageBucket: "pcnexchange.firebasestorage.app",
-
-messagingSenderId: "278761036604",
-
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-const app =
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const auth =
-getAuth(app);
+const submitBtn = document.getElementById("submitDeposit");
+const amountInput = document.getElementById("amount");
+const proofInput = document.getElementById("proof");
 
-const db =
-getFirestore(app);
+let currentUserUid = null;
 
-/* ELEMENTS */
-
-const amount =
-document.getElementById("amount");
-
-const submitBtn =
-document.getElementById("submitDeposit");
-
-/* USER */
-
-let currentUser = null;
-
-let currentUsername = "PCN USER";
-
-/* AUTH */
-
-onAuthStateChanged(auth, async(user)=>{
-
-if(!user){
-
-window.location = "index.html";
-
-return;
-
-}
-
-currentUser = user;
-
-/* GET USERNAME */
-
-try{
-
-const userRef =
-doc(db,"users",user.uid);
-
-const snap =
-await getDoc(userRef);
-
-if(snap.exists()){
-
-currentUsername =
-snap.data().username || "PCN USER";
-
-}
-
-}catch(err){
-
-console.log(err);
-
-}
-
+// Wait for user login
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("You must be logged in to make a deposit.");
+    window.location.href = "index.html";
+    return;
+  }
+  currentUserUid = user.uid;
 });
 
-/* SUBMIT */
+// SUBMIT DEPOSIT
+submitBtn.addEventListener("click", async () => {
+  const amount = parseFloat(amountInput.value);
 
-submitBtn.onclick = async()=>{
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid deposit amount.");
+    return;
+  }
 
-if(!currentUser){
+  // Optional: get proof file
+  const proofFile = proofInput.files[0];
+  let proofName = proofFile ? proofFile.name : null;
 
-alert("Please login");
+  try {
+    if (!currentUserUid) {
+      alert("User not loaded yet. Try again.");
+      return;
+    }
 
-return;
+    // === Option 1: Save as subcollection transaction ===
+    const transRef = collection(db, "users", currentUserUid, "transactions");
 
-}
+    await addDoc(transRef, {
+      type: "deposit",
+      amount: amount,
+      timestamp: Date.now(),
+      proofFileName: proofName || null
+    });
 
-const depositAmount =
-amount.value.trim();
+    // === Option 2: Also save in transactions array inside user doc ===
+    const userRef = doc(db, "users", currentUserUid);
+    await updateDoc(userRef, {
+      transactions: arrayUnion({
+        type: "deposit",
+        amount: amount,
+        timestamp: Date.now(),
+        proofFileName: proofName || null
+      })
+    });
 
-if(!depositAmount){
+    alert("Deposit submitted successfully!");
+    amountInput.value = "";
+    proofInput.value = "";
 
-alert("Enter amount");
-
-return;
-
-}
-
-try{
-
-/* SAVE DEPOSIT */
-
-await addDoc(
-
-collection(db,"transactions"),
-
-{
-
-uid: currentUser.uid,
-
-username: currentUsername,
-
-type: "deposit",
-
-amount: Number(depositAmount),
-
-status: "pending",
-
-createdAt: Date.now(),
-
-timestamp: serverTimestamp()
-
-}
-
-);
-
-alert("Deposit Submitted Successfully");
-
-amount.value = "";
-
-}catch(err){
-
-console.log(err);
-
-alert("Failed To Submit Deposit");
-
-}
-
-};
+  } catch (error) {
+    console.error("Error submitting deposit:", error);
+    alert("Failed to submit deposit. See console for details.");
+  }
+});
