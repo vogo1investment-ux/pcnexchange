@@ -1,15 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  updateDoc,
-  arrayUnion,
-  collection,
-  addDoc
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, collection, addDoc, arrayUnion, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase Config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -26,8 +19,7 @@ const auth = getAuth(app);
 
 let userUid = null;
 
-// Auth check
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
@@ -35,43 +27,46 @@ onAuthStateChanged(auth, user => {
   userUid = user.uid;
 });
 
-const withdrawBtn = document.getElementById("submitWithdraw");
-
-withdrawBtn.addEventListener("click", async () => {
+document.getElementById("submitWithdraw").addEventListener("click", async () => {
   const amount = Number(document.getElementById("withdrawAmount").value);
   const recipient = document.getElementById("recipient").value.trim();
+  const region = document.getElementById("regionSelect").value;
+  const method = document.getElementById("methodSelect").value;
 
+  if (!userUid) return alert("User not authenticated");
+  if (!region) return alert("Select your region");
+  if (!method) return alert("Select a payment method");
   if (!amount || amount <= 0) return alert("Enter a valid amount");
   if (!recipient) return alert("Enter recipient details");
-  if (!userUid) return alert("User not authenticated");
 
   try {
     const userRef = doc(db, "users", userUid);
     const transRef = collection(db, "users", userUid, "transactions");
 
-    // Add to subcollection
-    await addDoc(transRef, {
+    const newTrans = {
       type: "withdraw",
-      amount: amount,
+      amount,
+      region,
+      method,
       to: recipient,
       timestamp: Date.now(),
       status: "pending"
-    });
+    };
+
+    // Add to subcollection
+    await addDoc(transRef, newTrans);
 
     // Optional: Add to array in user doc
     await updateDoc(userRef, {
-      transactions: arrayUnion({
-        type: "withdraw",
-        amount: amount,
-        to: recipient,
-        timestamp: Date.now(),
-        status: "pending"
-      })
+      transactions: arrayUnion(newTrans)
     });
 
     alert("Withdrawal request submitted! Status: pending");
     document.getElementById("withdrawAmount").value = "";
     document.getElementById("recipient").value = "";
+    document.getElementById("regionSelect").value = "";
+    document.getElementById("methodSelect").value = "";
+
   } catch (err) {
     console.error(err);
     alert("Failed to submit withdrawal.");
