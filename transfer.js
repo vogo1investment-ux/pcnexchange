@@ -1,21 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  collection,
-  addDoc,
-  updateDoc,
-  arrayUnion,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, collection, addDoc, updateDoc, arrayUnion, getDoc, increment } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -53,42 +38,51 @@ submitBtn.addEventListener("click", async () => {
   const amount = Number(amountInput.value);
   const password = passwordInput.value;
 
-  if (!recipient || !amount || amount <= 0 || !password) {
-    return alert("Please fill in all fields correctly.");
-  }
+  if (!recipient || !amount || amount <= 0 || !password) return alert("Please fill all fields correctly.");
 
   try {
-    // Re-authenticate sender with password
+    // Re-authenticate sender
     await signInWithEmailAndPassword(auth, currentUser.email, password);
 
-    // Get sender balance
     const senderRef = doc(db, "users", currentUser.uid);
     const senderSnap = await getDoc(senderRef);
     const senderData = senderSnap.data();
+
     if (!senderData || (senderData.availableBalance || 0) < amount) {
       return alert("Insufficient balance.");
     }
 
-    // Deduct from sender balance temporarily
+    // Deduct sender balance
     await updateDoc(senderRef, {
       availableBalance: senderData.availableBalance - amount
     });
 
-    // Create transaction record (pending) in sender
-    const senderTransRef = collection(db, "users", currentUser.uid, "transactions");
+    // Determine recipient UID if they entered email
+    let recipientUid = recipient;
+    if (recipient.includes("@")) {
+      // Search by email
+      const usersRef = collection(db, "users");
+      const querySnapshot = await getDoc(doc(db, "users", recipient)); // You may implement a query by email here
+      if (!querySnapshot.exists()) return alert("Recipient not found.");
+      recipientUid = querySnapshot.id;
+    }
+
+    // Create transaction (pending)
     const transferTx = {
       type: "transfer",
       amount,
       to: recipient,
+      from: currentUser.uid,
       timestamp: Date.now(),
       status: "pending"
     };
-    await addDoc(senderTransRef, transferTx);
-    await updateDoc(senderRef, {
-      transactions: arrayUnion(transferTx)
-    });
 
-    alert("Transfer submitted. Status: pending until approved.");
+    // Add to sender subcollection and array
+    const senderTransRef = collection(db, "users", currentUser.uid, "transactions");
+    await addDoc(senderTransRef, transferTx);
+    await updateDoc(senderRef, { transactions: arrayUnion(transferTx) });
+
+    alert("Transfer submitted! Status: pending until approved.");
 
     // Clear inputs
     recipientInput.value = "";
