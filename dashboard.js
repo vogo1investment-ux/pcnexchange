@@ -1,25 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-getFirestore,
-doc,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged,
-setPersistence,
-browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // FIREBASE CONFIG
 const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_PROJECT.firebaseapp.com",
-projectId: "YOUR_PROJECT_ID",
-storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
-appId: "YOUR_APP_ID"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -34,79 +24,67 @@ let balance = 0;
 let hidden = false;
 
 // ================= TOGGLE BALANCE =================
-window.toggleBalance = function () {
+const balanceEl = document.getElementById("balance");
+const toggleBtn = document.getElementById("toggleBalanceBtn");
 
-const el = document.getElementById("balance");
-
-if (!hidden) {
-el.innerText = "******";
-} else {
-el.innerText = "$" + balance;
-}
-
-hidden = !hidden;
-
-};
+toggleBtn.addEventListener("click", () => {
+  if (!hidden) {
+    balanceEl.innerText = "******";
+    toggleBtn.innerText = "Show Balance";
+  } else {
+    balanceEl.innerText = "$" + balance.toLocaleString();
+    toggleBtn.innerText = "Hide Balance";
+  }
+  hidden = !hidden;
+});
 
 // ================= CURRENCY =================
-const rates = {
-USD: 1,
-NGN: 1310,
-GBP: 0.78,
-EUR: 0.92,
-CAD: 1.35
-};
+const rates = { USD: 1, NGN: 1310, GBP: 0.78, EUR: 0.92, CAD: 1.35 };
 
 function convert(currency) {
-
-const converted = balance * rates[currency];
-
-document.getElementById("balance").innerText =
-converted.toLocaleString() + " " + currency;
-
+  const converted = balance * rates[currency];
+  const symbol = currency === "USD" ? "$" : currency === "NGN" ? "₦" : currency === "GBP" ? "£" : currency === "EUR" ? "€" : "C$";
+  balanceEl.innerText = symbol + converted.toLocaleString();
 }
 
 // ================= REAL TIME AUTH =================
 onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location = "index.html";
+    return;
+  }
 
-if (!user) return;
+  const ref = doc(db, "users", user.uid);
 
-// 🔥 REAL TIME FIRESTORE LISTENER (IMPORTANT FIX)
-const ref = doc(db, "users", user.uid);
+  onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
 
-onSnapshot(ref, (snap) => {
+    const data = snap.data();
 
-if (!snap.exists()) return;
+    // USERNAME
+    document.getElementById("welcomeUser").innerText = data.username || data.email || "PCN USER";
 
-const data = snap.data();
-
-// USERNAME FIX
-document.getElementById("welcomeUser").innerText =
-data.username || data.email || "PCN USER";
-
-// BALANCE FIX (LIVE UPDATE)
-balance = data.availableBalance || 0;
-
-document.getElementById("balance").innerText =
-"$" + balance;
-
-});
-
+    // BALANCE
+    balance = data.availableBalance || 0;
+    if (!hidden) {
+      balanceEl.innerText = "$" + balance.toLocaleString();
+    }
+  });
 });
 
 // ================= CURRENCY EVENT =================
 document.addEventListener("DOMContentLoaded", () => {
+  const select = document.getElementById("currencySelect");
+  if (select) {
+    select.addEventListener("change", (e) => {
+      convert(e.target.value);
+    });
+  }
 
-const select = document.getElementById("currencySelect");
+  // ================= DEPOSIT & WITHDRAW BUTTONS =================
+  const depositBtn = document.getElementById("depositBtn");
+  const withdrawBtn = document.getElementById("withdrawBtn");
 
-if (select) {
-
-select.addEventListener("change", (e) => {
-convert(e.target.value);
+  if (depositBtn) depositBtn.addEventListener("click", () => window.location.href = "deposit.html");
+  if (withdrawBtn) withdrawBtn.addEventListener("click", () => window.location.href = "withdraw.html");
 });
-
-}
-
-});
-
-</script>
