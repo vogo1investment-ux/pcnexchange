@@ -18,30 +18,33 @@ const auth = getAuth(app);
 
 let wallet = "";
 
-/* 🔥 IMPORTANT: WAIT STATE CONTROL */
+/* UI */
 const box = document.getElementById("walletBox");
+box.innerText = "Loading wallet...";
 
-/* START LOADING STATE */
-box.innerText = "Connecting wallet...";
+/* 🔥 FIXED AUTH FLOW */
+function render(user){
 
-/* SAFE AUTH HANDLER (FIXED TIMING ISSUE) */
-onAuthStateChanged(auth, (user) => {
+if (!user) return;
 
-/* IF STILL NOT READY */
-if (!user) {
-return; // DO NOTHING (prevents fake "not available")
+/* GET UID FIRST */
+const uid = user.uid;
+const email = user.email;
+
+/* FINAL WALLET VALUE */
+wallet = uid || email;
+
+/* SHOW ONLY WHEN READY */
+box.innerText = wallet;
+
 }
 
-/* GET WALLET */
-wallet =
-user.uid ||
-user.email;
+/* WAIT FOR AUTH */
+onAuthStateChanged(auth, (user) => {
 
-/* UPDATE UI ONLY WHEN READY */
-if (wallet) {
-box.innerText = wallet;
-} else {
-box.innerText = "Wallet not found";
+/* ONLY CALL RENDER WHEN FIREBASE IS READY */
+if (user) {
+render(user);
 }
 
 });
@@ -49,10 +52,12 @@ box.innerText = "Wallet not found";
 /* COPY FUNCTION */
 window.copyWallet = function () {
 
-if (!wallet) return;
+if (!wallet) {
+alert("Wallet not ready yet");
+return;
+}
 
 navigator.clipboard.writeText(wallet);
-
 alert("Wallet copied!");
 
 };
