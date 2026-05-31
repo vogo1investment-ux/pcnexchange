@@ -1,48 +1,45 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receive - PCN Exchange</title><link rel="stylesheet" href="dashboard.css">
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script><style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receive Wallet</title><link rel="stylesheet" href="dashboard.css"><style>
 
-.container {
-max-width: 500px;
-margin: 70px auto;
-background: #111;
-padding: 25px;
-border-radius: 20px;
-text-align: center;
-border: 1px solid #1f1f1f;
+.container{
+max-width:500px;
+margin:80px auto;
+background:#111;
+padding:25px;
+border-radius:20px;
+text-align:center;
+border:1px solid #1f1f1f;
 }
 
-.wallet {
-background: #000;
-padding: 15px;
-border-radius: 10px;
-margin-top: 20px;
-word-break: break-all;
-border: 1px solid #00ff88;
-font-weight: 900;
+.uid-box{
+background:#000;
+padding:15px;
+border-radius:10px;
+margin-top:20px;
+word-break:break-all;
+border:1px solid #00ff88;
+font-weight:900;
 }
 
-button {
-margin-top: 15px;
-padding: 10px 15px;
-background: #00ff88;
-border: none;
-font-weight: 900;
-cursor: pointer;
+button{
+margin-top:15px;
+padding:10px 15px;
+background:#00ff88;
+border:none;
+font-weight:900;
+cursor:pointer;
 }
 
-#qrcode {
-margin-top: 20px;
-display: flex;
-justify-content: center;
+.loading{
+color:#888;
 }
 
-</style></head><body><div class="container"><h2 style="color:#00ff88;">Receive Wallet</h2><p>Your wallet address (copy and share)</p><div id="walletBox" class="wallet">
-Loading wallet...
-</div><button onclick="copyWallet()">Copy Wallet ID</button>
+</style></head><body><div class="container"><h2 style="color:#00ff88;">Receive Funds</h2><p>Your UID is your wallet address</p><div id="uidBox" class="loading">
+Loading UID...
+</div><button onclick="copyUID()">Copy UID</button>
 
-<div id="qrcode"></div></div><script type="module">
+</div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
@@ -62,36 +59,31 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let walletID = "";
+let uid = "";
 
-/* SAFE AUTH (NO LOGOUT BUG) */
+/* SAFE AUTH (NO LOGIN TEXT BUG) */
 onAuthStateChanged(auth, (user) => {
 
 if (!user) {
-walletID = "NOT LOGGED IN";
-document.getElementById("walletBox").innerText = walletID;
-return;
+return; // ❗ DO NOTHING (NO "NOT LOGGED IN")
 }
 
-/* USER ID ALWAYS AVAILABLE */
-walletID = user.uid;
+uid = user.uid;
 
-/* SHOW WALLET ID */
-document.getElementById("walletBox").innerText = walletID;
-
-/* QR CODE */
-new QRCode(document.getElementById("qrcode"), {
-text: walletID,
-width: 180,
-height: 180
-});
+/* SHOW UID ALWAYS */
+document.getElementById("uidBox").innerHTML =
+`<div class="uid-box">${uid}</div>`;
 
 });
 
-window.copyWallet = function () {
+/* COPY FUNCTION */
+window.copyUID = function () {
 
-navigator.clipboard.writeText(walletID);
-alert("Wallet ID copied!");
+if (!uid) return;
+
+navigator.clipboard.writeText(uid);
+
+alert("UID copied!");
 
 };
 
