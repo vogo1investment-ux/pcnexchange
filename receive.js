@@ -16,49 +16,40 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let wallet = "";
+let userEmail = "";
 
-/* UI */
-const box = document.getElementById("walletBox");
-box.innerText = "Loading wallet...";
+/* GET ELEMENT ONCE */
+const box = document.getElementById("emailBox");
 
-/* 🔥 FIXED AUTH FLOW */
-function render(user){
+/* START STATE */
+box.innerText = "Waiting for login...";
 
-if (!user) return;
-
-/* GET UID FIRST */
-const uid = user.uid;
-const email = user.email;
-
-/* FINAL WALLET VALUE */
-wallet = uid || email;
-
-/* SHOW ONLY WHEN READY */
-box.innerText = wallet;
-
-}
-
-/* WAIT FOR AUTH */
+/* 🔥 FIXED AUTH HANDLER */
 onAuthStateChanged(auth, (user) => {
 
-/* ONLY CALL RENDER WHEN FIREBASE IS READY */
-if (user) {
-render(user);
-}
-
-});
-
-/* COPY FUNCTION */
-window.copyWallet = function () {
-
-if (!wallet) {
-alert("Wallet not ready yet");
+if (!user) {
+box.innerText = "Please login first";
 return;
 }
 
-navigator.clipboard.writeText(wallet);
-alert("Wallet copied!");
+/* 🔥 EMAIL IS READY HERE ONLY */
+userEmail = user.email || "No email found";
+
+/* UPDATE UI SAFELY */
+box.innerText = userEmail;
+
+});
+
+/* COPY EMAIL */
+window.copyEmail = function () {
+
+if (!userEmail) {
+alert("Email not ready yet");
+return;
+}
+
+navigator.clipboard.writeText(userEmail);
+alert("Email copied!");
 
 };
 
