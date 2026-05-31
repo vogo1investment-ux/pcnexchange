@@ -1,114 +1,59 @@
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+<script type="module">
 
-import {
-getFirestore,
-doc,
-getDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
 getAuth,
 onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-
 apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_PROJECT.firebaseapp.com",
-projectId: "YOUR_PROJECT_ID",
-storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
-appId: "YOUR_APP_ID"
-
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
-let walletID = "";
+let uid = "";
 
-/* SIMPLE QR */
-function drawQR(text) {
+/* 🔥 FIX: PREVENT LOADING STUCK */
+const box = document.getElementById("uidBox");
+box.innerHTML = "Waiting for wallet...";
 
-const canvas = document.getElementById("qrCanvas");
-const ctx = canvas.getContext("2d");
-
-canvas.width = 200;
-canvas.height = 200;
-
-ctx.fillStyle = "#000";
-ctx.fillRect(0, 0, 200, 200);
-
-ctx.fillStyle = "#00ff88";
-ctx.font = "12px Arial";
-ctx.fillText("WALLET:", 60, 90);
-ctx.fillText(text, 20, 120);
-
-}
-
-onAuthStateChanged(auth, async (user) => {
+/* SAFE AUTH HANDLING */
+onAuthStateChanged(auth, (user) => {
 
 if (!user) {
-window.location = "index.html";
+box.innerHTML = "Wallet not available";
 return;
 }
 
-try {
+uid = user.uid;
 
-const ref = doc(db, "users", user.uid);
-const snap = await getDoc(ref);
-
-if (snap.exists()) {
-
-const data = snap.data();
-
-document.getElementById("userEmail").innerText =
-data.email || "No email found";
-
-document.getElementById("walletId").innerText =
-data.uid || "No wallet ID";
-
-walletID = data.uid;
-
-drawQR(walletID);
-
-} else {
-
-document.getElementById("userEmail").innerText =
-"User not found";
-
-document.getElementById("walletId").innerText =
-"Error loading wallet";
-
-}
-
-} catch (e) {
-
-console.log(e);
-
-document.getElementById("userEmail").innerText =
-"Error loading data";
-
-document.getElementById("walletId").innerText =
-"Check Firebase connection";
-
-}
+/* 🔥 FIX: INSTANT UPDATE (NO LOADING BUG) */
+box.innerHTML = `
+<div class="uid-box">
+${uid}
+</div>
+`;
 
 });
 
-/* COPY */
-window.copyWallet = function () {
+/* COPY FUNCTION */
+window.copyUID = function () {
 
-if (!walletID) {
+if (!uid) {
 alert("Wallet not ready yet");
 return;
 }
 
-navigator.clipboard.writeText(walletID);
-
-alert("Wallet ID copied");
+navigator.clipboard.writeText(uid);
+alert("UID copied!");
 
 };
+
+</script>
