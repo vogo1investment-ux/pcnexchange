@@ -12,14 +12,24 @@ text-align:center;
 border:1px solid #1f1f1f;
 }
 
+.title{
+color:#00ff88;
+font-weight:900;
+font-size:22px;
+}
+
 .uid-box{
+margin-top:20px;
 background:#000;
 padding:15px;
 border-radius:10px;
-margin-top:20px;
-word-break:break-all;
 border:1px solid #00ff88;
+word-break:break-all;
 font-weight:900;
+min-height:40px;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
 button{
@@ -31,15 +41,17 @@ font-weight:900;
 cursor:pointer;
 }
 
-.loading{
+.status{
 color:#888;
+margin-top:10px;
+font-size:14px;
 }
 
-</style></head><body><div class="container"><h2 style="color:#00ff88;">Receive Funds</h2><p>Your UID is your wallet address</p><div id="uidBox" class="loading">
+</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p class="status">Your UID wallet address</p><!-- 🔥 THIS IS THE IMPORTANT PART --><div id="uidBox" class="uid-box">
 Loading UID...
 </div><button onclick="copyUID()">Copy UID</button>
 
-</div><script type="module">
+</div><!-- YOUR JS WILL TARGET THIS ID --><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
@@ -61,22 +73,26 @@ const auth = getAuth(app);
 
 let uid = "";
 
-/* SAFE AUTH (NO LOGIN TEXT BUG) */
+/* 🔥 SAFE AUTH */
 onAuthStateChanged(auth, (user) => {
 
+const box = document.getElementById("uidBox");
+
+/* IF NO USER */
 if (!user) {
-return; // ❗ DO NOTHING (NO "NOT LOGGED IN")
+box.innerText = "Not logged in";
+return;
 }
 
+/* GET UID */
 uid = user.uid;
 
-/* SHOW UID ALWAYS */
-document.getElementById("uidBox").innerHTML =
-`<div class="uid-box">${uid}</div>`;
+/* SHOW UID IN HTML */
+box.innerText = uid;
 
 });
 
-/* COPY FUNCTION */
+/* COPY BUTTON */
 window.copyUID = function () {
 
 if (!uid) return;
