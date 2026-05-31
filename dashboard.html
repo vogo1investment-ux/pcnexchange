@@ -2,7 +2,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE</title><link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head><body><!-- HEADER --><header class="top-header">
+</head><body><header class="top-header">
 <div class="logo-area">
 <div class="logo-box">P</div>
 <div>
@@ -10,11 +10,17 @@
 <p>Secure Crypto Trading</p>
 </div>
 </div>
-</header><!-- MAIN --><div class="main-container"><!-- BALANCE --><div class="balance-card">
-<p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()" class="balance-toggle">
-Hide / Show Balance
-</button>
-</div><!-- USER --><div class="user-box">
+</header><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()">Hide / Show</button>
+
+<!-- 💰 CURRENCY SELECT --><div style="margin-top:20px"><label>Convert Currency:</label>
+
+<select id="currencySelect">
+<option value="USD">USD ($)</option>
+<option value="NGN">NGN (₦)</option>
+<option value="GBP">GBP (£)</option>
+<option value="EUR">EUR (€)</option>
+<option value="CAD">CAD (C$)</option>
+</select></div></div><!-- USER --><div class="user-box">
 <h3 id="welcomeUser">Loading user...</h3>
 </div><!-- ACTION BUTTONS --><div class="action-grid"><a href="wallet.html" class="action-card">
 <i class="fa-solid fa-wallet"></i>
@@ -40,10 +46,14 @@ Hide / Show Balance
 </a><a href="explore.html" class="action-card">
 <i class="fa-solid fa-compass"></i>
 <span>Explore</span>
+</a><a href="assets.html" class="action-card">
+<i class="fa-solid fa-coins"></i>
+<span>Crypto Assets</span>
 </a></div></div><!-- NAV --><nav class="bottom-nav">
 <a href="dashboard.html" class="active">Home</a>
 <a href="wallet.html">Wallet</a>
 <a href="trade.html">Trade</a>
+<a href="assets.html">Assets</a>
 <a href="history.html">History</a>
 </nav><script type="module">
 
@@ -52,6 +62,7 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -67,10 +78,13 @@ const auth = getAuth(app);
 
 setPersistence(auth, browserLocalPersistence);
 
+// 💰 BASE BALANCE
 let balance = 0;
 let hidden = false;
 
+// 🔥 BALANCE TOGGLE
 window.toggleBalance = function () {
+
 const el = document.getElementById("balance");
 
 if (!hidden) {
@@ -82,7 +96,26 @@ el.innerText = "$" + balance;
 hidden = !hidden;
 };
 
-// 🔥 FIXED USER LOADING (THIS FIXES "LOADING" ISSUE)
+// 💱 CURRENCY RATES (YOU CAN CHANGE ANYTIME)
+const rates = {
+USD: 1,
+NGN: 1310,
+GBP: 0.78,
+EUR: 0.92,
+CAD: 1.35
+};
+
+// 💱 CONVERT FUNCTION
+function convertCurrency(currency) {
+
+const converted = balance * rates[currency];
+
+document.getElementById("balance").innerText =
+converted.toLocaleString() + " " + currency;
+
+}
+
+// 🔥 AUTH SYSTEM
 onAuthStateChanged(auth, async (user) => {
 
 if (!user) return;
@@ -94,15 +127,28 @@ if (snap.exists()) {
 
 const data = snap.data();
 
-document.getElementById("welcomeUser").innerText =
-data.username ? data.username : "PCN USER";
-
 balance = data.availableBalance || 0;
+
+document.getElementById("welcomeUser").innerText =
+data.username || "PCN USER";
 
 document.getElementById("balance").innerText =
 "$" + balance;
 
 }
+
+});
+
+// 💱 LISTENER FOR CURRENCY SELECT
+document.addEventListener("DOMContentLoaded", () => {
+
+const select = document.getElementById("currencySelect");
+
+select.addEventListener("change", (e) => {
+
+convertCurrency(e.target.value);
+
+});
 
 });
 
