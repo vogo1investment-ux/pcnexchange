@@ -1,8 +1,20 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// 🔹 ORIGINAL FIREBASE API
+import {
+  getFirestore,
+  doc,
+  collection,
+  query,
+  orderBy,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -17,72 +29,193 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let historyListEl = document.getElementById("historyList");
-let activeType = "all";
-let latestTransactions = [];
+const historyList = document.getElementById("historyList");
 
-// ====================== AUTH & REALTIME ======================
+let allTransactions = [];
+let activeType = "all";
+
+// LOGIN
 onAuthStateChanged(auth, (user) => {
+
   if (!user) {
-    window.location = "index.html";
+    window.location.href = "index.html";
     return;
   }
+
+  // =========================
+  // CHECK USER DOCUMENT ARRAY
+  // =========================
 
   const userRef = doc(db, "users", user.uid);
 
   onSnapshot(userRef, (snap) => {
+
     if (!snap.exists()) return;
+
     const data = snap.data();
 
-    // Assuming transactions are stored in an array field called "transactions"
-    latestTransactions = data.transactions || [];
-    renderHistory();
+    if (Array.isArray(data.transactions)) {
+
+      allTransactions = [...data.transactions];
+
+      renderHistory();
+    }
+
   });
+
+  // =========================
+  // CHECK SUBCOLLECTION
+  // =========================
+
+  const transRef = collection(
+    db,
+    "users",
+    user.uid,
+    "transactions"
+  );
+
+  const q = query(transRef, orderBy("timestamp", "desc"));
+
+  onSnapshot(q, (snapshot) => {
+
+    const subTransactions = [];
+
+    snapshot.forEach((doc) => {
+
+      subTransactions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+
+    });
+
+    if (subTransactions.length > 0) {
+
+      allTransactions = subTransactions;
+
+      renderHistory();
+
+    }
+
+  });
+
 });
 
-// ====================== TABS ======================
+// FILTER TABS
 document.querySelectorAll(".history-tab").forEach(tab => {
+
   tab.addEventListener("click", () => {
-    document.querySelectorAll(".history-tab").forEach(t => t.classList.remove("active"));
+
+    document
+      .querySelectorAll(".history-tab")
+      .forEach(btn => btn.classList.remove("active"));
+
     tab.classList.add("active");
+
     activeType = tab.dataset.type;
+
     renderHistory();
+
   });
+
 });
 
-// ====================== RENDER HISTORY ======================
+// RENDER HISTORY
 function renderHistory() {
-  historyListEl.innerHTML = "";
 
-  let filtered = latestTransactions;
+  historyList.innerHTML = "";
+
+  let transactions = allTransactions;
+
   if (activeType !== "all") {
-    filtered = latestTransactions.filter(t => t.type.toLowerCase() === activeType);
+
+    transactions = transactions.filter(item =>
+      (item.type || "")
+      .toLowerCase() === activeType
+    );
+
   }
 
-  if (filtered.length === 0) {
-    historyListEl.innerHTML = `<p style="color:#0f0;">No ${activeType} transactions found.</p>`;
+  if (transactions.length === 0) {
+
+    historyList.innerHTML = `
+      <div class="history-card">
+        <p>No transactions found</p>
+      </div>
+    `;
+
     return;
   }
 
-  filtered.forEach(tx => {
+  transactions.forEach(tx => {
+
+    let amountColor = "#00ff66";
+
+    if (
+      tx.type === "withdraw" ||
+      tx.type === "withdrawal"
+    ) {
+      amountColor = "#ff4444";
+    }
+
+    let dateText = "No Date";
+
+    if (tx.timestamp) {
+
+      try {
+
+        if (tx.timestamp.toDate) {
+
+          dateText =
+            tx.timestamp
+            .toDate()
+            .toLocaleString();
+
+        } else {
+
+          dateText =
+            new Date(tx.timestamp)
+            .toLocaleString();
+
+        }
+
+      } catch (e) {}
+
+    }
+
     const card = document.createElement("div");
+
     card.className = "history-card";
 
-    const info = document.createElement("div");
-    info.className = "history-info";
-    info.innerHTML = `
-      <span class="history-type">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</span>
-      <span class="history-date">${new Date(tx.timestamp?.toMillis ? tx.timestamp.toMillis() : tx.timestamp).toLocaleString()}</span>
-      ${tx.from ? `<span>From: ${tx.from}</span>` : ""}
-      ${tx.to ? `<span>To: ${tx.to}</span>` : ""}
+    card.innerHTML = `
+      <div class="history-info">
+
+        <strong>
+          ${(tx.type || "Transaction").toUpperCase()}
+        </strong>
+
+        <small>${dateText}</small>
+
+        ${tx.to ? `<p>To: ${tx.to}</p>` : ""}
+
+        ${tx.from ? `<p>From: ${tx.from}</p>` : ""}
+
+        ${tx.email ? `<p>Email: ${tx.email}</p>` : ""}
+
+        ${tx.wallet ? `<p>Wallet: ${tx.wallet}</p>` : ""}
+
+      </div>
+
+      <div
+        class="history-amount"
+        style="color:${amountColor}"
+      >
+        $${Number(tx.amount || 0).toLocaleString()}
+      </div>
     `;
 
-    const amount = document.createElement("div");
-    amount.className = "history-amount " + tx.type.toLowerCase();
-    amount.textContent = (tx.type.toLowerCase() === "withdraw" || tx.type.toLowerCase() === "transfer" ? "-" : "+") + "$" + (tx.amount || 0).toLocaleString();
+    historyList.appendChild(card);
 
-    card.appendChild(info);
-    card.appendChild(amount);
-    historyListEl.appendChild(card);
   });
+
 }
