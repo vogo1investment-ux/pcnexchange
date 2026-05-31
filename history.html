@@ -7,21 +7,26 @@
 <link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
-  /* History Page Specific Styles */
-  body { background-color: #000; color: #0f0; }
-  .history-container { padding: 20px; max-width: 900px; margin: auto; }
-  h2 { color: #0f0; margin-bottom: 20px; }
-  .history-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-  .history-tab { flex: 1; padding: 10px; text-align: center; background: #111; cursor: pointer; border: 1px solid #0f0; border-radius: 5px; }
+  body { background-color: #000; color: #0f0; font-family: Arial, sans-serif; }
+  .history-container { max-width: 900px; margin: auto; padding: 20px; }
+  h2 { color: #0f0; text-align: center; margin-bottom: 20px; }
+  .history-tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+  .history-tab { flex: 1 1 100px; padding: 10px; text-align: center; background: #111; cursor: pointer; border: 1px solid #0f0; border-radius: 5px; }
   .history-tab.active { background: #0f0; color: #000; font-weight: bold; }
   .history-list { display: flex; flex-direction: column; gap: 15px; }
-  .history-card { background: #111; border: 1px solid #0f0; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+  .history-card { background: #111; border: 1px solid #0f0; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
   .history-info { display: flex; flex-direction: column; }
   .history-type { font-weight: bold; color: #0f0; }
   .history-date { font-size: 0.85em; color: #aaa; }
-  .history-amount { font-weight: bold; }
+  .history-amount { font-weight: bold; font-size: 1.1em; }
   .history-amount.deposit { color: #0f0; }
   .history-amount.withdraw { color: #f00; }
+  .history-amount.transfer { color: #0ff; }
+  .history-amount.received { color: #0f0; }
+  @media(max-width:600px){
+    .history-card { padding: 10px; font-size: 0.9em; }
+    .history-tabs { flex-direction: column; gap: 5px; }
+  }
 </style>
 </head>
 <body>

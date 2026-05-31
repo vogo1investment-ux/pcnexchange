@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // 🔹 ORIGINAL FIREBASE API
@@ -19,6 +19,7 @@ const auth = getAuth(app);
 
 let historyListEl = document.getElementById("historyList");
 let activeType = "all";
+let latestTransactions = [];
 
 // ====================== AUTH & REALTIME ======================
 onAuthStateChanged(auth, (user) => {
@@ -27,14 +28,15 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  const userId = user.uid;
-  const historyRef = collection(db, "users", userId, "transactions");
-  const q = query(historyRef, orderBy("timestamp", "desc"));
+  const userRef = doc(db, "users", user.uid);
 
-  // REALTIME LISTENER
-  onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderHistory(data);
+  onSnapshot(userRef, (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    // Assuming transactions are stored in an array field called "transactions"
+    latestTransactions = data.transactions || [];
+    renderHistory();
   });
 });
 
@@ -44,30 +46,18 @@ document.querySelectorAll(".history-tab").forEach(tab => {
     document.querySelectorAll(".history-tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     activeType = tab.dataset.type;
-    // re-render filtered
-    getCurrentTransactions().then(renderHistory);
+    renderHistory();
   });
 });
 
-// Store latest snapshot
-let latestTransactions = [];
-
-function getCurrentTransactions() {
-  return Promise.resolve(latestTransactions);
-}
-
 // ====================== RENDER HISTORY ======================
-function renderHistory(transactions) {
-  latestTransactions = transactions;
-
-  // FILTER BY TAB
-  let filtered = transactions;
-  if (activeType !== "all") {
-    filtered = transactions.filter(t => t.type.toLowerCase() === activeType);
-  }
-
-  // CLEAR LIST
+function renderHistory() {
   historyListEl.innerHTML = "";
+
+  let filtered = latestTransactions;
+  if (activeType !== "all") {
+    filtered = latestTransactions.filter(t => t.type.toLowerCase() === activeType);
+  }
 
   if (filtered.length === 0) {
     historyListEl.innerHTML = `<p style="color:#0f0;">No ${activeType} transactions found.</p>`;
@@ -83,17 +73,16 @@ function renderHistory(transactions) {
     info.innerHTML = `
       <span class="history-type">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</span>
       <span class="history-date">${new Date(tx.timestamp?.toMillis ? tx.timestamp.toMillis() : tx.timestamp).toLocaleString()}</span>
-      ${tx.to ? `<span>To: ${tx.to}</span>` : ""}
       ${tx.from ? `<span>From: ${tx.from}</span>` : ""}
+      ${tx.to ? `<span>To: ${tx.to}</span>` : ""}
     `;
 
     const amount = document.createElement("div");
     amount.className = "history-amount " + tx.type.toLowerCase();
-    amount.textContent = (tx.type.toLowerCase() === "withdraw" ? "-" : "+") + "$" + (tx.amount || 0).toLocaleString();
+    amount.textContent = (tx.type.toLowerCase() === "withdraw" || tx.type.toLowerCase() === "transfer" ? "-" : "+") + "$" + (tx.amount || 0).toLocaleString();
 
     card.appendChild(info);
     card.appendChild(amount);
-
     historyListEl.appendChild(card);
   });
 }
