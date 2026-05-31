@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase configuration
+// 🔹 ORIGINAL FIREBASE API
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -12,62 +13,87 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-// Function to create a card
-function createCard(data, extraFieldLabel = null, extraFieldValue = null) {
-  const card = document.createElement('div');
-  card.className = 'card';
+let historyListEl = document.getElementById("historyList");
+let activeType = "all";
 
-  const amountP = document.createElement('p');
-  amountP.innerHTML = `<span class="field-label">Amount:</span> ${data.amount}`;
-  card.appendChild(amountP);
-
-  const datetimeP = document.createElement('p');
-  datetimeP.innerHTML = `<span class="field-label">Date & Time:</span> ${data.datetime}`;
-  card.appendChild(datetimeP);
-
-  if (extraFieldLabel && extraFieldValue) {
-    const extraP = document.createElement('p');
-    extraP.innerHTML = `<span class="field-label">${extraFieldLabel}:</span> ${extraFieldValue}`;
-    card.appendChild(extraP);
+// ====================== AUTH & REALTIME ======================
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location = "index.html";
+    return;
   }
 
-  return card;
+  const userId = user.uid;
+  const historyRef = collection(db, "users", userId, "transactions");
+  const q = query(historyRef, orderBy("timestamp", "desc"));
+
+  // REALTIME LISTENER
+  onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderHistory(data);
+  });
+});
+
+// ====================== TABS ======================
+document.querySelectorAll(".history-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".history-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    activeType = tab.dataset.type;
+    // re-render filtered
+    getCurrentTransactions().then(renderHistory);
+  });
+});
+
+// Store latest snapshot
+let latestTransactions = [];
+
+function getCurrentTransactions() {
+  return Promise.resolve(latestTransactions);
 }
 
-// Function to display history in cards
-function displayHistory(containerId, data, extraField = null, extraLabel = '') {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  for (const key in data) {
-    const card = createCard(data[key], extraField ? extraLabel : null, extraField ? data[key][extraField] : null);
-    container.appendChild(card);
+// ====================== RENDER HISTORY ======================
+function renderHistory(transactions) {
+  latestTransactions = transactions;
+
+  // FILTER BY TAB
+  let filtered = transactions;
+  if (activeType !== "all") {
+    filtered = transactions.filter(t => t.type.toLowerCase() === activeType);
   }
+
+  // CLEAR LIST
+  historyListEl.innerHTML = "";
+
+  if (filtered.length === 0) {
+    historyListEl.innerHTML = `<p style="color:#0f0;">No ${activeType} transactions found.</p>`;
+    return;
+  }
+
+  filtered.forEach(tx => {
+    const card = document.createElement("div");
+    card.className = "history-card";
+
+    const info = document.createElement("div");
+    info.className = "history-info";
+    info.innerHTML = `
+      <span class="history-type">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</span>
+      <span class="history-date">${new Date(tx.timestamp?.toMillis ? tx.timestamp.toMillis() : tx.timestamp).toLocaleString()}</span>
+      ${tx.to ? `<span>To: ${tx.to}</span>` : ""}
+      ${tx.from ? `<span>From: ${tx.from}</span>` : ""}
+    `;
+
+    const amount = document.createElement("div");
+    amount.className = "history-amount " + tx.type.toLowerCase();
+    amount.textContent = (tx.type.toLowerCase() === "withdraw" ? "-" : "+") + "$" + (tx.amount || 0).toLocaleString();
+
+    card.appendChild(info);
+    card.appendChild(amount);
+
+    historyListEl.appendChild(card);
+  });
 }
-
-// Load deposit history
-onValue(ref(db, 'depositHistory'), (snapshot) => {
-  const data = snapshot.val() || {};
-  displayHistory('depositCards', data);
-});
-
-// Load withdrawal history
-onValue(ref(db, 'withdrawalHistory'), (snapshot) => {
-  const data = snapshot.val() || {};
-  displayHistory('withdrawalCards', data);
-});
-
-// Load sent history
-onValue(ref(db, 'sentHistory'), (snapshot) => {
-  const data = snapshot.val() || {};
-  displayHistory('sentCards', data, 'recipient', 'Recipient');
-});
-
-// Load received history
-onValue(ref(db, 'receivedHistory'), (snapshot) => {
-  const data = snapshot.val() || {};
-  displayHistory('receivedCards', data, 'sender', 'Sender');
-});
