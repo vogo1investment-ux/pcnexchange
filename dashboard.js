@@ -13,7 +13,7 @@ setPersistence,
 browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// ---------------- FIREBASE CONFIG ----------------
+// ================= FIREBASE CONFIG =================
 
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
@@ -24,20 +24,22 @@ messagingSenderId: "YOUR_SENDER_ID",
 appId: "YOUR_APP_ID"
 };
 
+// ================= INIT FIREBASE =================
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ---------------- FIX SESSION PERSISTENCE ----------------
+// ================= 🔥 FIX AUTH STABILITY =================
 
 setPersistence(auth, browserLocalPersistence);
 
-// ---------------- GLOBAL STATE ----------------
+// ================= GLOBAL STATE =================
 
 let realBalance = 0;
 let hidden = false;
 
-// ---------------- BALANCE TOGGLE ----------------
+// ================= BALANCE TOGGLE =================
 
 window.toggleBalance = function () {
 
@@ -53,7 +55,7 @@ hidden = !hidden;
 
 };
 
-// ---------------- CURRENCY SYSTEM ----------------
+// ================= CURRENCY RATES =================
 
 const rates = {
 USD: 1,
@@ -62,6 +64,8 @@ GBP: 0.74,
 EUR: 0.86,
 CAD: 1.37
 };
+
+// ================= UPDATE CURRENCY =================
 
 function updateCurrency(currency) {
 
@@ -72,46 +76,14 @@ converted.toLocaleString() + " " + currency;
 
 }
 
-// ---------------- AUTH STATE ----------------
+// ================= AUTH SYSTEM (FIXED) =================
 
 onAuthStateChanged(auth, async (user) => {
 
 if (user) {
 
 // USER IS LOGGED IN
-console.log("Logged in:", user.uid);
-
-// LOAD DATA HERE
-const ref = doc(db, "users", user.uid);
-const snap = await getDoc(ref);
-
-if (snap.exists()) {
-
-const data = snap.data();
-
-document.getElementById("welcomeUser").innerText =
-data.username || "PCN USER";
-
-document.getElementById("balance").innerText =
-"$" + (data.availableBalance || 0);
-
-}
-
-} else {
-
-// WAIT BEFORE DECIDING USER IS GONE
-setTimeout(() => {
-
-if (!auth.currentUser) {
-window.location = "index.html";
-}
-
-}, 2000);
-
-}
-
-});
-// ---------------- LOAD USER DATA ----------------
+console.log("User active:", user.uid);
 
 const ref = doc(db, "users", user.uid);
 const snap = await getDoc(ref);
@@ -130,9 +102,22 @@ document.getElementById("balance").innerText =
 
 }
 
+} else {
+
+// SAFE DELAY BEFORE LOGOUT (PREVENTS MDT DISAPPEAR)
+setTimeout(() => {
+
+if (!auth.currentUser) {
+window.location = "index.html";
+}
+
+}, 2000);
+
+}
+
 });
 
-// ---------------- CURRENCY CHANGE ----------------
+// ================= CURRENCY SELECT =================
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -141,9 +126,7 @@ const select = document.getElementById("currencySelect");
 if (select) {
 
 select.addEventListener("change", (e) => {
-
 updateCurrency(e.target.value);
-
 });
 
 }
