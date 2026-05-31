@@ -1,36 +1,39 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
 import {
 getFirestore,
 doc,
-getDoc
+onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import { useAuth } from "./core-auth.js";
+import {
+getAuth,
+onAuthStateChanged,
+setPersistence,
+browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// ================= FIREBASE CONFIG =================
-
+// FIREBASE CONFIG
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
 projectId: "YOUR_PROJECT_ID",
 storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_SENDER_ID",
+messagingSenderId: "YOUR_ID",
 appId: "YOUR_APP_ID"
 };
 
-// ================= INIT APP =================
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// FORCE SESSION STABILITY
+setPersistence(auth, browserLocalPersistence);
 
 // ================= STATE =================
-
-let balanceValue = 0;
+let balance = 0;
 let hidden = false;
 
-// ================= BALANCE TOGGLE =================
-
+// ================= TOGGLE BALANCE =================
 window.toggleBalance = function () {
 
 const el = document.getElementById("balance");
@@ -38,7 +41,7 @@ const el = document.getElementById("balance");
 if (!hidden) {
 el.innerText = "******";
 } else {
-el.innerText = "$" + balanceValue;
+el.innerText = "$" + balance;
 }
 
 hidden = !hidden;
@@ -46,49 +49,52 @@ hidden = !hidden;
 };
 
 // ================= CURRENCY =================
-
 const rates = {
 USD: 1,
 NGN: 1310,
-GBP: 0.74,
-EUR: 0.86,
-CAD: 1.37
+GBP: 0.78,
+EUR: 0.92,
+CAD: 1.35
 };
 
 function convert(currency) {
 
-const value = balanceValue * rates[currency];
+const converted = balance * rates[currency];
 
 document.getElementById("balance").innerText =
-value.toLocaleString() + " " + currency;
+converted.toLocaleString() + " " + currency;
 
 }
 
-// ================= AUTH =================
+// ================= REAL TIME AUTH =================
+onAuthStateChanged(auth, (user) => {
 
-useAuth(async (user) => {
+if (!user) return;
 
+// 🔥 REAL TIME FIRESTORE LISTENER (IMPORTANT FIX)
 const ref = doc(db, "users", user.uid);
-const snap = await getDoc(ref);
 
-if (snap.exists()) {
+onSnapshot(ref, (snap) => {
+
+if (!snap.exists()) return;
 
 const data = snap.data();
 
-balanceValue = data.availableBalance || 0;
-
+// USERNAME FIX
 document.getElementById("welcomeUser").innerText =
-data.username || "PCN USER";
+data.username || data.email || "PCN USER";
+
+// BALANCE FIX (LIVE UPDATE)
+balance = data.availableBalance || 0;
 
 document.getElementById("balance").innerText =
-"$" + balanceValue;
+"$" + balance;
 
-}
+});
 
 });
 
 // ================= CURRENCY EVENT =================
-
 document.addEventListener("DOMContentLoaded", () => {
 
 const select = document.getElementById("currencySelect");
@@ -102,3 +108,5 @@ convert(e.target.value);
 }
 
 });
+
+</script>
