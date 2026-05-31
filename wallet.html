@@ -1,237 +1,108 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wallet - PCN Exchange</title><link rel="stylesheet" href="dashboard.css"><style>
 
-<title>PCN WALLET
-
-</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"><link rel="stylesheet"
-href="wallet.css"></head><body><!-- HEADER --><div class="wallet-header"><div class="wallet-logo"><div class="wallet-icon">P
-
-</div><h1>PCN WALLET
-
-</h1></div><a href="dashboard.html">Dashboard
-
-</a></div><!-- MAIN --><div class="wallet-container"><!-- BALANCE --><div class="balance-card"><p>TOTAL BALANCE
-
-</p><h1 id="balance">$0
-
-</h1><span>Your available wallet balance
-
-</span><div class="wallet-buttons"><a href="deposit.html"><button id="depositBtn">Deposit
-
-</button></a><a href="withdrawal.html"><button id="withdrawBtn">Withdraw
-
-</button></a></div></div><!-- EXTRA --><div class="wallet-grid"><div class="wallet-box"><p>Withdrawable
-
-</p><h2 id="withdrawable">$0
-
-</h2></div><div class="wallet-box"><p>Referral Bonus
-
-</p><h2 id="referral">$0
-
-</h2></div><div class="wallet-box"><p>Cart Items
-
-</p><h2 id="cart">0
-
-</h2></div></div><!-- REF LINK --><div class="ref-box"><h2>Referral Link
-
-</h2><div class="ref-actions"><input
-id="refLink"
-readonly>
-
-<button
-id="copyBtn">
-
-COPY
-
-</button></div></div><!-- TRANSACTIONS --><div class="transactions"><div class="trans-top"><h2>Recent Activity
-
-</h2><span>LIVE
-
-</span></div><div class="trans-card"><div><h3>Bitcoin Purchase
-
-</h3><p>Completed
-
-</p></div><b class="green">+$320
-
-</b></div><div class="trans-card"><div><h3>Ethereum Trade
-
-</h3><p>Completed
-
-</p></div><b class="red">-$120
-
-</b></div></div></div><!-- NAV --><div class="bottom-nav"><a href="dashboard.html"><i class="fa-solid fa-house"></i>
-
-<span>Home
-
-</span></a><a href="markets.html"><i class="fa-solid fa-chart-line"></i>
-
-<span>Markets
-
-</span></a><a href="trade.html"><i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<span>Trade
-
-</span></a><a href="wallet.html"
-class="active">
-
-<i class="fa-solid fa-wallet"></i>
-
-<span>Wallet
-
-</span></a></div><script type="module">
-
-import {
-initializeApp
+.wallet-container{
+max-width:600px;
+margin:60px auto;
+background:#111;
+padding:25px;
+border-radius:20px;
+border:1px solid #1f1f1f;
+text-align:center;
 }
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
+.wallet-box{
+background:#000;
+padding:15px;
+border-radius:10px;
+margin-top:20px;
+word-break:break-all;
+border:1px solid #00ff88;
+}
+
+button{
+margin-top:15px;
+padding:10px 15px;
+background:#00ff88;
+border:none;
+font-weight:900;
+cursor:pointer;
+}
+
+.loading{
+color:#888;
+}
+
+</style></head><body><div class="wallet-container"><h2 style="color:#00ff88;">My Wallet</h2><p>Secure wallet dashboard</p><div id="walletData" class="loading">
+Loading wallet...
+</div><button onclick="copyWallet()">Copy Wallet</button>
+
+</div><script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
 getFirestore,
 doc,
 getDoc
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
 getAuth,
 onAuthStateChanged
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-/* FIREBASE */
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
+apiKey: "YOUR_API_KEY",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
 
-apiKey:
-"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-authDomain:
-"pcnexchange.firebaseapp.com",
+let walletId = "";
 
-databaseURL:
-"https://pcnexchange-default-rtdb.firebaseio.com",
+/* FIX: SAFE AUTH HANDLING (NO AUTO LOGOUT BUG) */
+onAuthStateChanged(auth, async (user) => {
 
-projectId:
-"pcnexchange",
+if (!user) return; // ❗ IMPORTANT FIX (NO REDIRECT)
 
-storageBucket:
-"pcnexchange.firebasestorage.app",
+const ref = doc(db, "users", user.uid);
+const snap = await getDoc(ref);
 
-messagingSenderId:
-"278761036604",
+if (!snap.exists()) return;
 
-appId:
-"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+const data = snap.data();
+
+/* WALLET ID */
+walletId =
+data.walletId ||
+user.uid ||
+user.email;
+
+/* DISPLAY */
+document.getElementById("walletData").innerHTML = `
+<div class="wallet-box">
+${walletId}
+</div>
+`;
+
+});
+
+window.copyWallet = function () {
+
+if (!walletId) return;
+
+navigator.clipboard.writeText(walletId);
+
+alert("Wallet copied!");
 
 };
 
-const app =
-initializeApp(firebaseConfig);
-
-const db =
-getFirestore(app);
-
-const auth =
-getAuth(app);
-
-/* LOAD USER */
-
-onAuthStateChanged(
-
-auth,
-
-async(user)=>{
-
-if(!user){
-
-window.location =
-"index.html";
-
-return;
-
-}
-
-try{
-
-const ref =
-doc(db,"users",user.uid);
-
-const snap =
-await getDoc(ref);
-
-if(snap.exists()){
-
-const data =
-snap.data();
-
-/* BALANCES */
-
-document.getElementById(
-"balance"
-).innerText =
-"$"+(data.availableBalance || 0);
-
-document.getElementById(
-"withdrawable"
-).innerText =
-"$"+(data.withdrawableBalance || 0);
-
-document.getElementById(
-"referral"
-).innerText =
-"$"+(data.referralCommission || 0);
-
-document.getElementById(
-"cart"
-).innerText =
-data.joinedUsers || 0;
-
-/* REF LINK */
-
-document.getElementById(
-"refLink"
-).value =
-window.location.origin +
-"/signup.html?ref=" +
-user.uid;
-
-}
-
-}catch(err){
-
-console.log(err);
-
-}
-
-}
-
-);
-
-/* COPY */
-
-document.getElementById(
-"copyBtn"
-).onclick = ()=>{
-
-const input =
-document.getElementById(
-"refLink"
-);
-
-input.select();
-
-document.execCommand(
-"copy"
-);
-
-alert(
-"Referral Link Copied"
-);
-
-};
-
-</script></body></html>
+</script></body>
+</html>
