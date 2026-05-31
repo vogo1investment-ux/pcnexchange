@@ -2,14 +2,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// FIREBASE CONFIG
+// 🔹 USE ORIGINAL FIREBASE API
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -19,11 +20,11 @@ const auth = getAuth(app);
 // FORCE SESSION STABILITY
 setPersistence(auth, browserLocalPersistence);
 
-// ================= STATE =================
+// STATE
 let balance = 0;
 let hidden = false;
 
-// ================= TOGGLE BALANCE =================
+// TOGGLE BALANCE
 const balanceEl = document.getElementById("balance");
 const toggleBtn = document.getElementById("toggleBalanceBtn");
 
@@ -38,53 +39,37 @@ toggleBtn.addEventListener("click", () => {
   hidden = !hidden;
 });
 
-// ================= CURRENCY =================
+// CURRENCY CONVERTER
 const rates = { USD: 1, NGN: 1310, GBP: 0.78, EUR: 0.92, CAD: 1.35 };
-
-function convert(currency) {
-  const converted = balance * rates[currency];
-  const symbol = currency === "USD" ? "$" : currency === "NGN" ? "₦" : currency === "GBP" ? "£" : currency === "EUR" ? "€" : "C$";
+const currencySelect = document.getElementById("currencySelect");
+currencySelect.addEventListener("change", (e) => {
+  const converted = balance * rates[e.target.value];
+  const symbol = e.target.value === "USD" ? "$" : e.target.value === "NGN" ? "₦" : e.target.value === "GBP" ? "£" : e.target.value === "EUR" ? "€" : "C$";
   balanceEl.innerText = symbol + converted.toLocaleString();
-}
+});
 
-// ================= REAL TIME AUTH =================
+// REALTIME USER DATA
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location = "index.html";
     return;
   }
 
-  const ref = doc(db, "users", user.uid);
-
-  onSnapshot(ref, (snap) => {
+  const userRef = doc(db, "users", user.uid);
+  onSnapshot(userRef, (snap) => {
     if (!snap.exists()) return;
 
     const data = snap.data();
 
-    // USERNAME
     document.getElementById("welcomeUser").innerText = data.username || data.email || "PCN USER";
-
-    // BALANCE
-    balance = data.availableBalance || 0;
-    if (!hidden) {
-      balanceEl.innerText = "$" + balance.toLocaleString();
-    }
+    balance = Number(data.availableBalance || data.balance || 0);
+    if (!hidden) balanceEl.innerText = "$" + balance.toLocaleString();
   });
 });
 
-// ================= CURRENCY EVENT =================
-document.addEventListener("DOMContentLoaded", () => {
-  const select = document.getElementById("currencySelect");
-  if (select) {
-    select.addEventListener("change", (e) => {
-      convert(e.target.value);
-    });
-  }
+// DEPOSIT & WITHDRAW BUTTONS
+const depositBtn = document.getElementById("depositBtn");
+const withdrawBtn = document.getElementById("withdrawBtn");
 
-  // ================= DEPOSIT & WITHDRAW BUTTONS =================
-  const depositBtn = document.getElementById("depositBtn");
-  const withdrawBtn = document.getElementById("withdrawBtn");
-
-  if (depositBtn) depositBtn.addEventListener("click", () => window.location.href = "deposit.html");
-  if (withdrawBtn) withdrawBtn.addEventListener("click", () => window.location.href = "withdraw.html");
-});
+depositBtn.addEventListener("click", () => window.location.href = "deposit.html");
+withdrawBtn.addEventListener("click", () => window.location.href = "withdraw.html");
