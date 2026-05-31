@@ -1,119 +1,279 @@
-body{
-margin:0;
-padding:0;
-background:#050505;
-color:white;
-font-family:Arial;
-padding-bottom:100px;
+body {
+margin: 0;
+padding: 0;
+font-family: Arial, sans-serif;
+background: #050505;
+color: white;
+padding-bottom: 100px;
 }
 
-.top-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:20px;
-background:#0d0d0d;
-border-bottom:1px solid #1f1f1f;
+/* =========================
+HEADER
+========================= */
+
+.top-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 20px;
+background: #0d0d0d;
+border-bottom: 1px solid #1f1f1f;
 }
 
-.logo-area{display:flex;gap:15px;align-items:center;}
-
-.logo-box{
-width:50px;height:50px;
-background:#00ff88;
-color:black;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:900;
-border-radius:15px;
+.logo-area {
+display: flex;
+align-items: center;
+gap: 15px;
 }
 
-.balance-card{
-background:#111;
-padding:30px;
-border-radius:25px;
-border:1px solid #1f1f1f;
-margin-top:20px;
+.logo-box {
+width: 50px;
+height: 50px;
+background: #00ff88;
+color: black;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 15px;
+font-size: 28px;
+font-weight: 900;
 }
 
-.balance-card h2{
-font-size:60px;
+.logo-area h1 {
+margin: 0;
+font-size: 24px;
+font-weight: 900;
 }
 
-.balance-toggle{
-margin-top:10px;
-background:#00ff88;
-border:none;
-padding:10px;
-border-radius:10px;
-font-weight:900;
-cursor:pointer;
+.logo-area p {
+margin: 0;
+font-size: 12px;
+color: #888;
 }
 
-.currency-box{
-margin-top:10px;
+.header-icons a {
+color: white;
+font-size: 22px;
+margin-left: 15px;
 }
 
-.currency-box select{
-padding:10px;
-background:#000;
-color:white;
-border:1px solid #333;
-border-radius:10px;
+/* =========================
+MAIN CONTAINER
+========================= */
+
+.main-container {
+max-width: 1200px;
+margin: auto;
+padding: 20px;
 }
 
-.action-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:15px;
-margin-top:20px;
+/* =========================
+BALANCE CARD
+========================= */
+
+.balance-card {
+background: #111;
+border: 1px solid #1f1f1f;
+border-radius: 25px;
+padding: 30px;
+text-align: center;
 }
 
-.action-card{
-background:#111;
-padding:25px;
-text-align:center;
-border-radius:20px;
-text-decoration:none;
-color:white;
-border:1px solid #222;
+.balance-title {
+color: #00ff88;
+font-weight: 900;
+letter-spacing: 2px;
 }
 
-.action-card i{color:#00ff88;font-size:25px;}
-
-.user-box{
-margin-top:20px;
-background:#111;
-padding:20px;
-border-radius:20px;
-display:flex;
-justify-content:space-between;
-align-items:center;
+#balance {
+font-size: 50px;
+margin: 15px 0;
+font-weight: 900;
 }
 
-.bottom-nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-display:flex;
-justify-content:space-around;
-background:#0d0d0d;
-padding:10px;
-border-top:1px solid #1f1f1f;
+.balance-tools button {
+padding: 10px 20px;
+background: #00ff88;
+border: none;
+color: black;
+font-weight: 900;
+border-radius: 10px;
+cursor: pointer;
 }
 
-.bottom-nav a{
-color:#aaa;
-text-align:center;
-text-decoration:none;
-font-size:12px;
+/* =========================
+CURRENCY BOX
+========================= */
+
+.currency-box {
+margin-top: 20px;
+text-align: left;
 }
 
-.bottom-nav .active{color:#00ff88;}
+.currency-box label {
+display: block;
+font-weight: 900;
+margin-bottom: 10px;
+color: #00ff88;
+}
 
-@media(max-width:900px){
-.action-grid{grid-template-columns:repeat(2,1fr);}
-.balance-card h2{font-size:40px;}
+.currency-box select {
+width: 100%;
+padding: 12px;
+background: #000;
+color: white;
+border: 1px solid #00ff88;
+border-radius: 10px;
+font-weight: 900;
+}
+
+/* =========================
+USER BOX
+========================= */
+
+.user-box {
+margin-top: 25px;
+background: #111;
+border: 1px solid #1f1f1f;
+padding: 20px;
+border-radius: 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.user-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.avatar {
+width: 50px;
+height: 50px;
+background: #00ff88;
+color: black;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+font-size: 22px;
+}
+
+.profile-btn {
+background: #1f1f1f;
+padding: 10px 15px;
+border-radius: 10px;
+color: white;
+text-decoration: none;
+font-weight: 900;
+}
+
+/* =========================
+ACTION GRID
+========================= */
+
+.action-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 15px;
+margin-top: 25px;
+}
+
+.action-card {
+background: #111;
+border: 1px solid #1f1f1f;
+border-radius: 15px;
+padding: 20px;
+text-align: center;
+text-decoration: none;
+color: white;
+transition: 0.3s;
+}
+
+.action-card:hover {
+border-color: #00ff88;
+transform: scale(1.03);
+}
+
+.action-card i {
+font-size: 25px;
+color: #00ff88;
+margin-bottom: 10px;
+}
+
+.action-card span {
+display: block;
+font-weight: 900;
+}
+
+/* =========================
+ABOUT SECTION
+========================= */
+
+.market-box {
+margin-top: 30px;
+background: #111;
+border: 1px solid #1f1f1f;
+padding: 20px;
+border-radius: 20px;
+}
+
+.market-header h2 {
+color: #00ff88;
+font-weight: 900;
+}
+
+.about-text {
+color: #aaa;
+line-height: 1.6;
+}
+
+/* =========================
+BOTTOM NAV
+========================= */
+
+.bottom-nav {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+background: #0d0d0d;
+border-top: 1px solid #1f1f1f;
+display: flex;
+justify-content: space-around;
+padding: 10px 0;
+}
+
+.bottom-nav a {
+color: #888;
+text-decoration: none;
+font-weight: 900;
+font-size: 12px;
+}
+
+.bottom-nav .active {
+color: #00ff88;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+
+#balance {
+font-size: 35px;
+}
+
+.action-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.user-box {
+flex-direction: column;
+gap: 15px;
+text-align: center;
+}
+
 }
