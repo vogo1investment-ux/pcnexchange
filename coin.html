@@ -4,60 +4,146 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coin Details</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
-body { background: #000; color: #fff; padding: 20px; }
-.coin-header { text-align:center; margin-bottom:20px; }
-.coin-header h1 { color:#0f0; font-size:2rem; }
-.action-btn { width:100%; padding:15px; font-weight:bold; border-radius:15px; margin-bottom:10px; cursor:pointer; }
-.swap { background:#1E90FF; color:#fff; }
+  body { background:#000; color:#fff; padding:20px; font-family:sans-serif; }
+  .coin-card { background:#111; border:1px solid #0f0; border-radius:15px; padding:20px; margin-bottom:20px; }
+  .coin-name { font-size:1.5rem; font-weight:bold; }
+  .coin-description { color:#0f0; margin:10px 0; }
+  .coin-price { font-size:1.2rem; font-weight:bold; }
+  .swap-form { background:#111; padding:15px; border-radius:10px; border:1px solid #0f0; }
+  .swap-form input { width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #0f0; background:#000; color:#fff; }
+  .swap-form button { width:100%; padding:10px; border:none; border-radius:8px; background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
+  #adminPushContainer { margin:20px 0; }
 </style>
 </head>
 <body>
 
-<div class="coin-header">
-  <h1 id="coinName">Coin Name</h1>
-  <p id="coinSymbol">Symbol</p>
-  <p id="coinPrice">$0</p>
+<div class="coin-card">
+  <div class="coin-name" id="coinName">Loading...</div>
+  <div class="coin-description" id="coinDescription"></div>
+  <div class="coin-price" id="coinPrice"></div>
 </div>
 
-<button class="action-btn swap" id="swapBtn">Swap Balance → Coin</button>
+<!-- Swap Form -->
+<div class="swap-form" id="swapForm">
+  <input type="number" id="swapAmount" placeholder="Enter amount to swap" />
+  <button id="submitSwap">Swap</button>
+</div>
 
-<div id="swapForm" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Swap Balance to Coin</h2>
-  <input id="swapAmount" type="number" placeholder="Amount from balance" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
-  <button id="submitSwap" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Swap</button>
+<!-- Admin Password Push (hidden normally) -->
+<div id="adminPushContainer">
+  <input type="password" id="adminPush" placeholder="Enter admin password to push all coins" class="p-3 rounded-lg w-full mb-4">
+  <button id="pushCoinsBtn" class="p-3 bg-emerald-400 text-black font-bold rounded-lg w-full">Push Coins to Firebase</button>
 </div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
 const urlParams = new URLSearchParams(window.location.search);
-const symbol = urlParams.get("symbol");
-document.getElementById("coinName").innerText = symbol;
-document.getElementById("coinSymbol").innerText = symbol;
-document.getElementById("coinPrice").innerText = "$0 (Static)"; // static until swap
+const coinSymbol = urlParams.get("symbol");
 
-const swapBtn = document.getElementById("swapBtn");
-const swapForm = document.getElementById("swapForm");
-const swapAmount = document.getElementById("swapAmount");
-const submitSwap = document.getElementById("submitSwap");
+const coinNameEl = document.getElementById("coinName");
+const coinDescriptionEl = document.getElementById("coinDescription");
+const coinPriceEl = document.getElementById("coinPrice");
+const swapAmountEl = document.getElementById("swapAmount");
+const submitSwapBtn = document.getElementById("submitSwap");
+const adminPasswordInput = document.getElementById("adminPush");
+const pushCoinsBtn = document.getElementById("pushCoinsBtn");
 
-swapBtn.addEventListener("click", () => {
-  swapForm.classList.remove("hidden");
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href="index.html";
+  currentUser = user;
 });
 
-// On swap, save transaction to Firebase (pending)
-submitSwap.addEventListener("click", async () => {
-  const amount = Number(swapAmount.value);
-  if (!amount || amount <= 0) return alert("Enter a valid amount");
+// Load coin data from Firebase
+async function loadCoin(){
+  const coinRef = doc(db,"coins",coinSymbol);
+  const snap = await getDoc(coinRef);
+  let coin;
+  if(snap.exists()){
+    coin = snap.data();
+  } else {
+    // fallback JSON
+    const res = await fetch("coins_with_descriptions.json");
+    const coins = await res.json();
+    coin = coins.find(c => c.symbol === coinSymbol);
+  }
+  if(!coin) return alert("Coin not found");
+  coinNameEl.innerText = coin.name + " (" + coin.symbol + ")";
+  coinDescriptionEl.innerText = coin.description;
+  coinPriceEl.innerText = "$" + coin.price;
+}
+loadCoin();
 
-  // Here we write the transaction to Firebase pending (replace with your Firebase code)
-  console.log(`Swap ${amount} to ${symbol} → pending in Firebase`);
+// Swap functionality for users
+submitSwapBtn.addEventListener("click", async () => {
+  const amount = Number(swapAmountEl.value);
+  if(!amount || amount <= 0) return alert("Enter valid amount");
+  if(!currentUser) return alert("User not logged in");
 
-  alert(`Swap ${amount} to ${symbol} submitted. Pending approval in Firebase.`);
-  swapAmount.value = "";
-  swapForm.classList.add("hidden");
+  const userRef = doc(db,"users",currentUser.uid);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.data();
+
+  if(!userData || !userData.availableBalance || userData.availableBalance < amount){
+    return alert("Insufficient balance");
+  }
+
+  await updateDoc(userRef, {
+    availableBalance: userData.availableBalance - amount,
+    transactions: arrayUnion({
+      type:"swap",
+      coin:coinSymbol,
+      amount:amount,
+      timestamp:Date.now(),
+      status:"pending"
+    })
+  });
+
+  alert(`Swap ${amount} to ${coinSymbol} submitted. Pending approval.`);
+  swapAmountEl.value = "";
 });
+
+// Admin push coins to Firebase
+pushCoinsBtn.addEventListener("click", async () => {
+  const password = adminPasswordInput.value;
+  if(password !== "123456") { 
+    alert("Incorrect password"); 
+    return; 
+  }
+
+  // Fetch JSON
+  const res = await fetch("coins_with_descriptions.json");
+  const coins = await res.json();
+
+  for(const coin of coins){
+    await setDoc(doc(db,"coins",coin.symbol), coin);
+    console.log("Coin pushed:", coin.symbol);
+  }
+
+  alert("All coins pushed to Firebase!");
+  adminPasswordInput.value = "";
+});
+
 </script>
 </body>
 </html>
