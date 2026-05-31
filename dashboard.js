@@ -6,12 +6,7 @@ doc,
 getDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-getAuth,
-onAuthStateChanged,
-setPersistence,
-browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { useAuth } from "./core-auth.js";
 
 // ================= FIREBASE CONFIG =================
 
@@ -24,38 +19,33 @@ messagingSenderId: "YOUR_SENDER_ID",
 appId: "YOUR_APP_ID"
 };
 
-// ================= INIT FIREBASE =================
+// ================= INIT APP =================
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
 
-// ================= 🔥 FIX AUTH STABILITY =================
+// ================= STATE =================
 
-setPersistence(auth, browserLocalPersistence);
-
-// ================= GLOBAL STATE =================
-
-let realBalance = 0;
+let balanceValue = 0;
 let hidden = false;
 
 // ================= BALANCE TOGGLE =================
 
 window.toggleBalance = function () {
 
-const bal = document.getElementById("balance");
+const el = document.getElementById("balance");
 
 if (!hidden) {
-bal.innerText = "******";
+el.innerText = "******";
 } else {
-bal.innerText = "$" + realBalance;
+el.innerText = "$" + balanceValue;
 }
 
 hidden = !hidden;
 
 };
 
-// ================= CURRENCY RATES =================
+// ================= CURRENCY =================
 
 const rates = {
 USD: 1,
@@ -65,25 +55,18 @@ EUR: 0.86,
 CAD: 1.37
 };
 
-// ================= UPDATE CURRENCY =================
+function convert(currency) {
 
-function updateCurrency(currency) {
-
-const converted = realBalance * rates[currency];
+const value = balanceValue * rates[currency];
 
 document.getElementById("balance").innerText =
-converted.toLocaleString() + " " + currency;
+value.toLocaleString() + " " + currency;
 
 }
 
-// ================= AUTH SYSTEM (FIXED) =================
+// ================= AUTH =================
 
-onAuthStateChanged(auth, async (user) => {
-
-if (user) {
-
-// USER IS LOGGED IN
-console.log("User active:", user.uid);
+useAuth(async (user) => {
 
 const ref = doc(db, "users", user.uid);
 const snap = await getDoc(ref);
@@ -92,32 +75,19 @@ if (snap.exists()) {
 
 const data = snap.data();
 
-realBalance = data.availableBalance || 0;
+balanceValue = data.availableBalance || 0;
 
 document.getElementById("welcomeUser").innerText =
 data.username || "PCN USER";
 
 document.getElementById("balance").innerText =
-"$" + realBalance;
-
-}
-
-} else {
-
-// SAFE DELAY BEFORE LOGOUT (PREVENTS MDT DISAPPEAR)
-setTimeout(() => {
-
-if (!auth.currentUser) {
-window.location = "index.html";
-}
-
-}, 2000);
+"$" + balanceValue;
 
 }
 
 });
 
-// ================= CURRENCY SELECT =================
+// ================= CURRENCY EVENT =================
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -126,7 +96,7 @@ const select = document.getElementById("currencySelect");
 if (select) {
 
 select.addEventListener("change", (e) => {
-updateCurrency(e.target.value);
+convert(e.target.value);
 });
 
 }
