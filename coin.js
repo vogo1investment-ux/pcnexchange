@@ -1,9 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import QRious from "https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -17,116 +15,73 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence);
 
 let currentUser = null;
-let coinSymbol = new URLSearchParams(window.location.search).get("symbol");
-let coinData = null;
+const urlParams = new URLSearchParams(window.location.search);
+const coinSymbol = urlParams.get("symbol");
 
+// Elements
 const coinNameEl = document.getElementById("coinName");
 const coinSymbolEl = document.getElementById("coinSymbol");
 const coinPriceEl = document.getElementById("coinPrice");
-
-const transferBtn = document.getElementById("transferBtn");
-const receiveBtn = document.getElementById("receiveBtn");
 const swapBtn = document.getElementById("swapBtn");
-
-const transferForm = document.getElementById("transferForm");
-const receiveForm = document.getElementById("receiveForm");
 const swapForm = document.getElementById("swapForm");
-
-const recipientInput = document.getElementById("recipient");
-const amountInput = document.getElementById("amount");
-const passwordInput = document.getElementById("password");
-const submitTransfer = document.getElementById("submitTransfer");
-
-const userEmail = document.getElementById("userEmail");
-const userUid = document.getElementById("userUid");
-const copyBtn = document.getElementById("copyBtn");
-const qrCanvas = document.getElementById("qrcode");
-
-const swapAmountInput = document.getElementById("swapAmount");
+const swapAmount = document.getElementById("swapAmount");
 const submitSwap = document.getElementById("submitSwap");
 
-// Auth
 onAuthStateChanged(auth, user => {
   if(!user) window.location.href="index.html";
   currentUser = user;
-  userEmail.value = user.email;
-  userUid.value = user.uid;
-
-  // QR code
-  new QRious({ element: qrCanvas, value: JSON.stringify({email:user.email, uid:user.uid}), size:200, background:"#000", foreground:"#0f0" });
 });
 
-// Coin Buttons
-transferBtn.addEventListener("click",()=>{ transferForm.classList.remove("hidden"); receiveForm.classList.add("hidden"); swapForm.classList.add("hidden"); });
-receiveBtn.addEventListener("click",()=>{ receiveForm.classList.remove("hidden"); transferForm.classList.add("hidden"); swapForm.classList.add("hidden"); });
-swapBtn.addEventListener("click",()=>{ swapForm.classList.remove("hidden"); transferForm.classList.add("hidden"); receiveForm.classList.add("hidden"); });
-
-// Copy receive info
-copyBtn.addEventListener("click", ()=>{
-  navigator.clipboard.writeText(`Email:${userEmail.value}\nUID:${userUid.value}`).then(()=>alert("Copied!"));
-});
-
-// Load coin data
+// Load coin info from Firebase or fallback to JSON
 async function loadCoin(){
-  const docRef = doc(db,"coins",coinSymbol);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()) coinData = docSnap.data();
+  let coinData;
+  const docRef = doc(db, "coins", coinSymbol);
+  const snap = await getDoc(docRef);
+  if(snap.exists()) coinData = snap.data();
+  else {
+    const res = await fetch("coins_with_descriptions.json");
+    const coins = await res.json();
+    coinData = coins.find(c => c.symbol === coinSymbol);
+  }
+  if(!coinData) return alert("Coin not found");
   coinNameEl.innerText = coinData.name;
   coinSymbolEl.innerText = coinData.symbol;
-  coinPriceEl.innerText = "$"+coinData.price.toLocaleString();
+  coinPriceEl.innerText = "$"+coinData.price;
 }
+
 loadCoin();
 
-// Transfer Coin
-submitTransfer.addEventListener("click",async ()=>{
-  const recipient = recipientInput.value.trim();
-  const amount = Number(amountInput.value);
-  const password = passwordInput.value;
-  if(!recipient||!amount||!password) return alert("Fill all fields");
+// Show/hide swap form
+swapBtn.addEventListener("click", () => swapForm.classList.toggle("hidden"));
 
-  try{
-    await signInWithEmailAndPassword(auth,currentUser.email,password);
-    const senderRef = doc(db,"users",currentUser.uid);
-    const senderSnap = await getDoc(senderRef);
-    const senderData = senderSnap.data();
-    if((senderData[coinSymbol]||0)<amount) return alert("Insufficient coin balance");
+// Swap functionality
+submitSwap.addEventListener("click", async () => {
+  const amount = Number(swapAmount.value);
+  if(!amount || amount <= 0) return alert("Enter valid amount");
+  if(!currentUser) return alert("User not logged in");
 
-    await updateDoc(senderRef,{ [coinSymbol]: senderData[coinSymbol]-amount });
+  const userRef = doc(db,"users",currentUser.uid);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.data();
 
-    const transferTx = { type:"transfer", coin:coinSymbol, amount, to:recipient, from:currentUser.uid, timestamp:Date.now(), status:"pending" };
-    const senderTransRef = collection(db,"users",currentUser.uid,"transactions");
-    await addDoc(senderTransRef,transferTx);
-    await updateDoc(senderRef,{ transactions: arrayUnion(transferTx) });
+  if(!userData || !userData.availableBalance || userData.availableBalance < amount)
+    return alert("Insufficient balance");
 
-    alert("Transfer submitted! Pending approval.");
-    recipientInput.value=""; amountInput.value=""; passwordInput.value="";
-  }catch(err){ console.error(err); alert("Failed: "+err.message);}
-});
+  // Deduct balance and create pending transaction
+  await updateDoc(userRef, {
+    availableBalance: userData.availableBalance - amount,
+    transactions: arrayUnion({
+      type: "swap",
+      coin: coinSymbol,
+      amount: amount,
+      timestamp: Date.now(),
+      status: "pending"
+    })
+  });
 
-// Swap
-submitSwap.addEventListener("click",async ()=>{
-  const swapAmount = Number(swapAmountInput.value);
-  if(!swapAmount||swapAmount<=0) return alert("Enter a valid amount");
-  try{
-    const userRef = doc(db,"users",currentUser.uid);
-    const userSnap = await getDoc(userRef);
-    const bal = userSnap.data().availableBalance||0;
-    if(bal<swapAmount) return alert("Insufficient balance");
-
-    await updateDoc(userRef,{
-      availableBalance: bal-swapAmount,
-      [coinSymbol]: (userSnap.data()[coinSymbol]||0)+swapAmount
-    });
-
-    const swapTx = { type:"swap", coin:coinSymbol, amount:swapAmount, timestamp:Date.now(), status:"approved" };
-    const userTransRef = collection(db,"users",currentUser.uid,"transactions");
-    await addDoc(userTransRef,swapTx);
-    await updateDoc(userRef,{ transactions: arrayUnion(swapTx) });
-
-    alert("Swap successful!");
-    swapAmountInput.value="";
-  }catch(err){ console.error(err); alert("Swap failed: "+err.message);}
+  alert(`Swap ${amount} to ${coinSymbol} submitted. Pending approval.`);
+  swapAmount.value = "";
+  swapForm.classList.add("hidden");
 });
