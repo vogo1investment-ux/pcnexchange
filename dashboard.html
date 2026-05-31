@@ -1,115 +1,93 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en">
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE DASHBOARD</title><link rel="stylesheet" href="dashboard.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"></head><body><!-- HEADER --><header class="top-header"><div class="logo-area">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN EXCHANGE DASHBOARD</title><link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head><body><header class="top-header">
+<div class="logo-area">
 <div class="logo-box">P</div>
 <div>
 <h1>PCN EXCHANGE</h1>
 <p>Secure Crypto Trading</p>
 </div>
-</div><div class="header-icons">
-<a href="notifications.html"><i class="fa-solid fa-bell"></i></a>
-<a href="settings.html"><i class="fa-solid fa-gear"></i></a>
-</div></header><!-- MAIN --><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()" class="balance-toggle">
-Hide Balance
-</button><div class="currency-box"><select id="currencySelect">
-<option value="USD">USD</option>
-<option value="NGN">NGN</option>
-<option value="GBP">GBP</option>
-<option value="EUR">EUR</option>
-<option value="CAD">CAD</option>
-</select></div></div><!-- USER --><div class="user-box"><div class="user-left">
-<div class="avatar"><i class="fa-solid fa-user"></i></div><div>
+</div>
+</header><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()" class="balance-toggle">
+Hide / Show
+</button></div><!-- USER --><div class="user-box">
 <h3 id="welcomeUser">Loading...</h3>
-<p>Welcome back to PCN Exchange</p>
-</div></div><a href="profile.html" class="profile-btn">View Profile</a>
-
-</div><!-- ACTION GRID --><div class="action-grid"><a href="wallet.html" class="action-card"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-
-<a href="trade.html" class="action-card"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
-
-<a href="coins.html" class="action-card"><i class="fa-brands fa-bitcoin"></i><span>Coins</span></a>
-
-<a href="transfer.html" class="action-card"><i class="fa-solid fa-money-bill-transfer"></i><span>Transfer</span></a>
-
-<a href="receive.html" class="action-card"><i class="fa-solid fa-qrcode"></i><span>Receive</span></a>
-
-<a href="history.html" class="action-card"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
-
-<a href="support.html" class="action-card"><i class="fa-solid fa-headset"></i><span>Support</span></a>
-
-<a href="airdrop.html" class="action-card"><i class="fa-solid fa-gift"></i><span>Airdrop</span></a>
-
-<a href="explore.html" class="action-card"><i class="fa-solid fa-compass"></i><span>Explore</span></a>
-
-<a href="rewards.html" class="action-card"><i class="fa-solid fa-trophy"></i><span>Rewards</span></a>
-
-</div><!-- ABOUT --><div class="market-box"><div class="market-header">
-<h2>About PCN Exchange</h2>
-</div><p>
-PCN Exchange is a secure crypto trading platform where users can send, receive, trade, explore coins, and manage digital assets safely with fast transactions and wallet protection.
-</p></div></div><!-- BOTTOM NAV --><nav class="bottom-nav"><a href="dashboard.html" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
-
-<a href="markets.html"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></a>
-
-<a href="trade.html"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
-
-<a href="transfer.html"><i class="fa-solid fa-money-bill-transfer"></i><span>Transfer</span></a>
-
-<a href="receive.html"><i class="fa-solid fa-qrcode"></i><span>Receive</span></a>
-
-<a href="history.html"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
-
-<a href="support.html"><i class="fa-solid fa-headset"></i><span>Support</span></a>
-
-</nav><!-- FIREBASE SCRIPT --><script type="module">
+</div><!-- BUTTON GRID --><div class="action-grid"><a href="wallet.html" class="action-card">
+<i class="fa-solid fa-wallet"></i>
+<span>Wallet</span>
+</a><a href="trade.html" class="action-card">
+<i class="fa-solid fa-arrow-right-arrow-left"></i>
+<span>Trade</span>
+</a><a href="transfer.html" class="action-card">
+<i class="fa-solid fa-money-bill-transfer"></i>
+<span>Transfer</span>
+</a><a href="receive.html" class="action-card">
+<i class="fa-solid fa-qrcode"></i>
+<span>Receive</span>
+</a><a href="history.html" class="action-card">
+<i class="fa-solid fa-clock-rotate-left"></i>
+<span>History</span>
+</a><a href="support.html" class="action-card">
+<i class="fa-solid fa-headset"></i>
+<span>Support</span>
+</a></div></div><!-- BOTTOM NAV --><nav class="bottom-nav">
+<a href="dashboard.html" class="active">Home</a>
+<a href="wallet.html">Wallet</a>
+<a href="trade.html">Trade</a>
+<a href="history.html">History</a>
+</nav><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// 🔥 FIREBASE CONFIG (PUT YOUR REAL ONE)
 const firebaseConfig = {
-apiKey:"YOUR_API_KEY",
-authDomain:"YOUR_PROJECT.firebaseapp.com",
-projectId:"YOUR_PROJECT_ID",
-storageBucket:"YOUR_BUCKET",
-messagingSenderId:"YOUR_ID",
-appId:"YOUR_APP_ID"
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_PROJECT.firebaseapp.com",
+projectId: "YOUR_PROJECT_ID",
+storageBucket: "YOUR_BUCKET",
+messagingSenderId: "YOUR_ID",
+appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// 🔥 FORCE STABLE LOGIN (CRITICAL FIX)
+setPersistence(auth, browserLocalPersistence);
+
+// STATE
+let balance = 0;
 let hidden = false;
 
+// TOGGLE BALANCE
 window.toggleBalance = function () {
 
-const bal = document.getElementById("balance");
+const el = document.getElementById("balance");
 
 if (!hidden) {
-bal.innerText = "******";
+el.innerText = "******";
 } else {
-location.reload();
+el.innerText = "$" + balance;
 }
 
 hidden = !hidden;
 
 };
 
-const rates = {
-USD:1,
-NGN:1310,
-GBP:0.74,
-EUR:0.86,
-CAD:1.37
-};
-
+// 🔥 SINGLE SAFE AUTH (NO LOGOUT LOOP)
 onAuthStateChanged(auth, async (user) => {
 
 if (!user) {
-window.location = "index.html";
-return;
+console.log("Waiting for auth...");
+return; // NO FORCE REDIRECT
 }
 
 const ref = doc(db, "users", user.uid);
@@ -119,24 +97,15 @@ if (snap.exists()) {
 
 const data = snap.data();
 
+balance = data.availableBalance || 0;
+
 document.getElementById("welcomeUser").innerText =
 data.username || "PCN USER";
 
 document.getElementById("balance").innerText =
-"$" + (data.availableBalance || 0);
+"$" + balance;
 
 }
-
-});
-
-document.getElementById("currencySelect")
-.addEventListener("change", (e) => {
-
-const val = e.target.value;
-const base = parseFloat(document.getElementById("balance").innerText.replace("$","")) || 0;
-
-document.getElementById("balance").innerText =
-(base * rates[val]).toFixed(2) + " " + val;
 
 });
 
