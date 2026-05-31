@@ -3,26 +3,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wallet - PCN Exchange</title><link rel="stylesheet" href="dashboard.css"><style>
 
 .wallet-container{
-max-width:600px;
+max-width:650px;
 margin:60px auto;
 background:#111;
 padding:25px;
 border-radius:20px;
 border:1px solid #1f1f1f;
-text-align:center;
 }
 
-.wallet-box{
+.section{
 background:#000;
 padding:15px;
-border-radius:10px;
-margin-top:20px;
+border-radius:12px;
+margin-top:15px;
+border:1px solid #1f1f1f;
+}
+
+.label{
+color:#00ff88;
+font-weight:900;
+margin-bottom:8px;
+display:block;
+}
+
+.value{
 word-break:break-all;
-border:1px solid #00ff88;
+font-weight:900;
+color:white;
 }
 
 button{
-margin-top:15px;
+margin-top:10px;
 padding:10px 15px;
 background:#00ff88;
 border:none;
@@ -30,21 +41,41 @@ font-weight:900;
 cursor:pointer;
 }
 
-.loading{
-color:#888;
+.history-box{
+max-height:200px;
+overflow:auto;
 }
 
-</style></head><body><div class="wallet-container"><h2 style="color:#00ff88;">My Wallet</h2><p>Secure wallet dashboard</p><div id="walletData" class="loading">
-Loading wallet...
-</div><button onclick="copyWallet()">Copy Wallet</button>
+.item{
+padding:10px;
+border-bottom:1px solid #222;
+font-size:14px;
+}
 
-</div><script type="module">
+.green{color:#00ff88;}
+.red{color:red;}
+
+</style></head><body><div class="wallet-container"><h2 style="color:#00ff88;">My Wallet</h2><!-- WALLET ID --><div class="section"><span class="label">Wallet ID</span>
+
+<div id="walletId" class="value">Loading...</div><button onclick="copyWallet()">Copy Wallet ID</button>
+
+</div><!-- BALANCE --><div class="section"><span class="label">Balance</span>
+
+<div id="balance" class="value">$0.00</div></div><!-- REFERRAL --><div class="section"><span class="label">Referral Code</span>
+
+<div id="referral" class="value">Loading...</div><button onclick="copyReferral()">Copy Referral</button>
+
+</div><!-- RECEIVED HISTORY --><div class="section"><span class="label">Recent Transactions</span>
+
+<div id="history" class="history-box">Loading...
+
+</div></div></div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
 getFirestore,
 doc,
-getDoc
+onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -65,43 +96,63 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let walletId = "";
+let wallet = "";
+let referral = "";
 
-/* FIX: SAFE AUTH HANDLING (NO AUTO LOGOUT BUG) */
-onAuthStateChanged(auth, async (user) => {
+/* SAFE AUTH (NO LOGOUT BUG) */
+onAuthStateChanged(auth, (user) => {
 
-if (!user) return; // ❗ IMPORTANT FIX (NO REDIRECT)
+if (!user) return; // IMPORTANT FIX
 
 const ref = doc(db, "users", user.uid);
-const snap = await getDoc(ref);
+
+/* REALTIME WALLET DATA */
+onSnapshot(ref, (snap) => {
 
 if (!snap.exists()) return;
 
 const data = snap.data();
 
 /* WALLET ID */
-walletId =
-data.walletId ||
-user.uid ||
-user.email;
+wallet = user.uid;
 
-/* DISPLAY */
-document.getElementById("walletData").innerHTML = `
-<div class="wallet-box">
-${walletId}
-</div>
-`;
+document.getElementById("walletId").innerText = wallet;
+
+/* BALANCE */
+document.getElementById("balance").innerText =
+"$" + (data.availableBalance || 0);
+
+/* REFERRAL */
+referral = data.referralCode || user.uid.slice(0,8);
+
+document.getElementById("referral").innerText = referral;
+
+/* HISTORY (SAFE DISPLAY) */
+const history = data.history || [];
+
+document.getElementById("history").innerHTML =
+history.length === 0
+? "<div class='item'>No transactions yet</div>"
+: history.map(h =>
+`<div class="item">
+${h.type} - ${h.amount}
+</div>`
+).join("");
 
 });
 
+});
+
+/* COPY WALLET */
 window.copyWallet = function () {
-
-if (!walletId) return;
-
-navigator.clipboard.writeText(walletId);
-
+navigator.clipboard.writeText(wallet);
 alert("Wallet copied!");
+};
 
+/* COPY REFERRAL */
+window.copyReferral = function () {
+navigator.clipboard.writeText(referral);
+alert("Referral copied!");
 };
 
 </script></body>
