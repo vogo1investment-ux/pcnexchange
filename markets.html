@@ -8,20 +8,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { background:#000; color:#fff; }
-  .market-box { padding:20px; }
-  .coin-card {
-    background:#111;
-    border:1px solid #0f0;
-    border-radius:15px;
-    padding:15px;
-    margin-bottom:10px;
-    cursor:pointer;
-  }
-  .coin-name { font-weight:bold; font-size:1.2rem; }
-  .coin-description { color:#0f0; font-size:0.9rem; margin-top:5px; }
-  .coin-price { font-weight:bold; font-size:1rem; }
-  #adminPush { margin:20px 0; }
+body { background:#000; color:#fff; }
+.market-box { padding:20px; }
+.coin-card { background:#111; border:1px solid #0f0; border-radius:15px; padding:15px; margin-bottom:10px; cursor:pointer; }
+.coin-name { font-weight:bold; font-size:1.2rem; }
+.coin-description { color:#0f0; font-size:0.9rem; margin-top:5px; }
+.coin-price { font-weight:bold; font-size:1rem; }
 </style>
 </head>
 <body>
@@ -41,20 +33,13 @@
     <div class="market-header">
       <h2>Crypto Market</h2>
     </div>
-
-    <!-- Admin push password -->
-    <input type="password" id="adminPush" placeholder="Enter admin password to push coins" class="p-3 rounded-lg w-full mb-4">
-
-    <!-- Coins container -->
     <div id="marketCoins"></div>
   </div>
 </div>
 
-<!-- Firebase & JS -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -70,53 +55,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Load coins from uploaded JSON file
-async function loadCoins() {
-  const res = await fetch("coins_with_descriptions.json");
-  const coins = await res.json();
-  const container = document.getElementById("marketCoins");
-  container.innerHTML = "";
+// Real-time listener for coins
+const coinsCol = collection(db, "coins");
+const marketContainer = document.getElementById("marketCoins");
 
-  coins.forEach(coin => {
+onSnapshot(coinsCol, snapshot => {
+  marketContainer.innerHTML = "";
+  snapshot.forEach(doc => {
+    const coin = doc.data();
     const card = document.createElement("div");
     card.className = "coin-card";
-
     card.innerHTML = `
       <div class="coin-name">${coin.name} (${coin.symbol})</div>
       <div class="coin-description">${coin.description}</div>
       <div class="coin-price">$${coin.price}</div>
     `;
-
     card.addEventListener("click", () => {
       window.location.href = `coin.html?symbol=${coin.symbol}`;
     });
-
-    container.appendChild(card);
+    marketContainer.appendChild(card);
   });
-
-  return coins;
-}
-
-// Admin push logic
-document.getElementById("adminPush").addEventListener("keypress", async (e) => {
-  if(e.key === "Enter") {
-    const password = e.target.value;
-    if(password !== "123456") { alert("Incorrect password"); return; }
-
-    const coins = await loadCoins();
-    for(const coin of coins){
-      await setDoc(doc(db,"coins",coin.symbol), coin);
-      console.log("Coin pushed:", coin.symbol);
-    }
-    alert("All coins pushed to Firebase!");
-    e.target.value = "";
-  }
 });
-
-// Initial load
-loadCoins();
-
 </script>
-
 </body>
 </html>

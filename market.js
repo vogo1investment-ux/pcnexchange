@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, getDoc, doc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -15,48 +15,44 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function loadCoins() {
-  const marketBox = document.querySelector(".market-box");
-  const marketCoinsDiv = document.createElement("div");
-  marketCoinsDiv.id = "marketCoins";
+const marketContainer = document.getElementById("marketCoins");
+const coinsCol = collection(db, "coins");
 
-  // Fetch coins from Firebase if available
-  const coinsSnapshot = await getDocs(collection(db, "coins"));
-  let coins = [];
+// Store previous prices for red/blue indicator
+const previousPrices = {};
 
-  if(!coinsSnapshot.empty){
-    coinsSnapshot.forEach(doc => coins.push(doc.data()));
-  } else {
-    // Fallback to JSON file if coins collection empty
-    const res = await fetch("coins_with_descriptions.json");
-    coins = await res.json();
-  }
+onSnapshot(coinsCol, snapshot => {
+  marketContainer.innerHTML = "";
+  
+  snapshot.forEach(doc => {
+    const coin = doc.data();
 
-  coins.forEach(coin => {
+    // Price color indicator
+    let priceColor = "#0f0";
+    if(previousPrices[coin.symbol] !== undefined){
+      if(coin.price > previousPrices[coin.symbol]) priceColor = "#00f"; // blue
+      else if(coin.price < previousPrices[coin.symbol]) priceColor = "#f00"; // red
+    }
+    previousPrices[coin.symbol] = coin.price;
+
     const card = document.createElement("div");
-    card.style.background = "#111";
-    card.style.border = "1px solid #0f0";
-    card.style.borderRadius = "15px";
-    card.style.padding = "15px";
-    card.style.marginBottom = "10px";
-    card.style.cursor = "pointer";
-    card.style.display = "flex";
-    card.style.justifyContent = "space-between";
+    card.className = "coin-card";
 
-    card.innerHTML = `<div>
-        <strong>${coin.name} (${coin.symbol})</strong>
-        <p style="color:#0f0">${coin.description}</p>
-      </div>
-      <div>$${coin.price}</div>`;
+    // Display all coin details
+    card.innerHTML = `
+      <div class="coin-name">${coin.name} (${coin.symbol})</div>
+      <div class="coin-description">${coin.description}</div>
+      <div class="coin-price" style="color:${priceColor}">$${coin.price}</div>
+      <div class="coin-marketcap">Market Cap: $${coin.marketCap || "N/A"}</div>
+      <div class="coin-volume">24h Volume: $${coin.volume24h || "N/A"}</div>
+      <div class="coin-supply">Supply: ${coin.supply || "N/A"}</div>
+      <div class="coin-change">Change 24h: ${coin.change24h || "0%"}%</div>
+    `;
 
     card.addEventListener("click", () => {
       window.location.href = `coin.html?symbol=${coin.symbol}`;
     });
 
-    marketCoinsDiv.appendChild(card);
+    marketContainer.appendChild(card);
   });
-
-  marketBox.appendChild(marketCoinsDiv);
-}
-
-loadCoins();
+});
