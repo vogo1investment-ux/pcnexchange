@@ -1,44 +1,46 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Receive Wallet - PCN Exchange</title><link rel="stylesheet" href="dashboard.css"><script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script><style>
-.receive-box{
-max-width:500px;
-margin:50px auto;
-background:#111;
-padding:20px;
-border-radius:20px;
-text-align:center;
-border:1px solid #1f1f1f;
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN Wallet</title><link rel="stylesheet" href="dashboard.css"><style>
+
+.wallet-box {
+max-width: 600px;
+margin: 80px auto;
+background: #111;
+padding: 25px;
+border-radius: 20px;
+border: 1px solid #1f1f1f;
+text-align: center;
 }
 
-.wallet-id{
-background:#000;
-padding:15px;
-border-radius:10px;
-margin:15px 0;
-word-break:break-all;
-border:1px solid #00ff88;
+.wallet-id {
+background: #000;
+padding: 15px;
+border-radius: 10px;
+margin-top: 20px;
+word-break: break-all;
+border: 1px solid #00ff88;
+color: #fff;
+font-weight: 900;
 }
 
-button{
-padding:10px 15px;
-background:#00ff88;
-border:none;
-font-weight:900;
-cursor:pointer;
-margin-top:10px;
+button {
+margin-top: 15px;
+padding: 10px 15px;
+background: #00ff88;
+border: none;
+font-weight: 900;
+cursor: pointer;
 }
 
-#qrcode{
-margin-top:20px;
-display:flex;
-justify-content:center;
+.loading {
+color: #888;
 }
-</style></head><body><div class="receive-box"><h2 style="color:#00ff88;">Your Wallet</h2><p>Share this wallet address to receive funds</p><div id="walletId" class="wallet-id">
+
+</style></head><body><div class="wallet-box"><h2 style="color:#00ff88;">My Wallet</h2><p>Receive & Send Wallet Address</p><div id="walletArea" class="loading">
 Loading wallet...
 </div><button onclick="copyWallet()">Copy Wallet ID</button>
 
-<div id="qrcode"></div></div><script type="module">
+</div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
@@ -52,6 +54,7 @@ getAuth,
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+/* FIREBASE */
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "pcnexchange.firebaseapp.com",
@@ -65,46 +68,44 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let wallet = "";
+let walletId = "";
 
+/* 🔥 SAFE AUTH HANDLER (NO AUTO LOGOUT BUG) */
 onAuthStateChanged(auth, async (user) => {
 
 if (!user) {
-window.location = "index.html";
+document.getElementById("walletArea").innerHTML =
+"<p class='loading'>Please login again</p>";
 return;
 }
 
 const ref = doc(db, "users", user.uid);
 const snap = await getDoc(ref);
 
-if (!snap.exists()) return;
+let data = snap.exists() ? snap.data() : {};
 
-const data = snap.data();
-
-/* WALLET ID FIX */
-wallet =
+/* WALLET FIX (IMPORTANT) */
+walletId =
 data.walletId ||
 user.uid ||
 user.email;
 
-/* SHOW WALLET */
-document.getElementById("walletId").innerText = wallet;
-
-/* QR CODE */
-new QRCode(document.getElementById("qrcode"), {
-text: wallet,
-width: 180,
-height: 180
-});
+/* DISPLAY WALLET (NO MORE LOADING BUG) */
+document.getElementById("walletArea").innerHTML = `
+<div class="wallet-id">
+${walletId}
+</div>
+`;
 
 });
 
-/* COPY FUNCTION */
 window.copyWallet = function () {
 
-navigator.clipboard.writeText(wallet);
+if (!walletId) return;
 
-alert("Wallet copied!");
+navigator.clipboard.writeText(walletId);
+
+alert("Wallet ID copied!");
 
 };
 
