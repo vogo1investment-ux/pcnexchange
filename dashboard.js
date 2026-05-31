@@ -76,21 +76,41 @@ converted.toLocaleString() + " " + currency;
 
 onAuthStateChanged(auth, async (user) => {
 
-if (!user) {
-console.log("Waiting for user session...");
+if (user) {
 
-// delay redirect to prevent logout bug
+// USER IS LOGGED IN
+console.log("Logged in:", user.uid);
+
+// LOAD DATA HERE
+const ref = doc(db, "users", user.uid);
+const snap = await getDoc(ref);
+
+if (snap.exists()) {
+
+const data = snap.data();
+
+document.getElementById("welcomeUser").innerText =
+data.username || "PCN USER";
+
+document.getElementById("balance").innerText =
+"$" + (data.availableBalance || 0);
+
+}
+
+} else {
+
+// WAIT BEFORE DECIDING USER IS GONE
 setTimeout(() => {
 
 if (!auth.currentUser) {
 window.location = "index.html";
 }
 
-}, 1500);
+}, 2000);
 
-return;
 }
 
+});
 // ---------------- LOAD USER DATA ----------------
 
 const ref = doc(db, "users", user.uid);
