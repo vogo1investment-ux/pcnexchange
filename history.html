@@ -3,52 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Exchange History</title>
+<title>Transaction History</title>
 <link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
-  body { background-color: #000; color: #0f0; font-family: Arial, sans-serif; }
-  .history-container { max-width: 900px; margin: auto; padding: 20px; }
-  h2 { color: #0f0; text-align: center; margin-bottom: 20px; }
-  .history-tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-  .history-tab { flex: 1 1 100px; padding: 10px; text-align: center; background: #111; cursor: pointer; border: 1px solid #0f0; border-radius: 5px; }
-  .history-tab.active { background: #0f0; color: #000; font-weight: bold; }
-  .history-list { display: flex; flex-direction: column; gap: 15px; }
-  .history-card { background: #111; border: 1px solid #0f0; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-  .history-info { display: flex; flex-direction: column; }
-  .history-type { font-weight: bold; color: #0f0; }
-  .history-date { font-size: 0.85em; color: #aaa; }
-  .history-amount { font-weight: bold; font-size: 1.1em; }
-  .history-amount.deposit { color: #0f0; }
-  .history-amount.withdraw { color: #f00; }
-  .history-amount.transfer { color: #0ff; }
-  .history-amount.received { color: #0f0; }
-  @media(max-width:600px){
-    .history-card { padding: 10px; font-size: 0.9em; }
-    .history-tabs { flex-direction: column; gap: 5px; }
+/* History-specific styles */
+.history-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.history-tab {
+  padding: 10px 20px;
+  border-radius: 20px;
+  background: #111;
+  color: #00ff66;
+  cursor: pointer;
+  font-weight: bold;
+  border: 1px solid #00ff66;
+}
+.history-tab.active {
+  background: #00ff66;
+  color: #000;
+}
+.history-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 15px;
+  margin-bottom: 10px;
+}
+.history-info p, .history-info small, .history-info strong {
+  margin: 2px 0;
+}
+@media (max-width: 600px) {
+  .history-card {
+    flex-direction: column;
+    gap: 8px;
   }
+}
 </style>
 </head>
-<body>
+<body class="bg-black text-white p-5">
 
-<div class="history-container">
-  <h2>Transaction History</h2>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Transaction History</h1>
 
-  <!-- TABS -->
-  <div class="history-tabs">
-    <div class="history-tab active" data-type="all">All</div>
-    <div class="history-tab" data-type="deposit">Deposit</div>
-    <div class="history-tab" data-type="withdraw">Withdrawal</div>
-    <div class="history-tab" data-type="transfer">Transfer</div>
-    <div class="history-tab" data-type="received">Received</div>
-  </div>
-
-  <!-- HISTORY LIST -->
-  <div class="history-list" id="historyList">
-    <!-- Cards injected by JS -->
-  </div>
+<!-- Tabs -->
+<div class="history-tabs">
+  <div class="history-tab active" data-type="all">All</div>
+  <div class="history-tab" data-type="deposit">Deposit</div>
+  <div class="history-tab" data-type="withdraw">Withdrawal</div>
+  <div class="history-tab" data-type="transfer">Transfer</div>
+  <div class="history-tab" data-type="receive">Receive</div>
 </div>
 
+<!-- Transaction list -->
+<div id="historyList"></div>
+
 <script type="module" src="history.js"></script>
+
 </body>
 </html>
