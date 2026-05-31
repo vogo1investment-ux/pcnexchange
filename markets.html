@@ -3,19 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market</title>
+<title>Crypto Market</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="dashboard.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
 body { background: #000; color: #fff; }
 .market-container { max-width: 1000px; margin: auto; padding: 20px; }
 .coin-card { background: #111; border: 1px solid #0f0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer; }
 .coin-name { font-weight: bold; }
 .coin-price { font-weight: bold; }
-.coin-change { font-weight: bold; }
-.coin-change.red { color: #ff4444; }
-.coin-change.blue { color: #1E90FF; }
 </style>
 </head>
 <body>
@@ -24,6 +20,44 @@ body { background: #000; color: #fff; }
 <div id="coinsList"></div>
 </div>
 
-<script type="module" src="market.js"></script>
+<script type="module">
+const coins = [
+  {symbol:"BTC", name:"Bitcoin", price:30000},
+  {symbol:"ETH", name:"Ethereum", price:1800},
+  {symbol:"BNB", name:"Binance Coin", price:250},
+  {symbol:"ADA", name:"Cardano", price:0.35},
+  {symbol:"XRP", name:"Ripple", price:0.55},
+  {symbol:"SOL", name:"Solana", price:25},
+  {symbol:"DOGE", name:"Dogecoin", price:0.07},
+  {symbol:"DOT", name:"Polkadot", price:5.5},
+  {symbol:"MATIC", name:"Polygon", price:1.2},
+  {symbol:"LTC", name:"Litecoin", price:120},
+  {symbol:"AVAX", name:"Avalanche", price:15},
+  {symbol:"UNI", name:"Uniswap", price:5},
+  {symbol:"LINK", name:"Chainlink", price:6},
+  {symbol:"ALGO", name:"Algorand", price:0.4},
+  {symbol:"VET", name:"VeChain", price:0.08},
+  {symbol:"FIL", name:"Filecoin", price:7},
+  {symbol:"ICP", name:"Internet Computer", price:8},
+  {symbol:"TRX", name:"TRON", price:0.06},
+  {symbol:"ATOM", name:"Cosmos", price:10},
+  {symbol:"XLM", name:"Stellar", price:0.1}
+];
+
+const coinsList = document.getElementById("coinsList");
+
+coins.forEach(coin => {
+  const card = document.createElement("div");
+  card.className = "coin-card";
+  card.innerHTML = `
+    <div class="coin-name">${coin.name} (${coin.symbol})</div>
+    <div class="coin-price">$${coin.price}</div>
+  `;
+  card.addEventListener("click", () => {
+    window.location.href = `coin.html?symbol=${coin.symbol}`;
+  });
+  coinsList.appendChild(card);
+});
+</script>
 </body>
 </html>
