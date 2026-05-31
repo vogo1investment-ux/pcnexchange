@@ -2,27 +2,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE</title><link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head><body><header class="top-header">
-<div class="logo-area">
-<div class="logo-box">P</div>
-<div>
+</head><body><!-- HEADER --><header class="top-header"><div class="logo-area">
+<div class="logo-box">P</div><div>
 <h1>PCN EXCHANGE</h1>
 <p>Secure Crypto Trading</p>
 </div>
-</div>
-</header><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()">Hide / Show</button>
+</div><!-- SETTINGS + PROFILE --><div class="header-icons"><a href="profile.html" title="Profile">
+<i class="fa-solid fa-user"></i>
+</a><a href="settings.html" title="Settings">
+<i class="fa-solid fa-gear"></i>
+</a></div></header><!-- MAIN --><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()">Hide / Show Balance</button>
 
-<!-- 💰 CURRENCY SELECT --><div style="margin-top:20px"><label>Convert Currency:</label>
-
-<select id="currencySelect">
+<!-- 💱 BOLD CURRENCY SECTION --><div style="margin-top:25px; padding:15px; border:2px solid #00ff88; border-radius:15px;"><h3 style="font-weight:900; font-size:18px; color:#00ff88;">
+⚡ CONVERT CURRENCY
+</h3><select id="currencySelect" style="width:100%; padding:10px; margin-top:10px; font-weight:900; background:#111; color:white; border:1px solid #00ff88;">
 <option value="USD">USD ($)</option>
 <option value="NGN">NGN (₦)</option>
 <option value="GBP">GBP (£)</option>
 <option value="EUR">EUR (€)</option>
 <option value="CAD">CAD (C$)</option>
-</select></div></div><!-- USER --><div class="user-box">
-<h3 id="welcomeUser">Loading user...</h3>
-</div><!-- ACTION BUTTONS --><div class="action-grid"><a href="wallet.html" class="action-card">
+</select></div></div><!-- USER --><div class="user-box"><h3 id="welcomeUser">Loading user...</h3></div><!-- ACTION BUTTONS --><div class="action-grid"><a href="wallet.html" class="action-card">
 <i class="fa-solid fa-wallet"></i>
 <span>Wallet</span>
 </a><a href="trade.html" class="action-card">
@@ -49,12 +48,12 @@
 </a><a href="assets.html" class="action-card">
 <i class="fa-solid fa-coins"></i>
 <span>Crypto Assets</span>
-</a></div></div><!-- NAV --><nav class="bottom-nav">
-<a href="dashboard.html" class="active">Home</a>
+</a></div></div><!-- NAV --><nav class="bottom-nav"><a href="dashboard.html" class="active">Home</a>
 <a href="wallet.html">Wallet</a>
 <a href="trade.html">Trade</a>
 <a href="assets.html">Assets</a>
 <a href="history.html">History</a>
+
 </nav><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -62,7 +61,7 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// 🔥 FIREBASE CONFIG
+// FIREBASE
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -76,13 +75,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// STABLE LOGIN
 setPersistence(auth, browserLocalPersistence);
 
-// 💰 BASE BALANCE
 let balance = 0;
 let hidden = false;
 
-// 🔥 BALANCE TOGGLE
+// TOGGLE BALANCE
 window.toggleBalance = function () {
 
 const el = document.getElementById("balance");
@@ -94,28 +93,10 @@ el.innerText = "$" + balance;
 }
 
 hidden = !hidden;
+
 };
 
-// 💱 CURRENCY RATES (YOU CAN CHANGE ANYTIME)
-const rates = {
-USD: 1,
-NGN: 1310,
-GBP: 0.78,
-EUR: 0.92,
-CAD: 1.35
-};
-
-// 💱 CONVERT FUNCTION
-function convertCurrency(currency) {
-
-const converted = balance * rates[currency];
-
-document.getElementById("balance").innerText =
-converted.toLocaleString() + " " + currency;
-
-}
-
-// 🔥 AUTH SYSTEM
+// AUTH
 onAuthStateChanged(auth, async (user) => {
 
 if (!user) return;
@@ -136,19 +117,6 @@ document.getElementById("balance").innerText =
 "$" + balance;
 
 }
-
-});
-
-// 💱 LISTENER FOR CURRENCY SELECT
-document.addEventListener("DOMContentLoaded", () => {
-
-const select = document.getElementById("currencySelect");
-
-select.addEventListener("change", (e) => {
-
-convertCurrency(e.target.value);
-
-});
 
 });
 
