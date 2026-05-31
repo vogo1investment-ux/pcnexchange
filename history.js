@@ -1,161 +1,73 @@
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
-import {
-getFirestore,
-collection,
-query,
-where,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-/* FIREBASE CONFIG */
+// Firebase configuration
 const firebaseConfig = {
-
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_PROJECT.firebaseapp.com",
-projectId: "YOUR_PROJECT_ID",
-storageBucket: "YOUR_BUCKET",
-messagingSenderId: "YOUR_ID",
-appId: "YOUR_APP_ID"
-
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const db = getDatabase(app);
 
-/* DOM */
-const depositList = document.getElementById("depositList");
-const withdrawList = document.getElementById("withdrawList");
-const sentList = document.getElementById("sentList");
-const receivedList = document.getElementById("receivedList");
+// Function to create a card
+function createCard(data, extraFieldLabel = null, extraFieldValue = null) {
+  const card = document.createElement('div');
+  card.className = 'card';
 
-onAuthStateChanged(auth, (user) => {
+  const amountP = document.createElement('p');
+  amountP.innerHTML = `<span class="field-label">Amount:</span> ${data.amount}`;
+  card.appendChild(amountP);
 
-if (!user) {
-window.location = "index.html";
-return;
+  const datetimeP = document.createElement('p');
+  datetimeP.innerHTML = `<span class="field-label">Date & Time:</span> ${data.datetime}`;
+  card.appendChild(datetimeP);
+
+  if (extraFieldLabel && extraFieldValue) {
+    const extraP = document.createElement('p');
+    extraP.innerHTML = `<span class="field-label">${extraFieldLabel}:</span> ${extraFieldValue}`;
+    card.appendChild(extraP);
+  }
+
+  return card;
 }
 
-/* =====================
-   DEPOSITS
-===================== */
-const depositQ = query(
-collection(db, "deposits"),
-where("userId", "==", user.uid)
-);
+// Function to display history in cards
+function displayHistory(containerId, data, extraField = null, extraLabel = '') {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  for (const key in data) {
+    const card = createCard(data[key], extraField ? extraLabel : null, extraField ? data[key][extraField] : null);
+    container.appendChild(card);
+  }
+}
 
-onSnapshot(depositQ, (snap) => {
-
-depositList.innerHTML = "";
-
-snap.forEach(doc => {
-
-const d = doc.data();
-
-depositList.innerHTML += `
-<div class="bg-zinc-900 p-3 rounded-lg">
-<p>Amount: $${d.amount}</p>
-<p>Status: ${d.status || "completed"}</p>
-<p>${new Date(d.time || d.createdAt).toLocaleString()}</p>
-</div>
-`;
-
+// Load deposit history
+onValue(ref(db, 'depositHistory'), (snapshot) => {
+  const data = snapshot.val() || {};
+  displayHistory('depositCards', data);
 });
 
+// Load withdrawal history
+onValue(ref(db, 'withdrawalHistory'), (snapshot) => {
+  const data = snapshot.val() || {};
+  displayHistory('withdrawalCards', data);
 });
 
-/* =====================
-   WITHDRAWALS
-===================== */
-const withdrawQ = query(
-collection(db, "withdrawals"),
-where("userId", "==", user.uid)
-);
-
-onSnapshot(withdrawQ, (snap) => {
-
-withdrawList.innerHTML = "";
-
-snap.forEach(doc => {
-
-const d = doc.data();
-
-withdrawList.innerHTML += `
-<div class="bg-zinc-900 p-3 rounded-lg">
-<p>Amount: $${d.amount}</p>
-<p>Status: ${d.status || "pending"}</p>
-<p>${new Date(d.time || d.createdAt).toLocaleString()}</p>
-</div>
-`;
-
+// Load sent history
+onValue(ref(db, 'sentHistory'), (snapshot) => {
+  const data = snapshot.val() || {};
+  displayHistory('sentCards', data, 'recipient', 'Recipient');
 });
 
-});
-
-/* =====================
-   SENT TRANSFERS
-===================== */
-const sentQ = query(
-collection(db, "transferRequests"),
-where("senderId", "==", user.uid)
-);
-
-onSnapshot(sentQ, (snap) => {
-
-sentList.innerHTML = "";
-
-snap.forEach(doc => {
-
-const d = doc.data();
-
-sentList.innerHTML += `
-<div class="bg-zinc-900 p-3 rounded-lg">
-<p>To: ${d.receiver}</p>
-<p>Amount: $${d.amount}</p>
-<p>Status: ${d.status}</p>
-<p>${new Date(d.createdAt).toLocaleString()}</p>
-</div>
-`;
-
-});
-
-});
-
-/* =====================
-   RECEIVED TRANSFERS
-===================== */
-const receivedQ = query(
-collection(db, "transferRequests"),
-where("receiver", "==", user.email)
-);
-
-onSnapshot(receivedQ, (snap) => {
-
-receivedList.innerHTML = "";
-
-snap.forEach(doc => {
-
-const d = doc.data();
-
-receivedList.innerHTML += `
-<div class="bg-zinc-900 p-3 rounded-lg">
-<p>From: ${d.senderId}</p>
-<p>Amount: $${d.amount}</p>
-<p>Status: ${d.status}</p>
-<p>${new Date(d.createdAt).toLocaleString()}</p>
-</div>
-`;
-
-});
-
-});
-
+// Load received history
+onValue(ref(db, 'receivedHistory'), (snapshot) => {
+  const data = snapshot.val() || {};
+  displayHistory('receivedCards', data, 'sender', 'Sender');
 });
