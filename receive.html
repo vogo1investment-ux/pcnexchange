@@ -26,11 +26,11 @@ border-radius:10px;
 border:1px solid #00ff88;
 word-break:break-all;
 font-weight:900;
+color:white;
 min-height:50px;
 display:flex;
 align-items:center;
 justify-content:center;
-color:white;
 }
 
 button{
@@ -42,15 +42,9 @@ font-weight:900;
 cursor:pointer;
 }
 
-.status{
-color:#888;
-margin-top:10px;
-font-size:14px;
-}
-
-</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p class="status">Copy your wallet address (UID or Email)</p><div id="walletBox" class="box">
-Loading...
-</div><button onclick="copyWallet()">Copy</button>
+</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p>Your email is your wallet address</p><div id="emailBox" class="box">
+Loading email...
+</div><button onclick="copyEmail()">Copy Email</button>
 
 </div><script type="module">
 
@@ -72,38 +66,34 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let wallet = "";
+let email = "";
 
-/* SAFE AUTH HANDLER */
+/* SAFE AUTH */
 onAuthStateChanged(auth, (user) => {
 
-const box = document.getElementById("walletBox");
+const box = document.getElementById("emailBox");
 
-/* IF NO USER */
 if (!user) {
-box.innerText = "No wallet available";
+box.innerText = "Not logged in";
 return;
 }
 
-/* 🔥 PRIORITY SYSTEM */
-wallet =
-user.uid ||
-user.email ||
-"No wallet found";
+/* 🔥 EMAIL IS YOUR WALLET */
+email = user.email;
 
-/* SHOW RESULT */
-box.innerText = wallet;
+/* SHOW EMAIL */
+box.innerText = email;
 
 });
 
-/* COPY */
-window.copyWallet = function () {
+/* COPY EMAIL */
+window.copyEmail = function () {
 
-if (!wallet) return;
+if (!email) return;
 
-navigator.clipboard.writeText(wallet);
+navigator.clipboard.writeText(email);
 
-alert("Copied!");
+alert("Email copied!");
 
 };
 
