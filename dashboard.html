@@ -1,10 +1,8 @@
-<!DOCTYPE html><html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN EXCHANGE DASHBOARD</title><link rel="stylesheet" href="dashboard.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PCN EXCHANGE</title><link rel="stylesheet" href="dashboard.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-</head><body><header class="top-header">
+</head><body><!-- HEADER --><header class="top-header">
 <div class="logo-area">
 <div class="logo-box">P</div>
 <div>
@@ -12,11 +10,13 @@
 <p>Secure Crypto Trading</p>
 </div>
 </div>
-</header><div class="main-container"><!-- BALANCE --><div class="balance-card"><p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()" class="balance-toggle">
-Hide / Show
-</button></div><!-- USER --><div class="user-box">
-<h3 id="welcomeUser">Loading...</h3>
-</div><!-- BUTTON GRID --><div class="action-grid"><a href="wallet.html" class="action-card">
+</header><!-- MAIN --><div class="main-container"><!-- BALANCE --><div class="balance-card">
+<p class="balance-title">TOTAL BALANCE</p><h2 id="balance">$0.00</h2><button onclick="toggleBalance()" class="balance-toggle">
+Hide / Show Balance
+</button>
+</div><!-- USER --><div class="user-box">
+<h3 id="welcomeUser">Loading user...</h3>
+</div><!-- ACTION BUTTONS --><div class="action-grid"><a href="wallet.html" class="action-card">
 <i class="fa-solid fa-wallet"></i>
 <span>Wallet</span>
 </a><a href="trade.html" class="action-card">
@@ -34,7 +34,13 @@ Hide / Show
 </a><a href="support.html" class="action-card">
 <i class="fa-solid fa-headset"></i>
 <span>Support</span>
-</a></div></div><!-- BOTTOM NAV --><nav class="bottom-nav">
+</a><a href="airdrop.html" class="action-card">
+<i class="fa-solid fa-gift"></i>
+<span>Airdrop</span>
+</a><a href="explore.html" class="action-card">
+<i class="fa-solid fa-compass"></i>
+<span>Explore</span>
+</a></div></div><!-- NAV --><nav class="bottom-nav">
 <a href="dashboard.html" class="active">Home</a>
 <a href="wallet.html">Wallet</a>
 <a href="trade.html">Trade</a>
@@ -46,7 +52,6 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// 🔥 FIREBASE CONFIG (PUT YOUR REAL ONE)
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -60,16 +65,12 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔥 FORCE STABLE LOGIN (CRITICAL FIX)
 setPersistence(auth, browserLocalPersistence);
 
-// STATE
 let balance = 0;
 let hidden = false;
 
-// TOGGLE BALANCE
 window.toggleBalance = function () {
-
 const el = document.getElementById("balance");
 
 if (!hidden) {
@@ -79,16 +80,12 @@ el.innerText = "$" + balance;
 }
 
 hidden = !hidden;
-
 };
 
-// 🔥 SINGLE SAFE AUTH (NO LOGOUT LOOP)
+// 🔥 FIXED USER LOADING (THIS FIXES "LOADING" ISSUE)
 onAuthStateChanged(auth, async (user) => {
 
-if (!user) {
-console.log("Waiting for auth...");
-return; // NO FORCE REDIRECT
-}
+if (!user) return;
 
 const ref = doc(db, "users", user.uid);
 const snap = await getDoc(ref);
@@ -97,10 +94,10 @@ if (snap.exists()) {
 
 const data = snap.data();
 
-balance = data.availableBalance || 0;
-
 document.getElementById("welcomeUser").innerText =
-data.username || "PCN USER";
+data.username ? data.username : "PCN USER";
+
+balance = data.availableBalance || 0;
 
 document.getElementById("balance").innerText =
 "$" + balance;
