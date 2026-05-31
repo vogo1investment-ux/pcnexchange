@@ -1,5 +1,3 @@
-<script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
 getAuth,
@@ -18,41 +16,44 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let uid = "";
+let wallet = "";
 
-/* 🔥 FIX: PREVENT LOADING STUCK */
-const box = document.getElementById("uidBox");
-box.innerHTML = "Waiting for wallet...";
+/* 🔥 IMPORTANT: WAIT STATE CONTROL */
+const box = document.getElementById("walletBox");
 
-/* SAFE AUTH HANDLING */
+/* START LOADING STATE */
+box.innerText = "Connecting wallet...";
+
+/* SAFE AUTH HANDLER (FIXED TIMING ISSUE) */
 onAuthStateChanged(auth, (user) => {
 
+/* IF STILL NOT READY */
 if (!user) {
-box.innerHTML = "Wallet not available";
-return;
+return; // DO NOTHING (prevents fake "not available")
 }
 
-uid = user.uid;
+/* GET WALLET */
+wallet =
+user.uid ||
+user.email;
 
-/* 🔥 FIX: INSTANT UPDATE (NO LOADING BUG) */
-box.innerHTML = `
-<div class="uid-box">
-${uid}
-</div>
-`;
+/* UPDATE UI ONLY WHEN READY */
+if (wallet) {
+box.innerText = wallet;
+} else {
+box.innerText = "Wallet not found";
+}
 
 });
 
 /* COPY FUNCTION */
-window.copyUID = function () {
+window.copyWallet = function () {
 
-if (!uid) {
-alert("Wallet not ready yet");
-return;
-}
+if (!wallet) return;
 
-navigator.clipboard.writeText(uid);
-alert("UID copied!");
+navigator.clipboard.writeText(wallet);
+
+alert("Wallet copied!");
 
 };
 
