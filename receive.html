@@ -18,7 +18,7 @@ font-weight:900;
 font-size:22px;
 }
 
-.uid-box{
+.box{
 margin-top:20px;
 background:#000;
 padding:15px;
@@ -26,10 +26,11 @@ border-radius:10px;
 border:1px solid #00ff88;
 word-break:break-all;
 font-weight:900;
-min-height:40px;
+min-height:50px;
 display:flex;
 align-items:center;
 justify-content:center;
+color:white;
 }
 
 button{
@@ -47,11 +48,11 @@ margin-top:10px;
 font-size:14px;
 }
 
-</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p class="status">Your UID wallet address</p><!-- 🔥 THIS IS THE IMPORTANT PART --><div id="uidBox" class="uid-box">
-Loading UID...
-</div><button onclick="copyUID()">Copy UID</button>
+</style></head><body><div class="container"><div class="title">RECEIVE WALLET</div><p class="status">Copy your wallet address (UID or Email)</p><div id="walletBox" class="box">
+Loading...
+</div><button onclick="copyWallet()">Copy</button>
 
-</div><!-- YOUR JS WILL TARGET THIS ID --><script type="module">
+</div><script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
@@ -71,35 +72,38 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-let uid = "";
+let wallet = "";
 
-/* 🔥 SAFE AUTH */
+/* SAFE AUTH HANDLER */
 onAuthStateChanged(auth, (user) => {
 
-const box = document.getElementById("uidBox");
+const box = document.getElementById("walletBox");
 
 /* IF NO USER */
 if (!user) {
-box.innerText = "Not logged in";
+box.innerText = "No wallet available";
 return;
 }
 
-/* GET UID */
-uid = user.uid;
+/* 🔥 PRIORITY SYSTEM */
+wallet =
+user.uid ||
+user.email ||
+"No wallet found";
 
-/* SHOW UID IN HTML */
-box.innerText = uid;
+/* SHOW RESULT */
+box.innerText = wallet;
 
 });
 
-/* COPY BUTTON */
-window.copyUID = function () {
+/* COPY */
+window.copyWallet = function () {
 
-if (!uid) return;
+if (!wallet) return;
 
-navigator.clipboard.writeText(uid);
+navigator.clipboard.writeText(wallet);
 
-alert("UID copied!");
+alert("Copied!");
 
 };
 
