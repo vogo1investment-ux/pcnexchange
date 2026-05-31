@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, updateDoc, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// 🔹 USE ORIGINAL FIREBASE API
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -14,62 +14,82 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// FORCE SESSION STABILITY
-setPersistence(auth, browserLocalPersistence);
+let currentUser = null;
 
-// STATE
-let balance = 0;
+// Default 20 coins
+const coins = [
+  {symbol:"BTC", name:"Bitcoin", price:30000},
+  {symbol:"ETH", name:"Ethereum", price:1800},
+  {symbol:"BNB", name:"Binance Coin", price:250},
+  {symbol:"ADA", name:"Cardano", price:0.35},
+  {symbol:"XRP", name:"Ripple", price:0.55},
+  {symbol:"SOL", name:"Solana", price:25},
+  {symbol:"DOGE", name:"Dogecoin", price:0.07},
+  {symbol:"DOT", name:"Polkadot", price:5.5},
+  {symbol:"MATIC", name:"Polygon", price:1.2},
+  {symbol:"LTC", name:"Litecoin", price:120},
+  {symbol:"AVAX", name:"Avalanche", price:15},
+  {symbol:"UNI", name:"Uniswap", price:5},
+  {symbol:"LINK", name:"Chainlink", price:6},
+  {symbol:"ALGO", name:"Algorand", price:0.4},
+  {symbol:"VET", name:"VeChain", price:0.08},
+  {symbol:"FIL", name:"Filecoin", price:7},
+  {symbol:"ICP", name:"Internet Computer", price:8},
+  {symbol:"TRX", name:"TRON", price:0.06},
+  {symbol:"ATOM", name:"Cosmos", price:10},
+  {symbol:"XLM", name:"Stellar", price:0.1}
+];
+
+// Insert Market section dynamically
+const marketBox = document.querySelector(".market-box");
+const marketCoinsDiv = document.createElement("div");
+marketCoinsDiv.id = "marketCoins";
+marketCoinsDiv.style.marginTop = "20px";
+
+coins.forEach(coin => {
+  const card = document.createElement("div");
+  card.style.background = "#111";
+  card.style.border = "1px solid #0f0";
+  card.style.borderRadius = "15px";
+  card.style.padding = "15px";
+  card.style.marginBottom = "10px";
+  card.style.cursor = "pointer";
+  card.style.display = "flex";
+  card.style.justifyContent = "space-between";
+  
+  card.innerHTML = `<span>${coin.name} (${coin.symbol})</span><span>$${coin.price}</span>`;
+  
+  card.addEventListener("click", () => {
+    window.location.href = `coin.html?symbol=${coin.symbol}`;
+  });
+  
+  marketCoinsDiv.appendChild(card);
+});
+
+marketBox.appendChild(marketCoinsDiv);
+
+// Auth user
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href="index.html";
+  currentUser = user;
+  const welcomeUser = document.getElementById("welcomeUser");
+  welcomeUser.innerText = user.email || "PCN USER";
+});
+
+// Balance toggle
 let hidden = false;
-
-// TOGGLE BALANCE
-const balanceEl = document.getElementById("balance");
 const toggleBtn = document.getElementById("toggleBalanceBtn");
-
 toggleBtn.addEventListener("click", () => {
-  if (!hidden) {
+  const balanceEl = document.getElementById("balance");
+  if(!hidden) {
     balanceEl.innerText = "******";
     toggleBtn.innerText = "Show Balance";
   } else {
-    balanceEl.innerText = "$" + balance.toLocaleString();
+    balanceEl.innerText = "$0"; // initial demo balance
     toggleBtn.innerText = "Hide Balance";
   }
   hidden = !hidden;
 });
-
-// CURRENCY CONVERTER
-const rates = { USD: 1, NGN: 1310, GBP: 0.78, EUR: 0.92, CAD: 1.35 };
-const currencySelect = document.getElementById("currencySelect");
-currencySelect.addEventListener("change", (e) => {
-  const converted = balance * rates[e.target.value];
-  const symbol = e.target.value === "USD" ? "$" : e.target.value === "NGN" ? "₦" : e.target.value === "GBP" ? "£" : e.target.value === "EUR" ? "€" : "C$";
-  balanceEl.innerText = symbol + converted.toLocaleString();
-});
-
-// REALTIME USER DATA
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location = "index.html";
-    return;
-  }
-
-  const userRef = doc(db, "users", user.uid);
-  onSnapshot(userRef, (snap) => {
-    if (!snap.exists()) return;
-
-    const data = snap.data();
-
-    document.getElementById("welcomeUser").innerText = data.username || data.email || "PCN USER";
-    balance = Number(data.availableBalance || data.balance || 0);
-    if (!hidden) balanceEl.innerText = "$" + balance.toLocaleString();
-  });
-});
-
-// DEPOSIT & WITHDRAW BUTTONS
-const depositBtn = document.getElementById("depositBtn");
-const withdrawBtn = document.getElementById("withdrawBtn");
-
-depositBtn.addEventListener("click", () => window.location.href = "deposit.html");
-withdrawBtn.addEventListener("click", () => window.location.href = "withdraw.html");
