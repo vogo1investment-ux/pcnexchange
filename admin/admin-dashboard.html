@@ -3,172 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
-<style>
-body { background:#000; color:#fff; font-family:sans-serif; margin:0; padding:0; }
-header { background:#111; padding:15px; text-align:center; font-size:1.5rem; font-weight:bold; }
-nav { background:#222; display:flex; flex-wrap:wrap; padding:10px; }
-nav button { background:#0f0; color:#000; border:none; border-radius:8px; padding:10px 15px; margin:5px; cursor:pointer; }
-section { padding:20px; display:none; }
-section.active { display:block; }
-textarea { width:100%; padding:10px; border-radius:8px; background:#111; color:#fff; border:1px solid #0f0; }
-button { cursor:pointer; }
-</style>
+<title>PCN Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-black text-white font-sans">
 
-<header>Admin Dashboard</header>
-<nav>
-  <button data-section="usersSection">Users</button>
-  <button data-section="transactionsSection">Transactions</button>
-  <button data-section="coinsSection">Coins</button>
-  <button data-section="airdropsSection">Airdrops</button>
-  <button data-section="supportSection">Support</button>
-  <button data-section="notificationsSection">Notifications</button>
-</nav>
+<div class="flex h-screen">
 
-<section id="usersSection">Loading users...</section>
-<section id="transactionsSection">Loading transactions...</section>
-<section id="coinsSection">Loading coins...</section>
-<section id="airdropsSection">Loading airdrops...</section>
-<section id="supportSection">Loading support messages...</section>
-<section id="notificationsSection">
-  <h2>Send Notification to All Users</h2>
-  <textarea id="notificationMessage" rows="4" placeholder="Type message"></textarea>
-  <br>
-  <button id="sendNotificationBtn">Send Notification</button>
-  <p id="notificationStatus"></p>
-</section>
+  <!-- Sidebar -->
+  <div class="w-64 bg-zinc-900 p-6 flex flex-col">
+    <h1 class="text-emerald-400 text-2xl font-bold mb-6">PCN EXCHANGE</h1>
+    <nav class="flex flex-col space-y-2">
+      <button data-section="dashboardSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Dashboard</button>
+      <button data-section="usersSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Users</button>
+      <button data-section="kycSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">KYC Verification</button>
+      <button data-section="depositsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Deposits</button>
+      <button data-section="withdrawalsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Withdrawals</button>
+      <button data-section="transactionsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Transactions</button>
+      <button data-section="balancesSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Edit Balances</button>
+      <button data-section="supportSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Support Messages</button>
+      <button data-section="notificationsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Notifications</button>
+      <button data-section="marketsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Markets</button>
+      <button data-section="airdropsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Airdrops</button>
+      <button id="logoutBtn" class="text-left px-4 py-2 hover:bg-red-600 rounded mt-auto">Logout</button>
+    </nav>
+  </div>
 
-<script type="module">
-// --- Firebase imports ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  <!-- Main content -->
+  <div class="flex-1 p-6 overflow-y-auto">
+    <!-- Sections -->
+    <section id="dashboardSection" class="active">
+      <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-zinc-800 p-4 rounded">Total Users: <span id="totalUsers">0</span></div>
+        <div class="bg-zinc-800 p-4 rounded">Total Deposited: $<span id="totalDeposits">0</span></div>
+        <div class="bg-zinc-800 p-4 rounded">Total Withdrawn: $<span id="totalWithdrawals">0</span></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-zinc-800 p-4 rounded h-64" id="overviewChart">Overview Chart</div>
+        <div class="bg-zinc-800 p-4 rounded h-64" id="userGrowthChart">User Growth Chart</div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-zinc-800 p-4 rounded h-64" id="recentDeposits">Recent Deposits</div>
+        <div class="bg-zinc-800 p-4 rounded h-64" id="recentWithdrawals">Recent Withdrawals</div>
+        <div class="bg-zinc-800 p-4 rounded h-64" id="recentSupport">Recent Support Messages</div>
+      </div>
+    </section>
 
-// --- Firebase config ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
+    <!-- Users Section -->
+    <section id="usersSection" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">All Users</h2>
+      <div id="usersList">Loading users...</div>
+    </section>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    <!-- Transactions Section -->
+    <section id="transactionsSection" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Transactions</h2>
+      <div id="transactionsList">Loading transactions...</div>
+    </section>
 
-// --- Section switching ---
-document.querySelectorAll('nav button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-    document.getElementById(btn.dataset.section).classList.add('active');
-  });
-});
+    <!-- Other sections follow same pattern -->
+    <section id="kycSection" class="hidden">KYC verification here</section>
+    <section id="depositsSection" class="hidden">Deposits table</section>
+    <section id="withdrawalsSection" class="hidden">Withdrawals table</section>
+    <section id="balancesSection" class="hidden">Edit balances here</section>
+    <section id="supportSection" class="hidden">Support messages</section>
+    <section id="notificationsSection" class="hidden">Notifications sending</section>
+    <section id="marketsSection" class="hidden">Coins / Market management</section>
+    <section id="airdropsSection" class="hidden">Airdrops management</section>
 
-// --- Admin authentication & persistent session ---
-const adminUID = "YOUR_ADMIN_UID"; // replace with your exact admin UID
+  </div>
+</div>
 
-onAuthStateChanged(auth, user => {
-  if(!user || user.uid !== adminUID){
-    alert("Unauthorized. Redirecting to login.");
-    window.location.href = "index.html";
-    return;
-  }
-  // Show default section
-  document.getElementById('usersSection').classList.add('active');
-
-  // Load all data after authentication
-  loadUsers();
-  loadTransactions();
-  loadCoins();
-  loadAirdrops();
-  loadSupport();
-  setupNotifications();
-});
-
-// --- Load users ---
-async function loadUsers(){
-  const sec = document.getElementById("usersSection");
-  sec.innerHTML = "<h2>Users</h2><ul id='usersList'>Loading...</ul>";
-  const usersSnap = await getDocs(collection(db, "users"));
-  const list = document.getElementById("usersList");
-  list.innerHTML = "";
-  usersSnap.forEach(u => {
-    list.innerHTML += `<li>${u.data().email || u.id} - Balance: ${u.data().totalBalance || 0}</li>`;
-  });
-}
-
-// --- Load transactions ---
-async function loadTransactions(){
-  const sec = document.getElementById("transactionsSection");
-  sec.innerHTML = "<h2>Transactions</h2><ul id='txList'>Loading...</ul>";
-  const txSnap = await getDocs(collection(db, "transactions"));
-  const list = document.getElementById("txList");
-  list.innerHTML = "";
-  txSnap.forEach(t => {
-    list.innerHTML += `<li>${t.data().userEmail} - ${t.data().type} - ${t.data().amount} ${t.data().coin} - ${t.data().status}</li>`;
-  });
-}
-
-// --- Load coins ---
-async function loadCoins(){
-  const sec = document.getElementById("coinsSection");
-  sec.innerHTML = "<h2>Coins</h2><ul id='coinsList'>Loading...</ul>";
-  const snap = await getDocs(collection(db, "coins"));
-  const list = document.getElementById("coinsList");
-  list.innerHTML = "";
-  snap.forEach(c => list.innerHTML += `<li>${c.data().name} (${c.data().symbol}) - Price: ${c.data().price}</li>`);
-}
-
-// --- Load airdrops ---
-async function loadAirdrops(){
-  const sec = document.getElementById("airdropsSection");
-  sec.innerHTML = "<h2>Airdrops</h2><ul id='airdropsList'>Loading...</ul>";
-  const snap = await getDocs(collection(db, "airdrops"));
-  const list = document.getElementById("airdropsList");
-  list.innerHTML = "";
-  snap.forEach(ad => {
-    list.innerHTML += `<li>${ad.data().coinName} (${ad.data().symbol}) - Status: ${ad.data().status}</li>`;
-  });
-}
-
-// --- Load support ---
-async function loadSupport(){
-  const sec = document.getElementById("supportSection");
-  sec.innerHTML = "<h2>Support Messages</h2><ul id='supportList'>Loading...</ul>";
-  const snap = await getDocs(collection(db, "supportMessages"));
-  const list = document.getElementById("supportList");
-  list.innerHTML = "";
-  snap.forEach(msg => list.innerHTML += `<li>${msg.data().userEmail}: ${msg.data().message}</li>`);
-}
-
-// --- Notifications ---
-function setupNotifications(){
-  document.getElementById("sendNotificationBtn").addEventListener("click", async ()=>{
-    const msg = document.getElementById("notificationMessage").value.trim();
-    if(!msg) return alert("Enter message first");
-
-    try{
-      const usersSnap = await getDocs(collection(db, "users"));
-      const batch = db.batch();
-      usersSnap.forEach(u => {
-        const notifRef = doc(collection(db, "users", u.id, "notifications"));
-        batch.set(notifRef, { message: msg, timestamp: Date.now(), read: false });
-      });
-      await batch.commit();
-      document.getElementById("notificationStatus").innerText = "Notification sent!";
-      document.getElementById("notificationMessage").value = "";
-    }catch(e){
-      console.error(e);
-      alert("Failed to send notification");
-    }
-  });
-}
-</script>
+<script type="module" src="admin-dashboard.js"></script>
 
 </body>
 </html>

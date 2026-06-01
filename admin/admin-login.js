@@ -1,42 +1,38 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-document.getElementById("loginBtn").onclick = async () => {
+const loginBtn = document.getElementById("loginBtn");
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "admin.html"; // redirect to dashboard
+  } catch (err) {
+    alert("Login failed: " + err.message);
+  }
+});
 
-if (!email || !password) {
-alert("Fill all fields");
-return;
-}
-
-try {
-
-await signInWithEmailAndPassword(auth, email, password);
-
-/* 🔥 IMPORTANT FIX */
-localStorage.setItem("adminLoggedIn", "true");
-
-alert("Login Successful");
-
-window.location.href = "admin-dashboard.html";
-
-} catch (err) {
-console.log(err);
-alert("Login Failed");
-}
-
-};
+// Keep session alive
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // If admin is already logged in, go directly to dashboard
+    if (window.location.pathname.includes("admin-login.html")) {
+      window.location.href = "admin.html";
+    }
+  }
+});
