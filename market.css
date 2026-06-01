@@ -1,0 +1,5 @@
+body { background:#000; color:#fff; }
+.coin-card { background:#111; color:#fff; padding:15px; border-radius:12px; margin-bottom:10px; cursor:pointer; }
+.coin-name { font-weight:bold; }
+.coin-description { color:#0f0; }
+.coin-price { font-weight:bold; }
