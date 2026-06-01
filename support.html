@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Support</title>
+<title>Support</title>
 <style>
 body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
 input, textarea { width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #0f0; background:#111; color:#fff; }
@@ -26,6 +26,88 @@ button { width:100%; padding:10px; border:none; border-radius:8px; background:#0
 <h2>Previous Messages</h2>
 <div id="messagesContainer"></div>
 
-<script type="module" src="support.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const subjectInput = document.getElementById("subject");
+const messageInput = document.getElementById("message");
+const sendBtn = document.getElementById("sendBtn");
+const messagesContainer = document.getElementById("messagesContainer");
+
+let currentUser = null;
+
+// Make sure the user is logged in
+onAuthStateChanged(auth, user => {
+  if(!user){
+    alert("You must be logged in to send support messages!");
+    window.location.href = "index.html";
+    return;
+  }
+  currentUser = user;
+  loadMessages();
+});
+
+sendBtn.addEventListener("click", async () => {
+  if(!currentUser) return alert("User not logged in");
+
+  const subject = subjectInput.value.trim();
+  const message = messageInput.value.trim();
+  if(!subject || !message) return alert("Subject and message cannot be empty");
+
+  try {
+    await addDoc(collection(db, "supportMessages"), {
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      subject,
+      message,
+      reply: "",
+      status: "pending",
+      timestamp: Date.now()
+    });
+    subjectInput.value = "";
+    messageInput.value = "";
+    alert("Message sent. We'll reply soon.");
+  } catch(e) {
+    console.error("Error sending message:", e);
+    alert("Failed to send message. Check console.");
+  }
+});
+
+// Load user messages
+function loadMessages() {
+  const q = query(collection(db, "supportMessages"), where("userId", "==", currentUser.uid));
+  onSnapshot(q, snapshot => {
+    messagesContainer.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "message-card";
+      card.innerHTML = `
+        <p><strong>Subject:</strong> ${data.subject}</p>
+        <p>${data.message}</p>
+        ${data.reply ? `<p class="reply"><strong>Reply:</strong> ${data.reply}</p>` : `<p class="reply">No reply yet</p>`}
+      `;
+      messagesContainer.appendChild(card);
+    });
+  });
+}
+</script>
 </body>
 </html>
