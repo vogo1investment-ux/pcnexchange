@@ -14,7 +14,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const marketContainer = document.getElementById("marketCoins");
 const coinsRoot = collection(db, "coins");
 const previousPrices = {};
@@ -24,7 +23,7 @@ async function loadAllCoins() {
 
   const coinDocs = await getDocs(coinsRoot);
   if(coinDocs.empty){
-    marketContainer.innerHTML = "<p style='color:#f00;'>No coins found. Please add coins.</p>";
+    marketContainer.innerHTML = "<p style='color:#f00;'>No coins found in Firebase.</p>";
     return;
   }
 
@@ -57,7 +56,7 @@ async function loadAllCoins() {
         </div>
       `;
       card.addEventListener("click", () => {
-        // Redirect to coin.html with symbol
+        // Open coin detail page
         window.location.href = `coin.html?symbol=${coin.symbol}`;
       });
 
@@ -66,6 +65,6 @@ async function loadAllCoins() {
   }
 }
 
-// Initial load and refresh every 10 seconds
+// Initial load + refresh every 10s
 loadAllCoins();
 setInterval(loadAllCoins, 10000);

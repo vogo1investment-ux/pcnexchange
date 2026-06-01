@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="dashboard.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-body { background:#000; color:#fff; }
-.market-box { padding:20px; }
-.coin-card { background:#111; border:1px solid #0f0; border-radius:15px; padding:15px; margin-bottom:10px; cursor:pointer;}
+body { background:#000; color:#fff; font-family:sans-serif; }
+.market-container { padding:20px; }
+.coin-card { background:#111; border:1px solid #0f0; border-radius:15px; padding:15px; margin-bottom:10px; cursor:pointer; }
 .coin-name { font-weight:bold; font-size:1.2rem; }
 .coin-description { color:#0f0; font-size:0.9rem; margin-top:5px; }
 .coin-price { font-weight:bold; font-size:1rem; }
@@ -18,21 +18,8 @@ body { background:#000; color:#fff; }
 </head>
 <body>
 
-<header class="top-header">
-  <div class="logo-area">
-    <div class="logo-box">P</div>
-    <div>
-      <h1>PCN EXCHANGE</h1>
-      <p>Secure Crypto Trading Platform</p>
-    </div>
-  </div>
-</header>
-
-<div class="main-container">
-  <div class="market-box">
-    <div class="market-header"><h2>Crypto Market</h2></div>
-    <div id="marketCoins"></div>
-  </div>
+<div class="market-container">
+  <div id="marketCoins"></div>
 </div>
 
 <script type="module" src="market.js"></script>
