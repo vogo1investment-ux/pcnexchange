@@ -17,8 +17,6 @@ const db = getFirestore(app);
 
 const marketContainer = document.getElementById("marketCoins");
 const coinsCol = collection(db, "coins");
-
-// Store previous prices for red/blue indicator
 const previousPrices = {};
 
 onSnapshot(coinsCol, snapshot => {
@@ -27,28 +25,27 @@ onSnapshot(coinsCol, snapshot => {
   snapshot.forEach(doc => {
     const coin = doc.data();
 
-    // Price color indicator
+    // Price change color
     let priceColor = "#0f0";
     if(previousPrices[coin.symbol] !== undefined){
-      if(coin.price > previousPrices[coin.symbol]) priceColor = "#00f"; // blue
-      else if(coin.price < previousPrices[coin.symbol]) priceColor = "#f00"; // red
+      if(coin.price > previousPrices[coin.symbol]) priceColor = "#00f";
+      else if(coin.price < previousPrices[coin.symbol]) priceColor = "#f00";
     }
     previousPrices[coin.symbol] = coin.price;
 
     const card = document.createElement("div");
     card.className = "coin-card";
-
-    // Display all coin details
     card.innerHTML = `
       <div class="coin-name">${coin.name} (${coin.symbol})</div>
       <div class="coin-description">${coin.description}</div>
       <div class="coin-price" style="color:${priceColor}">$${coin.price}</div>
-      <div class="coin-marketcap">Market Cap: $${coin.marketCap || "N/A"}</div>
-      <div class="coin-volume">24h Volume: $${coin.volume24h || "N/A"}</div>
-      <div class="coin-supply">Supply: ${coin.supply || "N/A"}</div>
-      <div class="coin-change">Change 24h: ${coin.change24h || "0%"}%</div>
+      <div class="coin-metrics">
+        Market Cap: $${coin.marketCap || "N/A"}<br>
+        24h Volume: $${coin.volume24h || "N/A"}<br>
+        Supply: ${coin.supply || "N/A"}<br>
+        24h Change: ${coin.change24h || "0%"}%
+      </div>
     `;
-
     card.addEventListener("click", () => {
       window.location.href = `coin.html?symbol=${coin.symbol}`;
     });
