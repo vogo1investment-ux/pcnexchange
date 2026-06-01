@@ -1,6 +1,5 @@
-// market.js - works with coins as subcollections under "coins"
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -17,21 +16,20 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const marketContainer = document.getElementById("marketCoins");
-const coinsRoot = collection(db, "coins"); // top-level coins collection
+const coinsRoot = collection(db, "coins");
 const previousPrices = {};
 
-// Fetch all subcollections of coins
 async function loadAllCoins() {
-  marketContainer.innerHTML = ""; // clear
+  marketContainer.innerHTML = "";
 
-  const coinDocs = await getDocs(coinsRoot); // each top-level coin document (acting as parent)
+  const coinDocs = await getDocs(coinsRoot);
   if(coinDocs.empty){
     marketContainer.innerHTML = "<p style='color:#f00;'>No coins found. Please add coins.</p>";
     return;
   }
 
   for(const coinParentDoc of coinDocs.docs){
-    const coinId = coinParentDoc.id; // e.g., "ADA"
+    const coinId = coinParentDoc.id;
     const subCollectionRef = collection(db, "coins", coinId);
     const coinSnapshot = await getDocs(subCollectionRef);
 
@@ -58,8 +56,8 @@ async function loadAllCoins() {
           24h Change: ${coin.change24h || "0%"}%
         </div>
       `;
-
       card.addEventListener("click", () => {
+        // Redirect to coin.html with symbol
         window.location.href = `coin.html?symbol=${coin.symbol}`;
       });
 
@@ -68,6 +66,6 @@ async function loadAllCoins() {
   }
 }
 
-// Initial load and refresh every 10s
+// Initial load and refresh every 10 seconds
 loadAllCoins();
 setInterval(loadAllCoins, 10000);
