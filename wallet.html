@@ -1,159 +1,54 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wallet - PCN Exchange</title><link rel="stylesheet" href="dashboard.css"><style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wallet</title>
+<style>
+body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
+.wallet-section { margin-bottom:20px; }
+.wallet-section h2 { color:#0f0; }
+.button { background:#0f0; color:#000; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; margin-right:5px; }
+.coin-balance { background:#111; padding:10px; border-radius:8px; margin-bottom:5px; }
+.transaction-card { background:#111; padding:10px; border-radius:8px; margin-bottom:5px; }
+</style>
+</head>
+<body>
 
-.wallet-container{
-max-width:650px;
-margin:60px auto;
-background:#111;
-padding:25px;
-border-radius:20px;
-border:1px solid #1f1f1f;
-}
+<h1>My Wallet</h1>
 
-.section{
-background:#000;
-padding:15px;
-border-radius:12px;
-margin-top:15px;
-border:1px solid #1f1f1f;
-}
+<div class="wallet-section">
+  <h2>Total Balance: $<span id="totalBalance">0.00</span></h2>
+</div>
 
-.label{
-color:#00ff88;
-font-weight:900;
-margin-bottom:8px;
-display:block;
-}
+<div class="wallet-section">
+  <h2>Referral Code</h2>
+  <div>
+    <span id="referralCode">XXXX1234</span>
+    <button class="button" id="copyReferralBtn">Copy</button>
+  </div>
+  <div>Referral Earnings: $<span id="referralEarnings">0.00</span></div>
+</div>
 
-.value{
-word-break:break-all;
-font-weight:900;
-color:white;
-}
+<div class="wallet-section">
+  <h2>Coin Balances</h2>
+  <div id="coinBalances"></div>
+</div>
 
-button{
-margin-top:10px;
-padding:10px 15px;
-background:#00ff88;
-border:none;
-font-weight:900;
-cursor:pointer;
-}
+<div class="wallet-section">
+  <h2>Quick Actions</h2>
+  <button class="button" id="depositBtn">Deposit</button>
+  <button class="button" id="withdrawBtn">Withdraw</button>
+  <button class="button" id="sendBtn">Send</button>
+  <button class="button" id="receiveBtn">Receive</button>
+  <button class="button" id="swapBtn">Swap</button>
+</div>
 
-.history-box{
-max-height:200px;
-overflow:auto;
-}
+<div class="wallet-section">
+  <h2>Transaction History</h2>
+  <div id="transactionHistory"></div>
+</div>
 
-.item{
-padding:10px;
-border-bottom:1px solid #222;
-font-size:14px;
-}
-
-.green{color:#00ff88;}
-.red{color:red;}
-
-</style></head><body><div class="wallet-container"><h2 style="color:#00ff88;">My Wallet</h2><!-- WALLET ID --><div class="section"><span class="label">Wallet ID</span>
-
-<div id="walletId" class="value">Loading...</div><button onclick="copyWallet()">Copy Wallet ID</button>
-
-</div><!-- BALANCE --><div class="section"><span class="label">Balance</span>
-
-<div id="balance" class="value">$0.00</div></div><!-- REFERRAL --><div class="section"><span class="label">Referral Code</span>
-
-<div id="referral" class="value">Loading...</div><button onclick="copyReferral()">Copy Referral</button>
-
-</div><!-- RECEIVED HISTORY --><div class="section"><span class="label">Recent Transactions</span>
-
-<div id="history" class="history-box">Loading...
-
-</div></div></div><script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-getFirestore,
-doc,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let wallet = "";
-let referral = "";
-
-/* SAFE AUTH (NO LOGOUT BUG) */
-onAuthStateChanged(auth, (user) => {
-
-if (!user) return; // IMPORTANT FIX
-
-const ref = doc(db, "users", user.uid);
-
-/* REALTIME WALLET DATA */
-onSnapshot(ref, (snap) => {
-
-if (!snap.exists()) return;
-
-const data = snap.data();
-
-/* WALLET ID */
-wallet = user.uid;
-
-document.getElementById("walletId").innerText = wallet;
-
-/* BALANCE */
-document.getElementById("balance").innerText =
-"$" + (data.availableBalance || 0);
-
-/* REFERRAL */
-referral = data.referralCode || user.uid.slice(0,8);
-
-document.getElementById("referral").innerText = referral;
-
-/* HISTORY (SAFE DISPLAY) */
-const history = data.history || [];
-
-document.getElementById("history").innerHTML =
-history.length === 0
-? "<div class='item'>No transactions yet</div>"
-: history.map(h =>
-`<div class="item">
-${h.type} - ${h.amount}
-</div>`
-).join("");
-
-});
-
-});
-
-/* COPY WALLET */
-window.copyWallet = function () {
-navigator.clipboard.writeText(wallet);
-alert("Wallet copied!");
-};
-
-/* COPY REFERRAL */
-window.copyReferral = function () {
-navigator.clipboard.writeText(referral);
-alert("Referral copied!");
-};
-
-</script></body>
+<script type="module" src="wallet.js"></script>
+</body>
 </html>
