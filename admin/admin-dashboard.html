@@ -3,90 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN ADMIN PANEL</title>
-<script src="https://cdn.tailwindcss.com"></script>
-
+<title>Admin Dashboard</title>
 <style>
-body{
-background:#000;
-color:white;
-font-family:Arial;
-}
-
-.card{
-background:#111;
-border:1px solid #222;
-border-radius:20px;
-padding:20px;
-transition:0.3s;
-}
-
-.card:hover{
-transform:scale(1.02);
-border-color:#00ff88;
-}
-
-.btn{
-background:#00ff88;
-color:black;
-padding:15px;
-border-radius:15px;
-font-weight:bold;
-}
+body { background:#000; color:#fff; font-family:sans-serif; margin:0; padding:0; }
+header { background:#111; padding:15px; text-align:center; font-size:1.5rem; font-weight:bold; }
+nav { background:#222; display:flex; flex-wrap:wrap; padding:10px; }
+nav button { background:#0f0; color:#000; border:none; border-radius:8px; padding:10px 15px; margin:5px; cursor:pointer; }
+section { padding:20px; }
+.table { width:100%; border-collapse:collapse; margin-top:20px; }
+.table th, .table td { border:1px solid #0f0; padding:8px; text-align:left; }
+.table th { background:#111; }
+textarea { width:100%; padding:10px; border-radius:8px; background:#111; color:#fff; border:1px solid #0f0; }
+.button { background:#0f0; color:#000; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; margin-top:10px; }
 </style>
-
 </head>
-
 <body>
 
-<!-- HEADER -->
-<div style="display:flex;justify-content:space-between;align-items:center;padding:20px;background:#0a0a0a;border-bottom:1px solid #222;">
-<h1 style="color:#00ff88;font-size:24px;">ADMIN DASHBOARD</h1>
+<header>Admin Dashboard</header>
+<nav>
+<button id="btnUsers">Users</button>
+<button id="btnTransactions">Transactions</button>
+<button id="btnCoins">Coins / Market</button>
+<button id="btnAirdrops">Airdrops</button>
+<button id="btnSupport">Support Tickets</button>
+<button id="btnNotifications">Send Notifications</button>
+</nav>
 
-<a href="../index.html" style="color:red;">Logout</a>
-</div>
+<section id="adminSection">
+  <h2>Welcome, Admin</h2>
+  <p>Select a section from above to manage your platform.</p>
+</section>
 
-<!-- STATS -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:20px;">
+<!-- Users Section -->
+<section id="usersSection" style="display:none;">
+  <h2>All Users</h2>
+  <table class="table" id="usersTable">
+    <thead><tr><th>Email</th><th>UID</th><th>Total Balance</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
 
-<div class="card">
-<h3>Users</h3>
-<p id="users">0</p>
-</div>
+<!-- Transactions Section -->
+<section id="transactionsSection" style="display:none;">
+  <h2>Transactions</h2>
+  <table class="table" id="transactionsTable">
+    <thead><tr><th>User</th><th>Type</th><th>Coin</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
 
-<div class="card">
-<h3>Total Deposits</h3>
-<p id="deposits">$0</p>
-</div>
+<!-- Coins Section -->
+<section id="coinsSection" style="display:none;">
+  <h2>Market Coins</h2>
+  <table class="table" id="coinsTable">
+    <thead><tr><th>Coin</th><th>Symbol</th><th>Price</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
 
-<div class="card">
-<h3>Total Withdraw</h3>
-<p id="withdraw">$0</p>
-</div>
+<!-- Airdrops Section -->
+<section id="airdropsSection" style="display:none;">
+  <h2>Airdrops</h2>
+  <table class="table" id="airdropsTable">
+    <thead><tr><th>Coin</th><th>Symbol</th><th>Start Date</th><th>End Date</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
 
-<div class="card">
-<h3>KYC Pending</h3>
-<p id="kyc">0</p>
-</div>
+<!-- Support Section -->
+<section id="supportSection" style="display:none;">
+  <h2>Support Tickets</h2>
+  <table class="table" id="supportTable">
+    <thead><tr><th>User</th><th>Subject</th><th>Message</th><th>Reply</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
 
-</div>
+<!-- Notifications Section -->
+<section id="notificationsSection" style="display:none;">
+  <h2>Send Notification to All Users</h2>
+  <textarea id="notificationMessage" rows="4" placeholder="Type your message here..."></textarea><br>
+  <button id="sendNotificationBtn" class="button">Send Notification</button>
+  <p id="notificationStatus"></p>
+</section>
 
-<!-- BUTTONS -->
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;padding:20px;">
-
-<a class="card" href="admin-kyc.html">🪪 KYC APPROVAL</a>
-
-<a class="card" href="admin-support.html">💬 SUPPORT MESSAGES</a>
-
-<a class="card" href="admin-notification.html">🔔 SEND NOTIFICATIONS</a>
-
-<a class="card" href="admin-deposits.html">💰 DEPOSITS</a>
-
-<a class="card" href="admin-withdraw.html">🏧 WITHDRAWALS</a>
-
-<a class="card" href="admin-users.html">👤 USERS</a>
-
-</div>
-
+<script type="module" src="admin.js"></script>
 </body>
 </html>
