@@ -3,24 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Exchange Market</title>
-<link rel="stylesheet" href="dashboard.css">
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Market</title>
 <style>
-body { background:#000; color:#fff; font-family:sans-serif; }
-.market-container { padding:20px; }
-.coin-card { background:#111; border:1px solid #0f0; border-radius:15px; padding:15px; margin-bottom:10px; cursor:pointer; }
-.coin-name { font-weight:bold; font-size:1.2rem; }
-.coin-description { color:#0f0; font-size:0.9rem; margin-top:5px; }
-.coin-price { font-weight:bold; font-size:1rem; }
-.coin-metrics { color:#0ff; font-size:0.8rem; margin-top:5px; }
+body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+#marketCoins { display: flex; flex-wrap: wrap; gap: 15px; }
+.coin-card { 
+  background: #111; 
+  border: 1px solid #0f0; 
+  border-radius: 12px; 
+  padding: 15px; 
+  width: 200px; 
+  cursor: pointer; 
+  color: #fff; 
+}
+.coin-name { font-weight: bold; font-size: 1.1rem; }
+.coin-description { color: #0f0; font-size: 0.85rem; margin-top: 5px; }
+.coin-price { font-weight: bold; font-size: 1rem; margin-top:5px;}
 </style>
 </head>
 <body>
 
-<div class="market-container">
-  <div id="marketCoins"></div>
-</div>
+<div id="marketCoins"></div>
 
 <script type="module" src="market.js"></script>
 </body>

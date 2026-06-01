@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, collection, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -14,6 +13,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 const marketContainer = document.getElementById("marketCoins");
 const coinsRoot = collection(db, "coins");
 const previousPrices = {};
@@ -48,23 +48,14 @@ async function loadAllCoins() {
         <div class="coin-name">${coin.name} (${coin.symbol})</div>
         <div class="coin-description">${coin.description}</div>
         <div class="coin-price" style="color:${priceColor}">$${coin.price}</div>
-        <div class="coin-metrics">
-          Market Cap: $${coin.marketCap || "N/A"}<br>
-          24h Volume: $${coin.volume24h || "N/A"}<br>
-          Supply: ${coin.supply || "N/A"}<br>
-          24h Change: ${coin.change24h || "0%"}%
-        </div>
       `;
       card.addEventListener("click", () => {
-        // Open coin detail page
         window.location.href = `coin.html?symbol=${coin.symbol}`;
       });
-
       marketContainer.appendChild(card);
     });
   }
 }
 
-// Initial load + refresh every 10s
 loadAllCoins();
 setInterval(loadAllCoins, 10000);
