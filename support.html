@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN Support</title>
+<style>
+body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
+input, textarea { width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #0f0; background:#111; color:#fff; }
+button { width:100%; padding:10px; border:none; border-radius:8px; background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
+.message-card { background:#111; padding:10px; border-radius:8px; margin-bottom:10px; }
+.message-card p { margin:0; }
+.reply { color:#0f0; font-size:0.85rem; margin-top:5px; }
+</style>
+</head>
+<body>
+
+<h1>Support</h1>
+
+<div>
+  <input type="text" id="subject" placeholder="Subject">
+  <textarea id="message" rows="4" placeholder="Your message"></textarea>
+  <button id="sendBtn">Send Message</button>
+</div>
+
+<h2>Previous Messages</h2>
+<div id="messagesContainer"></div>
+
+<script type="module" src="support.js"></script>
+</body>
+</html>
