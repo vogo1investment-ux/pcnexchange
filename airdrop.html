@@ -6,18 +6,61 @@
 <title>Airdrops</title>
 <style>
 body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
-.airdrop-card { background:#111; padding:15px; border-radius:12px; margin-bottom:10px; cursor:pointer; }
-.airdrop-card:hover { background:#222; }
-.airdrop-name { font-weight:bold; font-size:1.2rem; }
-.airdrop-info { color:#0f0; font-size:0.9rem; margin-top:5px; }
-.button { background:#0f0; color:#000; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; margin-top:5px; }
+button { background:#0f0; color:#000; padding:10px; border:none; border-radius:8px; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<h1>Active Airdrops</h1>
-<div id="airdropsContainer"></div>
+<h1>Airdrops</h1>
+<p>Click the button below to create a new airdrop document in Firestore (for admin editing).</p>
+<button id="startAirdropBtn">Start Airdrop</button>
 
-<script type="module" src="airdrop.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, async user => {
+  if(!user) {
+    alert("Please login first!");
+    window.location.href = "index.html";
+    return;
+  }
+
+  document.getElementById("startAirdropBtn").addEventListener("click", async ()=>{
+    try {
+      await addDoc(collection(db, "airdrops"), {
+        createdBy: user.uid,
+        coinName: "",
+        symbol: "",
+        startDate: null,
+        endDate: null,
+        pricePerCoin: 0,
+        totalCollected: 0,
+        status: "draft"
+      });
+      alert("Airdrop document created! You can now edit it in Firestore.");
+    } catch(e) {
+      console.error(e);
+      alert("Failed to create airdrop document. Check console.");
+    }
+  });
+});
+</script>
 </body>
 </html>
