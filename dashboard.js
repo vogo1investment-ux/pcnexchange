@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // -------------------- FIREBASE CONFIG --------------------
@@ -17,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// -------------------- STATE --------------------
 let realBalance = 0;
 let hidden = false;
 
@@ -37,12 +36,10 @@ document.getElementById("toggleBalanceBtn").addEventListener("click", () => {
 
 // -------------------- CURRENCY CONVERTER --------------------
 const rates = { USD:1, NGN:1310, GBP:0.78, EUR:0.92, CAD:1.35 };
-
 document.getElementById("currencySelect").addEventListener("change", (e) => {
   const currency = e.target.value;
   const converted = realBalance * rates[currency];
   const balanceEl = document.getElementById("balance");
-
   switch(currency){
     case "USD": balanceEl.innerText = "$" + converted.toLocaleString(); break;
     case "NGN": balanceEl.innerText = "₦" + converted.toLocaleString(); break;
@@ -61,25 +58,54 @@ onAuthStateChanged(auth, (user) => {
 
   const userRef = doc(db,"users",user.uid);
 
-  // Real-time listener
   onSnapshot(userRef, (snap) => {
     if(!snap.exists()) return;
     const data = snap.data();
-
-    // Username display
     document.getElementById("welcomeUser").innerText = data.username || data.name || data.email || "PCN USER";
-
-    // Balance display
     realBalance = Number(data.availableBalance || data.balance || 0);
     document.getElementById("balance").innerText = "$" + realBalance.toLocaleString();
   });
 });
 
-// -------------------- DEPOSIT & WITHDRAW BUTTONS --------------------
-document.getElementById("depositBtn").addEventListener("click", () => {
-  window.location.href = "deposit.html";
+// -------------------- DEPOSIT & WITHDRAW --------------------
+document.getElementById("depositBtn").addEventListener("click", () => window.location.href = "deposit.html");
+document.getElementById("withdrawBtn").addEventListener("click", () => window.location.href = "withdraw.html");
+
+// -------------------- SECTION SWITCHING --------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll(".action-grid a, .bottom-nav a");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      const sectionId = btn.dataset.section;
+      if(!sectionId) return;
+      document.querySelectorAll("section").forEach(sec=>sec.classList.add("hidden"));
+      const target = document.getElementById(sectionId);
+      if(target) target.classList.remove("hidden");
+      window.scrollTo(0,0);
+    });
+  });
 });
 
-document.getElementById("withdrawBtn").addEventListener("click", () => {
-  window.location.href = "withdraw.html";
+// -------------------- LOAD CRYPTO ASSETS --------------------
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return;
+  const assetsList = document.getElementById("assetsList");
+  const userCoinsCol = collection(db, "users", user.uid, "coins");
+
+  onSnapshot(userCoinsCol, snap=>{
+    assetsList.innerHTML = "";
+    if(snap.empty){
+      assetsList.innerHTML = "You don't have any coins yet.";
+      return;
+    }
+    snap.forEach(c=>{
+      const coin = c.data();
+      const div = document.createElement("div");
+      div.className = "bg-zinc-800 p-4 rounded mb-2";
+      div.innerHTML = `${coin.coinName} (${coin.symbol}) - Balance: ${coin.balance || 0}`;
+      assetsList.appendChild(div);
+    });
+  });
 });
