@@ -39,22 +39,18 @@ onAuthStateChanged(auth, async (user) => {
     coinsArray.sort((a,b) => a.data.symbol === "BTC" ? -1 : 0); // BTC first
 
     for(const coin of coinsArray){
-      // Get lastPrice
       const coinRef = doc(db,"coins",coin.id);
       const coinSnap = await getDoc(coinRef);
       const lastPrice = coinSnap.exists() && coinSnap.data().lastPrice !== undefined
         ? coinSnap.data().lastPrice
         : coin.data.price;
 
-      // Price color
       let priceColor = "blue";
       if(coin.data.price > lastPrice) priceColor = "green";
       else if(coin.data.price < lastPrice) priceColor = "red";
 
-      // Update lastPrice in Firestore
       await setDoc(coinRef, { lastPrice: coin.data.price }, { merge: true });
 
-      // Create card
       const div = document.createElement("div");
       div.className = "market-card";
       div.innerHTML = `
