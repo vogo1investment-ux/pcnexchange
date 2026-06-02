@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -28,7 +28,6 @@ const receiveBtn = document.getElementById("receiveBtn");
 const buyBtn = document.getElementById("buyBtn");
 const backBtn = document.getElementById("backBtn");
 
-// Buy modal elements
 const buyModal = document.getElementById("buyModal");
 const closeBuyModal = document.getElementById("closeBuyModal");
 const buyCoinName = document.getElementById("buyCoinName");
@@ -36,10 +35,11 @@ const buyAmount = document.getElementById("buyAmount");
 const buyPassword = document.getElementById("buyPassword");
 const confirmBuyBtn = document.getElementById("confirmBuyBtn");
 
-let coinId = new URLSearchParams(window.location.search).get("coin"); // e.g., BTC
+let coinId = new URLSearchParams(window.location.search).get("coin");
 let userId = null;
+let userCoinRef = null;
 
-// Ensure logged-in
+// Ensure user is logged in
 onAuthStateChanged(auth, user => {
   if(!user){
     window.location.href = "index.html";
@@ -49,7 +49,7 @@ onAuthStateChanged(auth, user => {
   loadCoinData();
 });
 
-// Load coin and user balance
+// Load coin data and set up live balance listener
 async function loadCoinData(){
   const coinRef = doc(db,"coins",coinId);
   const coinSnap = await getDoc(coinRef);
@@ -63,14 +63,17 @@ async function loadCoinData(){
   coinDescEl.innerText = coinData.description || "No description available.";
   coinPriceEl.innerText = coinData.price ?? 0;
 
-  // Load user coin balance
-  const userCoinRef = doc(db,"users",userId,"coins",coinId);
-  const userCoinSnap = await getDoc(userCoinRef);
-  if(userCoinSnap.exists()){
-    coinBalanceEl.innerText = parseFloat(userCoinSnap.data().balance).toFixed(8);
-  }else{
-    coinBalanceEl.innerText = "0.00000001";
-  }
+  // User coin reference
+  userCoinRef = doc(db,"users",userId,"coins",coinId);
+
+  // Live listener for balance
+  onSnapshot(userCoinRef, snap => {
+    if(snap.exists()){
+      coinBalanceEl.innerText = parseFloat(snap.data().balance).toFixed(8);
+    } else {
+      coinBalanceEl.innerText = "0.00000001";
+    }
+  });
 }
 
 // Button actions
