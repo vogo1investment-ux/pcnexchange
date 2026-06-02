@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -35,8 +35,8 @@ onAuthStateChanged(auth, async (user) => {
     assetsList.innerHTML = "";
     const coinsArray = [];
 
-    // Collect coins and sort BTC first
     snapshot.forEach(docSnap => coinsArray.push({id: docSnap.id, data: docSnap.data()}));
+    // BTC first
     coinsArray.sort((a,b) => {
       if(a.data.symbol === "BTC") return -1;
       if(b.data.symbol === "BTC") return 1;
@@ -44,25 +44,35 @@ onAuthStateChanged(auth, async (user) => {
     });
 
     for(const coin of coinsArray){
-      // Fetch user balance
+      // Get user coin balance
       const userCoinRef = doc(db,"users",user.uid,"coins",coin.id);
       const userCoinSnap = await getDoc(userCoinRef);
       let balance = "0.00000001";
       if(userCoinSnap.exists()){
         balance = parseFloat(userCoinSnap.data().balance).toFixed(8);
+      } else {
+        // auto-create user coin if not exist
+        await setDoc(userCoinRef, { balance: 0.00000001 });
       }
 
-      // Create asset card
+      // Price change indicator
+      let priceColor = "blue"; // default
+      if(userCoinSnap.exists() && userCoinSnap.data().lastPrice !== undefined){
+        const lastPrice = userCoinSnap.data().lastPrice;
+        if(coin.data.price > lastPrice) priceColor = "green";
+        else if(coin.data.price < lastPrice) priceColor = "red";
+      }
+
+      // Asset card
       const div = document.createElement("div");
       div.className = "asset-card";
       div.innerHTML = `
         <img src="${coin.data.iconUrl || 'default-coin.png'}" class="coin-icon">
         <h3>${coin.data.name} (${coin.data.symbol})</h3>
-        <p>Price: $${coin.data.price ?? 0}</p>
+        <p style="color:${priceColor}">Price: $${coin.data.price ?? 0}</p>
         <p>Your Balance: ${balance}</p>
       `;
 
-      // Navigate to coin page
       div.addEventListener("click", ()=>{
         window.location.href = `coin.html?coin=${coin.id}`;
       });
