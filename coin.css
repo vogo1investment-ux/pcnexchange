@@ -16,8 +16,6 @@ body{
   margin-bottom:12px;
 }
 
-.back-btn:hover{opacity:0.9;}
-
 .coin-container{
   max-width:500px;
   margin:auto;
@@ -47,7 +45,6 @@ body{
   margin:12px 0;
 }
 
-/* Buttons */
 .coin-actions{
   display:flex;
   justify-content:space-around;
@@ -68,7 +65,6 @@ body{
   opacity:0.9;
 }
 
-/* Buy modal */
 .modal{
   position:fixed;
   top:0; left:0;

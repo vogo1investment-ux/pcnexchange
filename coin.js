@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, doc, getDoc, collection, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -45,7 +46,7 @@ onAuthStateChanged(auth, user => {
   userId = user.uid;
   loadCoinData();
 
-  // Attach buttons after auth confirmed
+  // Attach button events after auth confirmed
   sendBtn.addEventListener("click", ()=> window.location.href="transfer.html");
   receiveBtn.addEventListener("click", ()=> window.location.href="receive.html");
   backBtn.addEventListener("click", ()=> window.location.href="market.html");
@@ -75,7 +76,7 @@ onAuthStateChanged(auth, user => {
         amount: parseFloat(amount.toFixed(8)),
         price: parseFloat(coinPriceEl.innerText),
         status: "pending",
-        createdAt: new Date(),
+        createdAt: new Date()
       });
       alert("Purchase request submitted! Status: pending for admin approval.");
       buyModal.classList.add("hidden");
