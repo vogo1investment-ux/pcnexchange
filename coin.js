@@ -46,7 +46,7 @@ onAuthStateChanged(auth, user => {
   userId = user.uid;
   loadCoinData();
 
-  // Attach button events after auth confirmed
+  // Attach buttons after auth confirmed
   sendBtn.addEventListener("click", ()=> window.location.href="transfer.html");
   receiveBtn.addEventListener("click", ()=> window.location.href="receive.html");
   backBtn.addEventListener("click", ()=> window.location.href="market.html");
@@ -100,8 +100,18 @@ async function loadCoinData(){
   coinDescEl.innerText = coinData.description || "No description available.";
   coinPriceEl.innerText = coinData.price ?? 0;
 
+  // Reference to user's coin document
   userCoinRef = doc(db,"users",userId,"coins",coinId);
 
+  // Auto-create user coin if it does not exist
+  const userCoinSnap = await getDoc(userCoinRef);
+  if(!userCoinSnap.exists()){
+    await setDoc(userCoinRef,{
+      balance: 0.00000001
+    });
+  }
+
+  // Live listener to update balance
   onSnapshot(userCoinRef, snap => {
     if(snap.exists()){
       coinBalanceEl.innerText = parseFloat(snap.data().balance).toFixed(8);
