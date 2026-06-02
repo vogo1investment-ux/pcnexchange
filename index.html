@@ -2,450 +2,221 @@
 <html lang="en" class="dark">
 
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-
-PCN EXCHANGE
-
-</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN EXCHANGE</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
-<link rel="stylesheet"
-href="style.css">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-black text-white min-h-screen">
 
 <!-- HEADER -->
-
 <header class="header">
-
-<div class="logo-box">
-
-<div class="logo-icon">
-
-P
-
-</div>
-
-<div class="logo-text">
-
-PCN EXCHANGE
-
-</div>
-
-</div>
-
-<div class="nav-buttons">
-
-<button
-class="login-btn auth-open">
-
-Login
-
-</button>
-
-<button
-class="start-btn auth-open">
-
-Get Started
-
-</button>
-
-</div>
-
+  <div class="logo-box">
+    <div class="logo-icon">P</div>
+    <div class="logo-text">PCN EXCHANGE</div>
+  </div>
+  <div class="nav-buttons">
+    <button class="login-btn auth-open">Login</button>
+    <button class="start-btn auth-open">Get Started</button>
+  </div>
 </header>
 
 <!-- HERO -->
-
 <section class="hero">
-
-<div class="hero-left">
-
-<h1>
-
-Trade Crypto<br>
-
-With Confidence
-
-</h1>
-
-<p>
-
-Fast Secure Reliable Cryptocurrency Exchange Platform
-
-</p>
-
-<div class="hero-actions">
-
-<button
-class="main-btn auth-open">
-
-Start Trading
-
-</button>
-
-<a href="markets.html"
-class="outline-btn">
-
-View Markets
-
-</a>
-
-</div>
-
-</div>
-
-<div class="hero-right">
-
-<div class="balance-card">
-
-<div class="balance-top">
-
-<div>
-
-<p class="small-text">
-
-TOTAL BALANCE
-
-</p>
-
-<h2>
-
-$24,560.45
-
-</h2>
-
-</div>
-
-<div class="green">
-
-+2.8%
-
-</div>
-
-</div>
-
-<div class="chart">
-
-<div class="bar h1"></div>
-<div class="bar h2"></div>
-<div class="bar h3"></div>
-<div class="bar h4"></div>
-<div class="bar h5"></div>
-<div class="bar h6"></div>
-<div class="bar h7"></div>
-
-</div>
-
-</div>
-
-</div>
-
+  <div class="hero-left">
+    <h1>Trade Crypto<br>With Confidence</h1>
+    <p>Fast Secure Reliable Cryptocurrency Exchange Platform</p>
+    <div class="hero-actions">
+      <button class="main-btn auth-open">Start Trading</button>
+      <a href="markets.html" class="outline-btn">View Markets</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="balance-card">
+      <div class="balance-top">
+        <div>
+          <p class="small-text">TOTAL BALANCE</p>
+          <h2>$24,560.45</h2>
+        </div>
+        <div class="green">+2.8%</div>
+      </div>
+      <div class="chart">
+        <div class="bar h1"></div>
+        <div class="bar h2"></div>
+        <div class="bar h3"></div>
+        <div class="bar h4"></div>
+        <div class="bar h5"></div>
+        <div class="bar h6"></div>
+        <div class="bar h7"></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- FEATURES -->
-
 <section class="features">
-
-<div class="feature-box">
-
-<i class="fa-solid fa-shield-halved"></i>
-
-<h3>
-
-Secure
-
-</h3>
-
-<p>
-
-Protected trading and wallets
-
-</p>
-
-</div>
-
-<div class="feature-box">
-
-<i class="fa-solid fa-bolt"></i>
-
-<h3>
-
-Fast
-
-</h3>
-
-<p>
-
-Instant deposits and withdrawals
-
-</p>
-
-</div>
-
-<div class="feature-box">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<h3>
-
-Live Trading
-
-</h3>
-
-<p>
-
-Realtime crypto market prices
-
-</p>
-
-</div>
-
+  <div class="feature-box">
+    <i class="fa-solid fa-shield-halved"></i>
+    <h3>Secure</h3>
+    <p>Protected trading and wallets</p>
+  </div>
+  <div class="feature-box">
+    <i class="fa-solid fa-bolt"></i>
+    <h3>Fast</h3>
+    <p>Instant deposits and withdrawals</p>
+  </div>
+  <div class="feature-box">
+    <i class="fa-solid fa-chart-line"></i>
+    <h3>Live Trading</h3>
+    <p>Realtime crypto market prices</p>
+  </div>
 </section>
 
 <!-- LIVE MARKET -->
-
 <section class="market-section">
+  <div class="section-top">
+    <h2>Live Market</h2>
+    <a href="markets.html">See All</a>
+  </div>
+  <div id="live-market" class="market-grid"></div>
+</section>
 
-<div class="section-top">
-
-<h2>
-
-Live Market
-
-</h2>
-
-<a href="markets.html">
-
-See All
-
-</a>
-
-</div>
-
-<div id="live-market"
-class="market-grid">
-
-</div>
-
+<!-- ANDROID APP DOWNLOAD -->
+<section class="android-app-section mt-10 text-center px-4">
+  <h2 class="text-2xl font-bold mb-4">Get Our Android App</h2>
+  <p class="mb-4">Download the app for a faster mobile experience</p>
+  <a href="https://apk.e-droid.net/apk/app4065510-vfdrwg.apk?v=2"
+     class="bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-6 rounded inline-block mb-4"
+     target="_blank">
+     Download APK
+  </a>
+  <div>
+    <!-- QR Code using Google Chart API -->
+    <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=https://apk.e-droid.net/apk/app4065510-vfdrwg.apk?v=2"
+         alt="Scan to download APK"
+         class="mx-auto border border-white rounded p-2">
+  </div>
 </section>
 
 <!-- TESTIMONIALS -->
-
 <section class="reviews">
-
-<div class="review-card">
-
-<div class="stars">
-
-★★★★★
-
-</div>
-
-<p>
-
-Best exchange platform I have ever used.
-
-</p>
-
-<h4>
-
-Michael Chen
-
-</h4>
-
-</div>
-
-<div class="review-card">
-
-<div class="stars">
-
-★★★★★
-
-</div>
-
-<p>
-
-Fast withdrawals and very clean interface.
-
-</p>
-
-<h4>
-
-Aisha Okoro
-
-</h4>
-
-</div>
-
+  <div class="review-card">
+    <div class="stars">★★★★★</div>
+    <p>Best exchange platform I have ever used.</p>
+    <h4>Michael Chen</h4>
+  </div>
+  <div class="review-card">
+    <div class="stars">★★★★★</div>
+    <p>Fast withdrawals and very clean interface.</p>
+    <h4>Aisha Okoro</h4>
+  </div>
 </section>
 
 <!-- FOOTER -->
-
 <footer class="footer">
-
-<button
-class="footer-btn auth-open">
-
-Get Started Now
-
-</button>
-
-<p>
-
-Trusted by over 5 Million Traders Worldwide
-
-</p>
-
+  <button class="footer-btn auth-open">Get Started Now</button>
+  <p>Trusted by over 5 Million Traders Worldwide</p>
 </footer>
 
 <!-- BOTTOM NAV -->
-
 <nav class="bottom-nav">
-
-<a href="#"
-class="active">
-
-<i class="fa-solid fa-house"></i>
-
-<span>
-
-Home
-
-</span>
-
-</a>
-
-<a href="markets.html">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<span>
-
-Markets
-
-</span>
-
-</a>
-
-<a href="trade.html">
-
-<i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-<span>
-
-Trade
-
-</span>
-
-</a>
-
-<a href="wallet.html">
-
-<i class="fa-solid fa-wallet"></i>
-
-<span>
-
-Wallet
-
-</span>
-
-</a>
-
+  <a href="#" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="markets.html"><i class="fa-solid fa-chart-line"></i><span>Markets</span></a>
+  <a href="trade.html"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
+  <a href="wallet.html"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
 </nav>
 
+<!-- MARKET COINS SCRIPT -->
 <script>
-
-const coins=[
-
-{
-name:"BTC",
-price:"67,245",
-change:"+2.5%"
-},
-
-{
-name:"ETH",
-price:"3,521",
-change:"+1.2%"
-},
-
-{
-name:"SOL",
-price:"149",
-change:"-0.8%"
-}
-
+const coins = [
+  { name: "BTC", price: "67,245", change: "+2.5%" },
+  { name: "ETH", price: "3,521", change: "+1.2%" },
+  { name: "SOL", price: "149", change: "-0.8%" }
 ];
+const market = document.getElementById("live-market");
+coins.forEach(coin => {
+  market.innerHTML += `
+  <div class="coin-card">
+    <div>
+      <h3>${coin.name}</h3>
+      <p>$${coin.price}</p>
+    </div>
+    <span class="${coin.change.includes('+') ? 'green' : 'red'}">${coin.change}</span>
+  </div>`;
+});
+</script>
 
-const market=document.getElementById(
-"live-market"
-);
+<!-- MAIN JS -->
+<script type="module" src="main.js"></script>
 
-coins.forEach(
-
-coin=>{
-
-market.innerHTML+=`
-
-<div class="coin-card">
-
-<div>
-
-<h3>
-
-${coin.name}
-
-</h3>
-
-<p>
-
-$${coin.price}
-
-</p>
-
-</div>
-
-<span class="${
-coin.change.includes('+')
-?
-'green'
-:
-'red'
-}">
-
-${coin.change}
-
-</span>
-
-</div>
-
-`;
-
+<!-- RESPONSIVE STYLES -->
+<style>
+/* Hero flex for mobile */
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+.hero-left, .hero-right {
+  flex: 1 1 300px;
 }
 
-);
+/* Features grid responsive */
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+.feature-box {
+  flex: 1 1 220px;
+  text-align: center;
+}
 
-</script>
+/* Live market grid */
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+}
 
-<!-- IMPORTANT -->
+/* Reviews grid responsive */
+.reviews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
 
-<script type="module"
-src="main.js">
+/* Android section */
+.android-app-section img {
+  width: 150px;
+  height: 150px;
+  max-width: 80%;
+}
 
-</script>
+/* Bottom nav */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #111;
+  border-top: 1px solid #222;
+}
+.bottom-nav a {
+  text-align: center;
+  color: white;
+  font-size: 0.8rem;
+}
+.bottom-nav a.active { color: #0f0; }
+.bottom-nav a span { display: block; }
+</style>
 
 </body>
-
 </html>
