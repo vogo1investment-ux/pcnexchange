@@ -1,101 +1,45 @@
 // main.js
 
-import {
-initializeApp
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-getAuth,
-createUserWithEmailAndPassword,
-signInWithEmailAndPassword,
-onAuthStateChanged,
-signOut
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-import {
-getFirestore,
-doc,
-setDoc,
-getDoc
-}
-from
-"https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-/* FIREBASE */
-
+/* FIREBASE CONFIG */
 const firebaseConfig = {
-
-apiKey:
-"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
-authDomain:
-"pcnexchange.firebaseapp.com",
-
-databaseURL:
-"https://pcnexchange-default-rtdb.firebaseio.com",
-
-projectId:
-"pcnexchange",
-
-storageBucket:
-"pcnexchange.firebasestorage.app",
-
-messagingSenderId:
-"278761036604",
-
-appId:
-"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* AUTH POPUP */
-
+/* AUTH MODAL CREATION */
 const authBox = document.createElement("div");
-
 authBox.innerHTML = `
 <div id="authModal"
 style="
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
+position:fixed; top:0; left:0; right:0; bottom:0;
 background:rgba(0,0,0,0.85);
-display:none;
-justify-content:center;
-align-items:center;
-z-index:99999;
-padding:20px;
+display:none; justify-content:center; align-items:center;
+z-index:99999; padding:20px;
 ">
-
 <div style="
-background:#111;
-padding:35px;
-border-radius:30px;
-width:100%;
-max-width:420px;
-color:white;
-border:1px solid #1f1f1f;
+background:#111; padding:35px; border-radius:30px;
+width:100%; max-width:420px; color:white; border:1px solid #1f1f1f;
+box-shadow:0 0 20px #00ff88; transition:all 0.3s ease;
 ">
-
-<h2 style="
-font-size:32px;
-margin-bottom:25px;
-color:#00ff88;
-font-weight:bold;
-">
-PCN LOGIN
-</h2>
+<h2 style="font-size:32px;margin-bottom:25px;color:#00ff88;font-weight:bold;text-align:center;">PCN LOGIN</h2>
 
 <input id="username" type="text" placeholder="Username"
+style="width:100%;padding:18px;margin-bottom:15px;border:none;border-radius:18px;background:#1a1a1a;color:white;">
+
+<input id="referralUsername" type="text" placeholder="Referral Username (optional)"
 style="width:100%;padding:18px;margin-bottom:15px;border:none;border-radius:18px;background:#1a1a1a;color:white;">
 
 <input id="email" type="email" placeholder="Email"
@@ -104,20 +48,17 @@ style="width:100%;padding:18px;margin-bottom:15px;border:none;border-radius:18px
 <input id="password" type="password" placeholder="Password"
 style="width:100%;padding:18px;margin-bottom:20px;border:none;border-radius:18px;background:#1a1a1a;color:white;">
 
-<button id="loginBtn"
-style="width:100%;padding:18px;background:#00ff88;border:none;border-radius:20px;font-weight:bold;">
-Login
-</button>
-
 <button id="signupBtn"
-style="width:100%;padding:18px;background:white;border:none;border-radius:20px;font-weight:bold;margin-top:15px;">
-Create Account
-</button>
+style="width:100%;padding:18px;background:#00ff88;color:#000;border:none;border-radius:20px;font-weight:bold;margin-top:15px;cursor:pointer;transition:0.3s;"
+onmouseover="this.style.background='#00cc66'" onmouseout="this.style.background='#00ff88'">Create Account</button>
+
+<button id="loginBtn"
+style="width:100%;padding:18px;background:#00ff88;color:#000;border:none;border-radius:20px;font-weight:bold;margin-top:15px;cursor:pointer;transition:0.3s;"
+onmouseover="this.style.background='#00cc66'" onmouseout="this.style.background='#00ff88'">Login</button>
 
 <button id="closeAuth"
-style="width:100%;padding:15px;margin-top:15px;background:red;border:none;border-radius:18px;color:white;">
-Close
-</button>
+style="width:100%;padding:15px;margin-top:15px;background:red;border:none;border-radius:18px;color:white;font-weight:bold;cursor:pointer;transition:0.3s;"
+onmouseover="this.style.background='#cc0000'" onmouseout="this.style.background='red'">Close</button>
 
 </div>
 </div>
@@ -125,176 +66,102 @@ Close
 
 document.body.appendChild(authBox);
 
-/* OPEN POPUP */
-
-function openAuth(){
-document.getElementById("authModal").style.display = "flex";
+/* OPEN MODAL */
+function openAuth() {
+  document.getElementById("authModal").style.display = "flex";
 }
 
-/* CLOSE */
-
+/* CLOSE MODAL */
 document.getElementById("closeAuth").onclick = () => {
-document.getElementById("authModal").style.display = "none";
+  document.getElementById("authModal").style.display = "none";
 };
 
-/* BUTTON TRIGGERS */
-
+/* OPEN AUTH MODAL TRIGGER */
 document.querySelectorAll(".auth-open, a").forEach(btn => {
-
-btn.addEventListener("click", e => {
-
-if (
-btn.innerText.includes("Login") ||
-btn.innerText.includes("Get Started") ||
-btn.innerText.includes("Start Trading")
-) {
-
-e.preventDefault();
-openAuth();
-
-}
-
-});
-
+  btn.addEventListener("click", e => {
+    if (btn.innerText.includes("Login") || btn.innerText.includes("Get Started") || btn.innerText.includes("Start Trading")) {
+      e.preventDefault();
+      openAuth();
+    }
+  });
 });
 
 /* SIGNUP */
-
 document.getElementById("signupBtn").onclick = async () => {
+  try {
+    const username = document.getElementById("username").value.trim();
+    const referralUsername = document.getElementById("referralUsername").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-try {
+    if (!username || !email || !password) {
+      alert("Fill all required fields");
+      return;
+    }
 
-const username = document.getElementById("username").value.trim();
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-if (!username || !email || !password) {
+    /* SAVE USER */
+    await setDoc(doc(db, "users", user.uid), {
+      username: username,
+      referralBy: referralUsername || null,
+      email: email,
+      availableBalance: 0,
+      withdrawableBalance: 0,
+      referralCommission: 0,
+      joinedUsers: 0,
+      createdAt: Date.now()
+    });
 
-alert("Fill all fields");
-return;
-
-}
-
-const userCredential = await createUserWithEmailAndPassword(
-auth,
-email,
-password
-);
-
-const user = userCredential.user;
-
-/* SAVE USER */
-
-await setDoc(doc(db, "users", user.uid), {
-
-username: username,
-email: email,
-availableBalance: 0,
-withdrawableBalance: 0,
-referralCommission: 0,
-joinedUsers: 0,
-createdAt: Date.now()
-
-});
-
-console.log("USER SAVED:", user.uid);
-
-alert("ACCOUNT CREATED SUCCESSFULLY");
-
-window.location = "dashboard.html";
-
-} catch (e) {
-
-alert(e.message);
-console.error(e);
-
-}
-
+    alert("ACCOUNT CREATED SUCCESSFULLY");
+    window.location = "dashboard.html";
+  } catch (e) {
+    alert(e.message);
+    console.error(e);
+  }
 };
 
 /* LOGIN */
-
 document.getElementById("loginBtn").onclick = async () => {
+  try {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-try {
+    if (!email || !password) {
+      alert("Fill all fields");
+      return;
+    }
 
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
-
-if (!email || !password) {
-
-alert("Fill all fields");
-return;
-
-}
-
-await signInWithEmailAndPassword(
-auth,
-email,
-password
-);
-
-alert("LOGIN SUCCESSFUL");
-
-window.location = "dashboard.html";
-
-} catch (e) {
-
-alert(e.message);
-console.error(e);
-
-}
-
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("LOGIN SUCCESSFUL");
+    window.location = "dashboard.html";
+  } catch (e) {
+    alert(e.message);
+    console.error(e);
+  }
 };
 
-/* LOAD USER */
-
-onAuthStateChanged(auth, async (user) => {
-
-if (user) {
-
-const ref = doc(db, "users", user.uid);
-
-const snap = await getDoc(ref);
-
-if (snap.exists()) {
-
-const data = snap.data();
-
-const welcomeUser = document.getElementById("welcomeUser");
-
-if (welcomeUser){
-
-welcomeUser.innerText = data.username;
-
-}
-
-const balance = document.getElementById("balance");
-
-if (balance){
-
-balance.innerText = "$" + data.availableBalance;
-
-}
-
-}
-
-}
-
+/* LOAD USER INFO */
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      const welcomeUser = document.getElementById("welcomeUser");
+      if (welcomeUser) welcomeUser.innerText = data.username;
+      const balance = document.getElementById("balance");
+      if (balance) balance.innerText = "$" + data.availableBalance;
+    }
+  }
 });
 
 /* LOGOUT */
-
 const logoutBtn = document.getElementById("logoutBtn");
-
 if (logoutBtn) {
-
-logoutBtn.onclick = async () => {
-
-await signOut(auth);
-
-window.location = "index.html";
-
-};
-
+  logoutBtn.onclick = async () => {
+    await signOut(auth);
+    window.location = "index.html";
+  };
 }
