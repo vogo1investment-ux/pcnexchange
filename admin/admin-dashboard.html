@@ -4,78 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCN Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link rel="stylesheet" href="admin-dashboard.css">
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white font-sans">
+<body class="bg-black text-white flex">
 
-<div class="flex h-screen">
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h2 class="text-emerald-400 font-bold text-2xl mb-6">PCN ADMIN</h2>
+  <nav class="nav-buttons">
+    <button class="sidebar-btn" data-section="dashboard">Dashboard</button>
+    <button class="sidebar-btn" data-section="users">Users</button>
+    <button class="sidebar-btn" data-section="kyc">KYC Verification</button>
+    <button class="sidebar-btn" data-section="deposits">Deposits</button>
+    <button class="sidebar-btn" data-section="withdrawals">Withdrawals</button>
+    <button class="sidebar-btn" data-section="crypto-assets">Crypto Assets</button>
+    <button class="sidebar-btn" data-section="markets">Markets</button>
+    <button class="sidebar-btn" data-section="notifications">Notifications</button>
+    <button class="sidebar-btn" data-section="airdrop">Airdrop</button>
+    <button class="sidebar-btn text-red-500" id="logoutBtn">Logout</button>
+  </nav>
+</aside>
 
-  <!-- Sidebar -->
-  <div class="w-64 bg-zinc-900 p-6 flex flex-col">
-    <h1 class="text-emerald-400 text-2xl font-bold mb-6">PCN EXCHANGE</h1>
-    <nav class="flex flex-col space-y-2">
-      <button data-section="dashboardSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Dashboard</button>
-      <button data-section="usersSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Users</button>
-      <button data-section="kycSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">KYC Verification</button>
-      <button data-section="depositsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Deposits</button>
-      <button data-section="withdrawalsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Withdrawals</button>
-      <button data-section="transactionsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Transactions</button>
-      <button data-section="balancesSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Edit Balances</button>
-      <button data-section="supportSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Support Messages</button>
-      <button data-section="notificationsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Notifications</button>
-      <button data-section="marketsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Markets</button>
-      <button data-section="airdropsSection" class="text-left px-4 py-2 hover:bg-zinc-700 rounded">Airdrops</button>
-      <button id="logoutBtn" class="text-left px-4 py-2 hover:bg-red-600 rounded mt-auto">Logout</button>
-    </nav>
+<!-- Main content -->
+<main class="main-content">
+  <div class="dashboard-stats" id="dashboard-section">
+    <div class="stat-card">
+      <p>Total Users</p>
+      <h2 id="totalUsers">0</h2>
+    </div>
+    <div class="stat-card">
+      <p>Total Deposits</p>
+      <h2 id="totalDeposits">$0.00</h2>
+    </div>
+    <div class="stat-card">
+      <p>Total Withdrawals</p>
+      <h2 id="totalWithdrawals">$0.00</h2>
+    </div>
   </div>
 
-  <!-- Main content -->
-  <div class="flex-1 p-6 overflow-y-auto">
-    <!-- Sections -->
-    <section id="dashboardSection" class="active">
-      <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-      <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-zinc-800 p-4 rounded">Total Users: <span id="totalUsers">0</span></div>
-        <div class="bg-zinc-800 p-4 rounded">Total Deposited: $<span id="totalDeposits">0</span></div>
-        <div class="bg-zinc-800 p-4 rounded">Total Withdrawn: $<span id="totalWithdrawals">0</span></div>
-      </div>
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-zinc-800 p-4 rounded h-64" id="overviewChart">Overview Chart</div>
-        <div class="bg-zinc-800 p-4 rounded h-64" id="userGrowthChart">User Growth Chart</div>
-      </div>
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-zinc-800 p-4 rounded h-64" id="recentDeposits">Recent Deposits</div>
-        <div class="bg-zinc-800 p-4 rounded h-64" id="recentWithdrawals">Recent Withdrawals</div>
-        <div class="bg-zinc-800 p-4 rounded h-64" id="recentSupport">Recent Support Messages</div>
-      </div>
-    </section>
-
-    <!-- Users Section -->
-    <section id="usersSection" class="hidden">
-      <h2 class="text-2xl font-bold mb-4">All Users</h2>
-      <div id="usersList">Loading users...</div>
-    </section>
-
-    <!-- Transactions Section -->
-    <section id="transactionsSection" class="hidden">
-      <h2 class="text-2xl font-bold mb-4">Transactions</h2>
-      <div id="transactionsList">Loading transactions...</div>
-    </section>
-
-    <!-- Other sections follow same pattern -->
-    <section id="kycSection" class="hidden">KYC verification here</section>
-    <section id="depositsSection" class="hidden">Deposits table</section>
-    <section id="withdrawalsSection" class="hidden">Withdrawals table</section>
-    <section id="balancesSection" class="hidden">Edit balances here</section>
-    <section id="supportSection" class="hidden">Support messages</section>
-    <section id="notificationsSection" class="hidden">Notifications sending</section>
-    <section id="marketsSection" class="hidden">Coins / Market management</section>
-    <section id="airdropsSection" class="hidden">Airdrops management</section>
-
+  <div id="section-content" class="section-content">
+    <p class="text-gray-400 text-center py-10">Select a section from the sidebar to view details.</p>
   </div>
-</div>
+</main>
 
 <script type="module" src="admin-dashboard.js"></script>
-
 </body>
 </html>
