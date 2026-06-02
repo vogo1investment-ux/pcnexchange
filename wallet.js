@@ -60,11 +60,15 @@ onAuthStateChanged(auth, async (user) => {
 
     snapshot.forEach((docSnap) => {
       const coin = docSnap.data();
+      const name = coin.name || coin.coinName || "Unnamed Coin";
+      const symbol = coin.symbol || "";
+      const balance = parseFloat(coin.balance || 0).toFixed(8);
+
       const div = document.createElement("div");
       div.className = "crypto-card";
       div.innerHTML = `
-        <span class="crypto-name">${coin.name} (${coin.symbol})</span>
-        <span class="crypto-balance">${parseFloat(coin.balance || 0).toFixed(8)}</span>
+        <span class="crypto-name">${name} ${symbol ? `(${symbol})` : ""}</span>
+        <span class="crypto-balance">${balance}</span>
       `;
       cryptoListEl.appendChild(div);
     });

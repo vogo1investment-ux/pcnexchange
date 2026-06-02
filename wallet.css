@@ -7,7 +7,7 @@ body {
 }
 
 .wallet-container {
-  max-width: 600px;
+  max-width: 700px;
   margin: auto;
   padding: 16px;
   background: #111;
@@ -17,6 +17,8 @@ body {
 
 h1, h2 {
   color: #0f0;
+  font-weight: bold;
+  margin-bottom: 16px;
 }
 
 .balance-section p {
@@ -42,14 +44,34 @@ h1, h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-weight: bold;
 }
 
 .crypto-name {
-  font-weight: bold;
+  color: #0f0;
   font-size: 1rem;
 }
 
 .crypto-balance {
   font-weight: bold;
   color: #0f0;
+}
+
+@media screen and (max-width: 768px) {
+  .crypto-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .crypto-name, .crypto-balance {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .crypto-card {
+    padding: 10px;
+  }
+  .crypto-name, .crypto-balance {
+    font-size: 0.9rem;
+  }
 }
