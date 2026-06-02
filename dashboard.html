@@ -19,9 +19,9 @@
     </div>
   </div>
   <div class="header-icons">
-    <a href="notifications.html"><i class="fa-solid fa-bell"></i></a>
-    <a href="profile.html"><i class="fa-solid fa-user"></i></a>
-    <a href="settings.html"><i class="fa-solid fa-gear"></i></a>
+    <a href="#"><i class="fa-solid fa-bell"></i></a>
+    <a href="#"><i class="fa-solid fa-user"></i></a>
+    <a href="#"><i class="fa-solid fa-gear"></i></a>
   </div>
 </header>
 
@@ -62,33 +62,33 @@
         <p>Welcome back to PCN Exchange</p>
       </div>
     </div>
-    <a href="profile.html" class="profile-btn">View Profile</a>
+    <a href="#" class="profile-btn">View Profile</a>
   </div>
 
   <!-- QUICK ACTIONS -->
   <div class="action-grid">
-    <button id="walletBtn" class="action-card"><i class="fa-solid fa-wallet"></i><span>Wallet</span></button>
-    <button id="tradeBtn" class="action-card"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></button>
-    <button id="marketBtn" class="action-card"><i class="fa-solid fa-chart-line"></i><span>Markets</span></button>
-    <button id="transferBtn" class="action-card"><i class="fa-solid fa-money-bill-transfer"></i><span>Transfer</span></button>
-    <button id="receiveBtn" class="action-card"><i class="fa-solid fa-qrcode"></i><span>Receive</span></button>
-    <button id="historyBtn" class="action-card"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
-    <button id="supportBtn" class="action-card"><i class="fa-solid fa-headset"></i><span>Support</span></button>
-    <button id="airdropBtn" class="action-card"><i class="fa-solid fa-gift"></i><span>Airdrop</span></button>
-    <button id="exploreBtn" class="action-card"><i class="fa-solid fa-compass"></i><span>Explore</span></button>
-    <button id="cryptoAssetsBtn" class="action-card"><i class="fa-solid fa-coins"></i><span>Crypto Assets</span></button>
+    <a href="#" data-section="walletSection" class="action-card"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+    <a href="#" data-section="tradeSection" class="action-card"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
+    <a href="#" data-section="marketSection" class="action-card"><i class="fa-solid fa-chart-line"></i><span>Markets</span></a>
+    <a href="#" data-section="transferSection" class="action-card"><i class="fa-solid fa-money-bill-transfer"></i><span>Transfer</span></a>
+    <a href="#" data-section="receiveSection" class="action-card"><i class="fa-solid fa-qrcode"></i><span>Receive</span></a>
+    <a href="#" data-section="historySection" class="action-card"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+    <a href="#" data-section="supportSection" class="action-card"><i class="fa-solid fa-headset"></i><span>Support</span></a>
+    <a href="#" data-section="airdropSection" class="action-card"><i class="fa-solid fa-gift"></i><span>Airdrop</span></a>
+    <a href="#" data-section="exploreSection" class="action-card"><i class="fa-solid fa-compass"></i><span>Explore</span></a>
+    <a href="#" data-section="cryptoAssetsSection" class="action-card"><i class="fa-solid fa-coins"></i><span>Crypto Assets</span></a>
   </div>
 
   <!-- SECTIONS -->
-  <section id="walletSection" class="hidden p-6"></section>
-  <section id="tradeSection" class="hidden p-6"></section>
-  <section id="marketSection" class="hidden p-6"></section>
-  <section id="transferSection" class="hidden p-6"></section>
-  <section id="receiveSection" class="hidden p-6"></section>
-  <section id="historySection" class="hidden p-6"></section>
-  <section id="supportSection" class="hidden p-6"></section>
-  <section id="airdropSection" class="hidden p-6"></section>
-  <section id="exploreSection" class="hidden p-6"></section>
+  <section id="walletSection" class="hidden p-6">Wallet content here</section>
+  <section id="tradeSection" class="hidden p-6">Trade content here</section>
+  <section id="marketSection" class="hidden p-6">Market content here</section>
+  <section id="transferSection" class="hidden p-6">Transfer content here</section>
+  <section id="receiveSection" class="hidden p-6">Receive content here</section>
+  <section id="historySection" class="hidden p-6">History content here</section>
+  <section id="supportSection" class="hidden p-6">Support content here</section>
+  <section id="airdropSection" class="hidden p-6">Airdrop content here</section>
+  <section id="exploreSection" class="hidden p-6">Explore content here</section>
 
   <!-- CRYPTO ASSETS SECTION -->
   <section id="cryptoAssetsSection" class="hidden p-6">
@@ -106,14 +106,71 @@
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <a href="dashboard.html" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
-    <a href="marketSection"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></a>
-    <a href="tradeSection"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
-    <a href="cryptoAssetsSection"><i class="fa-solid fa-coins"></i><span>Assets</span></a>
-    <a href="walletSection"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+    <a href="#" data-section="walletSection" class="active"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+    <a href="#" data-section="marketSection"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></a>
+    <a href="#" data-section="tradeSection"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Trade</span></a>
+    <a href="#" data-section="cryptoAssetsSection"><i class="fa-solid fa-coins"></i><span>Assets</span></a>
+    <a href="#" data-section="walletSection"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
   </nav>
 </div>
 
-<script type="module" src="dashboard.js"></script>
+<script type="module">
+// Firebase imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Section switching for SPA
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.querySelectorAll("a[data-section]").forEach(link=>{
+    link.addEventListener("click", e=>{
+      e.preventDefault();
+      const sectionId = link.dataset.section;
+      document.querySelectorAll("section").forEach(sec=>sec.classList.add("hidden"));
+      const target = document.getElementById(sectionId);
+      if(target) target.classList.remove("hidden");
+    });
+  });
+});
+
+// Load user crypto assets
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return alert("Please login");
+
+  const assetsList = document.getElementById("assetsList");
+  const userCoinsCol = collection(db, "users", user.uid, "coins");
+
+  onSnapshot(userCoinsCol, snap=>{
+    assetsList.innerHTML = "";
+    if(snap.empty){
+      assetsList.innerHTML = "You don't have any coins yet.";
+      return;
+    }
+    snap.forEach(c=>{
+      const coin = c.data();
+      const div = document.createElement("div");
+      div.className = "bg-zinc-800 p-4 rounded mb-2";
+      div.innerHTML = `${coin.coinName} (${coin.symbol}) - Balance: ${coin.balance || 0}`;
+      assetsList.appendChild(div);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
