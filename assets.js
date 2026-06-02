@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -19,7 +18,7 @@ const auth = getAuth(app);
 
 const assetsList = document.getElementById("assetsList");
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async (user) => {
   if(!user){
     window.location.href = "index.html";
     return;
@@ -27,41 +26,48 @@ onAuthStateChanged(auth, user => {
 
   const coinsRef = collection(db, "coins");
 
-  onSnapshot(coinsRef, snapshot => {
+  onSnapshot(coinsRef, async snapshot => {
     if(snapshot.empty){
-      assetsList.innerHTML = "<p>No coins found.</p>";
+      assetsList.innerHTML = "<p>No coins available.</p>";
       return;
     }
 
-    let coinsArray = [];
-    snapshot.forEach(doc => coinsArray.push(doc.data()));
+    assetsList.innerHTML = "";
+    const coinsArray = [];
 
-    // Sort BTC first
-    coinsArray.sort((a,b)=>{
-      if(a.symbol==="BTC") return -1;
-      if(b.symbol==="BTC") return 1;
+    // Collect coins and sort BTC first
+    snapshot.forEach(docSnap => coinsArray.push({id: docSnap.id, data: docSnap.data()}));
+    coinsArray.sort((a,b) => {
+      if(a.data.symbol === "BTC") return -1;
+      if(b.data.symbol === "BTC") return 1;
       return 0;
     });
 
-    assetsList.innerHTML = "";
+    for(const coin of coinsArray){
+      // Fetch user balance
+      const userCoinRef = doc(db,"users",user.uid,"coins",coin.id);
+      const userCoinSnap = await getDoc(userCoinRef);
+      let balance = "0.00000001";
+      if(userCoinSnap.exists()){
+        balance = parseFloat(userCoinSnap.data().balance).toFixed(8);
+      }
 
-    coinsArray.forEach(coin => {
-      const priceChange = (coin.price && coin.prevPrice) ? coin.price - coin.prevPrice : 0;
-      const changeClass = priceChange >= 0 ? "price-up" : "price-down";
-
+      // Create asset card
       const div = document.createElement("div");
-      div.className = "coin-card";
-
+      div.className = "asset-card";
       div.innerHTML = `
-        <div class="coin-header">
-          <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon" alt="${coin.symbol}">
-          <h3 class="coin-name">${coin.name} (${coin.symbol})</h3>
-        </div>
-        <p class="coin-balance">Balance: ${coin.balance ?? 0}</p>
-        <p class="coin-price">Price: $${coin.price ?? 0} <span class="${changeClass}">${priceChange >=0 ? "+" : ""}${priceChange.toFixed(2)}</span></p>
-        <p class="coin-desc">Description: ${coin.description || "No description"}</p>
+        <img src="${coin.data.iconUrl || 'default-coin.png'}" class="coin-icon">
+        <h3>${coin.data.name} (${coin.data.symbol})</h3>
+        <p>Price: $${coin.data.price ?? 0}</p>
+        <p>Your Balance: ${balance}</p>
       `;
+
+      // Navigate to coin page
+      div.addEventListener("click", ()=>{
+        window.location.href = `coin.html?coin=${coin.id}`;
+      });
+
       assetsList.appendChild(div);
-    });
+    }
   });
 });
