@@ -12,11 +12,18 @@
 
 <div id="marketList">Loading coins...</div>
 
-<!-- Modal for coin details -->
-<div id="coinModal" class="modal hidden">
-  <div class="modal-content">
-    <span id="closeModal" class="close">&times;</span>
-    <div id="coinDetails"></div>
+<!-- Coin Detail Section -->
+<div id="coinSection" class="hidden">
+  <button id="backBtn" class="back-btn">&larr; Back to Market</button>
+  <h2 id="coinName" class="coin-title"></h2>
+  <img id="coinIcon" class="coin-icon-large" src="" alt="">
+  <p id="coinDesc"></p>
+  <p>Price: $<span id="coinPrice"></span></p>
+  <p>Balance: <span id="coinBalance">0.00000001</span></p>
+
+  <div class="coin-actions">
+    <button id="sendBtn">Send</button>
+    <button id="receiveBtn">Receive</button>
   </div>
 </div>
 
