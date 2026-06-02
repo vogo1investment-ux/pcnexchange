@@ -21,32 +21,35 @@ const assetsList = document.getElementById("assetsList");
 
 // Ensure the user is logged in
 onAuthStateChanged(auth, user => {
-  if (!user) {
+  if(!user){
     window.location.href = "index.html";
     return;
   }
 
-  // Fetch all coins from top-level collection "coins"
+  // Listen to top-level coins collection
   const coinsRef = collection(db, "coins");
 
   onSnapshot(coinsRef, snapshot => {
-    if (snapshot.empty) {
+    if(snapshot.empty){
       assetsList.innerHTML = "<p>No coins found.</p>";
       return;
     }
 
-    assetsList.innerHTML = ""; // Clear placeholder
+    assetsList.innerHTML = ""; // Clear loading text
 
     snapshot.forEach(doc => {
       const coin = doc.data();
+
       const div = document.createElement("div");
       div.className = "bg-zinc-800 p-4 rounded mb-2";
+
       div.innerHTML = `
-        <h3 style="color:#0f0;">${coin.name} (${coin.symbol})</h3>
-        <p>Balance: ${coin.balance || 0}</p>
-        <p>Price: ${coin.price || 0}</p>
+        <h3 style="color:#0f0;">${coin.name || doc.id} (${coin.symbol || ""})</h3>
+        <p>Balance: ${coin.balance ?? 0}</p>
+        <p>Price: ${coin.price ?? 0}</p>
         <p>Description: ${coin.description || "No description"}</p>
       `;
+
       assetsList.appendChild(div);
     });
   });
