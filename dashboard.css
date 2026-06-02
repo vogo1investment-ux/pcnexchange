@@ -1,240 +1,279 @@
-/* dashboard.css */
-
-/* -------------------- GLOBAL -------------------- */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #000;
-  color: #fff;
+margin: 0;
+padding: 0;
+font-family: Arial, sans-serif;
+background: #050505;
+color: white;
+padding-bottom: 100px;
 }
 
-/* -------------------- HEADER -------------------- */
+/* =========================
+HEADER
+========================= */
+
 .top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background-color: #111;
-  border-bottom: 1px solid #222;
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 20px;
+background: #0d0d0d;
+border-bottom: 1px solid #1f1f1f;
 }
 
 .logo-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+display: flex;
+align-items: center;
+gap: 15px;
 }
 
 .logo-box {
-  width: 40px;
-  height: 40px;
-  background-color: #0f0;
-  color: #000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  border-radius: 8px;
+width: 50px;
+height: 50px;
+background: #00ff88;
+color: black;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 15px;
+font-size: 28px;
+font-weight: 900;
+}
+
+.logo-area h1 {
+margin: 0;
+font-size: 24px;
+font-weight: 900;
+}
+
+.logo-area p {
+margin: 0;
+font-size: 12px;
+color: #888;
 }
 
 .header-icons a {
-  margin-left: 16px;
-  color: #fff;
-  text-decoration: none;
-  font-size: 1.2rem;
+color: white;
+font-size: 22px;
+margin-left: 15px;
 }
 
-/* -------------------- MAIN CONTAINER -------------------- */
+/* =========================
+MAIN CONTAINER
+========================= */
+
 .main-container {
-  padding: 20px;
+max-width: 1200px;
+margin: auto;
+padding: 20px;
 }
 
-/* -------------------- BALANCE CARD -------------------- */
+/* =========================
+BALANCE CARD
+========================= */
+
 .balance-card {
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+background: #111;
+border: 1px solid #1f1f1f;
+border-radius: 25px;
+padding: 30px;
+text-align: center;
 }
 
 .balance-title {
-  color: #0f0;
-  font-weight: bold;
-  margin-bottom: 8px;
+color: #00ff88;
+font-weight: 900;
+letter-spacing: 2px;
 }
 
-.balance-card h2 {
-  font-size: 2rem;
-  margin: 0 0 12px 0;
+#balance {
+font-size: 50px;
+margin: 15px 0;
+font-weight: 900;
 }
 
 .balance-tools button {
-  margin-right: 8px;
-  padding: 8px 12px;
-  background-color: #0f0;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #000;
+padding: 10px 20px;
+background: #00ff88;
+border: none;
+color: black;
+font-weight: 900;
+border-radius: 10px;
+cursor: pointer;
 }
 
-.balance-tools button:hover {
-  opacity: 0.8;
-}
+/* =========================
+CURRENCY BOX
+========================= */
 
 .currency-box {
-  margin-top: 12px;
+margin-top: 20px;
+text-align: left;
+}
+
+.currency-box label {
+display: block;
+font-weight: 900;
+margin-bottom: 10px;
+color: #00ff88;
 }
 
 .currency-box select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  background-color: #222;
-  color: #fff;
-  border: 1px solid #333;
+width: 100%;
+padding: 12px;
+background: #000;
+color: white;
+border: 1px solid #00ff88;
+border-radius: 10px;
+font-weight: 900;
 }
 
-/* -------------------- USER BOX -------------------- */
+/* =========================
+USER BOX
+========================= */
+
 .user-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-bottom: 20px;
+margin-top: 25px;
+background: #111;
+border: 1px solid #1f1f1f;
+padding: 20px;
+border-radius: 20px;
+display: flex;
+justify-content: space-between;
+align-items: center;
 }
 
 .user-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+display: flex;
+align-items: center;
+gap: 15px;
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
-  background-color: #222;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+width: 50px;
+height: 50px;
+background: #00ff88;
+color: black;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+font-size: 22px;
 }
 
 .profile-btn {
-  text-decoration: none;
-  color: #000;
-  background-color: #0f0;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: bold;
+background: #1f1f1f;
+padding: 10px 15px;
+border-radius: 10px;
+color: white;
+text-decoration: none;
+font-weight: 900;
 }
 
-.profile-btn:hover {
-  opacity: 0.9;
-}
+/* =========================
+ACTION GRID
+========================= */
 
-/* -------------------- ACTION GRID -------------------- */
 .action-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 15px;
+margin-top: 25px;
 }
 
 .action-card {
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  text-decoration: none;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+background: #111;
+border: 1px solid #1f1f1f;
+border-radius: 15px;
+padding: 20px;
+text-align: center;
+text-decoration: none;
+color: white;
+transition: 0.3s;
 }
 
 .action-card:hover {
-  background-color: #222;
-  transform: translateY(-2px);
+border-color: #00ff88;
+transform: scale(1.03);
 }
 
 .action-card i {
-  font-size: 1.5rem;
-  margin-bottom: 6px;
-  display: block;
+font-size: 25px;
+color: #00ff88;
+margin-bottom: 10px;
 }
 
-/* -------------------- SECTIONS -------------------- */
-section {
-  display: block;
-  margin-bottom: 20px;
+.action-card span {
+display: block;
+font-weight: 900;
 }
 
-.hidden {
-  display: none !important;
-}
+/* =========================
+ABOUT SECTION
+========================= */
 
-/* -------------------- ABOUT SECTION -------------------- */
 .market-box {
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+margin-top: 30px;
+background: #111;
+border: 1px solid #1f1f1f;
+padding: 20px;
+border-radius: 20px;
+}
+
+.market-header h2 {
+color: #00ff88;
+font-weight: 900;
 }
 
 .about-text {
-  line-height: 1.6;
-  color: #ccc;
+color: #aaa;
+line-height: 1.6;
 }
 
-/* -------------------- BOTTOM NAV -------------------- */
+/* =========================
+BOTTOM NAV
+========================= */
+
 .bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #111;
-  border-top: 1px solid #222;
-  padding: 10px 0;
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+background: #0d0d0d;
+border-top: 1px solid #1f1f1f;
+display: flex;
+justify-content: space-around;
+padding: 10px 0;
 }
 
 .bottom-nav a {
-  text-decoration: none;
-  color: #fff;
-  font-size: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+color: #888;
+text-decoration: none;
+font-weight: 900;
+font-size: 12px;
 }
 
-.bottom-nav a.active i,
-.bottom-nav a.active span {
-  color: #0f0;
+.bottom-nav .active {
+color: #00ff88;
 }
 
-.bottom-nav a i {
-  font-size: 1.2rem;
+/* =========================
+RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+
+#balance {
+font-size: 35px;
 }
 
-/* -------------------- CRYPTO ASSETS LIST -------------------- */
-#assetsList > div {
-  background-color: #222;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
+.action-grid {
+grid-template-columns: repeat(2, 1fr);
 }
 
-/* Hover effect for all interactive cards */
-#assetsList > div:hover {
-  background-color: #333;
-  cursor: pointer;
+.user-box {
+flex-direction: column;
+gap: 15px;
+text-align: center;
+}
+
 }
