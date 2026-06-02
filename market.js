@@ -33,42 +33,42 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     marketList.innerHTML = "";
+    const coinsArray = [];
 
-    snapshot.forEach(async (docSnap) => {
-      const coin = docSnap.data();
-      coin.id = docSnap.id;
+    snapshot.forEach(docSnap => coinsArray.push({id: docSnap.id, data: docSnap.data()}));
+    coinsArray.sort((a,b) => a.data.symbol === "BTC" ? -1 : 0); // BTC first
 
-      // Fetch lastPrice from Firestore if exists
-      const coinRef = doc(db, "coins", coin.id);
-      const coinDocSnap = await getDoc(coinRef);
-      const lastPrice = coinDocSnap.exists() && coinDocSnap.data().lastPrice !== undefined
-        ? coinDocSnap.data().lastPrice
-        : coin.price;
+    for(const coin of coinsArray){
+      // Get lastPrice
+      const coinRef = doc(db,"coins",coin.id);
+      const coinSnap = await getDoc(coinRef);
+      const lastPrice = coinSnap.exists() && coinSnap.data().lastPrice !== undefined
+        ? coinSnap.data().lastPrice
+        : coin.data.price;
 
-      // Determine price indicator color
+      // Price color
       let priceColor = "blue";
-      if (coin.price > lastPrice) priceColor = "green";
-      else if (coin.price < lastPrice) priceColor = "red";
+      if(coin.data.price > lastPrice) priceColor = "green";
+      else if(coin.data.price < lastPrice) priceColor = "red";
 
-      // Update lastPrice in Firestore for next comparison
-      await setDoc(coinRef, { lastPrice: coin.price }, { merge: true });
+      // Update lastPrice in Firestore
+      await setDoc(coinRef, { lastPrice: coin.data.price }, { merge: true });
 
-      // Create coin card
+      // Create card
       const div = document.createElement("div");
       div.className = "market-card";
       div.innerHTML = `
-        <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon">
-        <h3>${coin.name} (${coin.symbol})</h3>
-        <p style="color:${priceColor}">Price: $${coin.price}</p>
-        <p>${coin.description || "No description available."}</p>
+        <img src="${coin.data.iconUrl || 'default-coin.png'}" class="coin-icon">
+        <h3>${coin.data.name} (${coin.data.symbol})</h3>
+        <p style="color:${priceColor}">Price: $${coin.data.price}</p>
+        <p>${coin.data.description || "No description available."}</p>
       `;
 
-      // Navigate to coin page on click
       div.addEventListener("click", () => {
         window.location.href = `coin.html?coin=${coin.id}`;
       });
 
       marketList.appendChild(div);
-    });
+    }
   });
 });

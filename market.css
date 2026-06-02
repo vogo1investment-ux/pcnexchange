@@ -1,65 +1,64 @@
-body{
-  margin:0;
-  padding:20px;
-  font-family:sans-serif;
-  background:#000;
-  color:#fff;
+body {
+  background: #000;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
 }
 
-.page-title{
-  text-align:center;
-  font-size:2rem;
-  color:#0f0;
-  margin-bottom:20px;
+.page-title {
+  text-align: center;
+  color: #0f0;
+  font-size: 2rem;
+  margin-bottom: 20px;
 }
 
-#marketList{
-  display:grid;
+#marketList {
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap:16px;
+  gap: 16px;
 }
 
-.market-card{
-  background:#111;
-  border:1px solid #222;
-  border-radius:12px;
-  padding:16px;
-  cursor:pointer;
+.market-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
   transition: transform 0.2s, background 0.2s;
 }
 
-.market-card:hover{
-  background:#222;
-  transform:translateY(-2px);
+.market-card:hover {
+  background: #222;
+  transform: translateY(-2px);
 }
 
-.market-card h3{
-  color:#0f0;
-  margin:8px 0;
+.market-card h3 {
+  color: #0f0;
+  margin: 8px 0;
+  font-size: 1.2rem;
 }
 
-.market-card p{
-  font-size:0.95rem;
-  margin:4px 0;
+.market-card p {
+  font-size: 0.95rem;
+  margin: 4px 0;
 }
 
-.coin-icon{
-  width:36px;
-  height:36px;
-  vertical-align:middle;
+.coin-icon {
+  width: 36px;
+  height: 36px;
+  vertical-align: middle;
+  margin-right: 8px;
 }
 
-/* Responsive for mobile */
-@media screen and (max-width:768px){
-  .market-card{padding:12px;}
-  .market-card h3{font-size:1.2rem;}
-  .market-card p{font-size:0.9rem;}
-  .coin-icon{width:28px;height:28px;}
+@media screen and (max-width: 768px) {
+  .market-card h3 { font-size: 1.1rem; }
+  .market-card p { font-size: 0.9rem; }
+  .coin-icon { width: 28px; height: 28px; }
 }
 
-@media screen and (max-width:480px){
-  .market-card{padding:10px;}
-  .market-card h3{font-size:1rem;}
-  .market-card p{font-size:0.85rem;}
-  .coin-icon{width:24px;height:24px;}
+@media screen and (max-width: 480px) {
+  .market-card h3 { font-size: 1rem; }
+  .market-card p { font-size: 0.85rem; }
+  .coin-icon { width: 24px; height: 24px; }
 }
