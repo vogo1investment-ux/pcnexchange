@@ -6,23 +6,21 @@
 <title>Trade</title>
 <link rel="stylesheet" href="trade.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 </head>
 <body>
 
 <div class="trade-container">
   <h1>Trade</h1>
 
-  <!-- User Balance & Coin Select -->
   <div class="trade-top">
     <label for="coinSelect">Select Coin:</label>
     <select id="coinSelect"></select>
     <p>Available Balance: <span id="coinBalance">0.00000000</span></p>
   </div>
 
-  <!-- Candlestick chart -->
   <canvas id="tradeChart" height="300"></canvas>
 
-  <!-- Trade Inputs -->
   <div class="trade-inputs">
     <label>Amount to Trade:</label>
     <input type="number" step="0.00000001" id="tradeAmount" value="0.00000000">
@@ -39,7 +37,6 @@
     <button id="sellBtn" class="sell">SELL</button>
   </div>
 
-  <!-- Trade History -->
   <h2>Trade History</h2>
   <div id="tradeHistory">Loading...</div>
 </div>
