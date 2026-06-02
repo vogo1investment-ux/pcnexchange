@@ -32,7 +32,7 @@ onAuthStateChanged(auth, async (user) => {
   const uid = user.uid;
   const userRef = doc(db, "users", uid);
 
-  // ----------------- USER INFO -----------------
+  // -------- USER INFO --------
   onSnapshot(userRef, async (snap) => {
     if (!snap.exists()) return;
 
@@ -48,7 +48,7 @@ onAuthStateChanged(auth, async (user) => {
     referredCountEl.innerText = referredSnap.size;
   });
 
-  // ----------------- USER COINS -----------------
+  // -------- USER COINS --------
   const coinsRef = collection(db, "users", uid, "coins");
 
   onSnapshot(coinsRef, (snapshot) => {
@@ -60,8 +60,10 @@ onAuthStateChanged(auth, async (user) => {
 
     snapshot.forEach((docSnap) => {
       const coin = docSnap.data();
-      const name = coin.name || coin.coinName || "Unnamed Coin";
-      const symbol = coin.symbol || "";
+
+      // Fix: use correct field names from your Firestore
+      const name = coin.name || coin.coinName || coin.coin || "Unnamed Coin";
+      const symbol = coin.symbol || coin.symbolName || "";
       const balance = parseFloat(coin.balance || 0).toFixed(8);
 
       const div = document.createElement("div");
