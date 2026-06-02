@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -18,7 +18,7 @@ const auth = getAuth(app);
 
 const marketList = document.getElementById("marketList");
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
@@ -26,34 +26,44 @@ onAuthStateChanged(auth, user => {
 
   const coinsRef = collection(db, "coins");
 
-  onSnapshot(coinsRef, snapshot => {
+  onSnapshot(coinsRef, async (snapshot) => {
     if (snapshot.empty) {
       marketList.innerHTML = "<p>No coins available.</p>";
       return;
     }
 
-    let coinsArray = [];
-    snapshot.forEach(doc => coinsArray.push({ id: doc.id, data: doc.data() }));
-
-    // BTC first
-    coinsArray.sort((a, b) => {
-      if (a.data.symbol === "BTC") return -1;
-      if (b.data.symbol === "BTC") return 1;
-      return 0;
-    });
-
     marketList.innerHTML = "";
 
-    coinsArray.forEach(coin => {
+    snapshot.forEach(async (docSnap) => {
+      const coin = docSnap.data();
+      coin.id = docSnap.id;
+
+      // Fetch lastPrice from Firestore if exists
+      const coinRef = doc(db, "coins", coin.id);
+      const coinDocSnap = await getDoc(coinRef);
+      const lastPrice = coinDocSnap.exists() && coinDocSnap.data().lastPrice !== undefined
+        ? coinDocSnap.data().lastPrice
+        : coin.price;
+
+      // Determine price indicator color
+      let priceColor = "blue";
+      if (coin.price > lastPrice) priceColor = "green";
+      else if (coin.price < lastPrice) priceColor = "red";
+
+      // Update lastPrice in Firestore for next comparison
+      await setDoc(coinRef, { lastPrice: coin.price }, { merge: true });
+
+      // Create coin card
       const div = document.createElement("div");
       div.className = "market-card";
       div.innerHTML = `
-        <img src="${coin.data.iconUrl || 'default-coin.png'}" class="coin-icon" alt="${coin.data.symbol}">
-        <h3>${coin.data.name} (${coin.data.symbol})</h3>
-        <p>${coin.data.description || "No description available."}</p>
-        <p>Price: $${coin.data.price ?? 0}</p>
+        <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon">
+        <h3>${coin.name} (${coin.symbol})</h3>
+        <p style="color:${priceColor}">Price: $${coin.price}</p>
+        <p>${coin.description || "No description available."}</p>
       `;
 
+      // Navigate to coin page on click
       div.addEventListener("click", () => {
         window.location.href = `coin.html?coin=${coin.id}`;
       });
