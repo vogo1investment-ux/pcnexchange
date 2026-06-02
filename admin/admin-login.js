@@ -1,15 +1,9 @@
-// admin-login.js
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
+import { 
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, 
+  setPersistence, browserLocalPersistence, browserSessionPersistence 
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,33 +14,24 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Remember Me Checkbox
-let rememberMe = true; // Default true; admin stays logged in
+// Real Admin UID
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// Apply persistence
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("Persistence set to local (Remember Me active)");
-  })
-  .catch((error) => {
-    console.error("Error setting persistence:", error);
-  });
-
-// Check if admin is already logged in
+// Redirect if already logged in
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if (user && user.uid === ADMIN_UID) {
     window.location.href = "admin-dashboard.html";
   }
 });
 
-// Login button event
+// Login button
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
+  const rememberMe = document.getElementById("rememberMe").checked;
 
   if (!email || !password) {
     alert("Please enter both email and password");
@@ -54,11 +39,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   }
 
   try {
+    await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Optional: restrict access to your admin UID
-    const ADMIN_UID = "YOUR_ADMIN_UID"; // Replace with your actual admin UID
     if (user.uid !== ADMIN_UID) {
       alert("Access denied: Not an admin");
       await auth.signOut();
