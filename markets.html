@@ -3,32 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Exchange Market</title>
-<style>
-body { background:#000; color:#fff; font-family:sans-serif; margin:0; padding:20px;}
-.market-container { padding:20px; }
-.coin-card { 
-  background:#111; 
-  color:#fff; 
-  padding:15px; 
-  border-radius:12px; 
-  margin-bottom:10px; 
-  cursor:pointer; 
-}
-.coin-card:hover { background:#222; }
-.coin-name { font-weight:bold; font-size:1.1rem; }
-.coin-description { color:#0f0; font-size:0.85rem; margin-top:5px; }
-.coin-price { font-weight:bold; font-size:1rem; margin-top:5px; }
-#cryptoMarketHeader { font-size:1.5rem; font-weight:bold; color:#0f0; margin-bottom:15px; }
-</style>
+<title>Crypto Market</title>
+<link rel="stylesheet" href="market.css">
 </head>
 <body>
 
-<div class="market-container">
-  <!-- Replaces admin password section -->
-  <div id="cryptoMarketHeader">Crypto Market</div>
-  
-  <div id="marketCoins"></div>
+<h1 class="page-title">Crypto Market</h1>
+
+<div id="marketList">Loading coins...</div>
+
+<!-- Modal for coin details -->
+<div id="coinModal" class="modal hidden">
+  <div class="modal-content">
+    <span id="closeModal" class="close">&times;</span>
+    <div id="coinDetails"></div>
+  </div>
 </div>
 
 <script type="module" src="market.js"></script>

@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -14,52 +15,65 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const marketContainer = document.getElementById("marketCoins");
-const coinsRoot = collection(db, "coins");
-const previousPrices = {};
+const marketList = document.getElementById("marketList");
+const modal = document.getElementById("coinModal");
+const coinDetails = document.getElementById("coinDetails");
+const closeModal = document.getElementById("closeModal");
 
-async function loadAllCoins() {
-  marketContainer.innerHTML = "";
-
-  const coinDocs = await getDocs(coinsRoot);
-  if(coinDocs.empty){
-    marketContainer.innerHTML = "<p style='color:#f00;'>No coins found in Firebase.</p>";
+onAuthStateChanged(auth, user => {
+  if(!user) {
+    window.location.href = "index.html";
     return;
   }
 
-  for(const coinParentDoc of coinDocs.docs){
-    const coinId = coinParentDoc.id;
-    const subCollectionRef = collection(db, "coins", coinId);
-    const coinSnapshot = await getDocs(subCollectionRef);
+  const coinsRef = collection(db, "coins");
 
-    coinSnapshot.forEach(docSnap => {
-      const coin = docSnap.data();
+  onSnapshot(coinsRef, snapshot => {
+    if(snapshot.empty){
+      marketList.innerHTML = "<p>No coins available.</p>";
+      return;
+    }
 
-      let priceColor = "#0f0";
-      if(previousPrices[coin.symbol] !== undefined){
-        if(coin.price > previousPrices[coin.symbol]) priceColor = "#00f";
-        else if(coin.price < previousPrices[coin.symbol]) priceColor = "#f00";
-      }
-      previousPrices[coin.symbol] = coin.price;
+    let coinsArray = [];
+    snapshot.forEach(doc => coinsArray.push(doc.data()));
 
-      const card = document.createElement("div");
-      card.className = "coin-card";
-      card.innerHTML = `
-        <div class="coin-name">${coin.name} (${coin.symbol})</div>
-        <div class="coin-description">${coin.description}</div>
-        <div class="coin-price" style="color:${priceColor}">$${coin.price}</div>
+    // BTC first
+    coinsArray.sort((a,b)=>{
+      if(a.symbol==="BTC") return -1;
+      if(b.symbol==="BTC") return 1;
+      return 0;
+    });
+
+    marketList.innerHTML = "";
+
+    coinsArray.forEach(coin => {
+      const div = document.createElement("div");
+      div.className = "market-card";
+      div.innerHTML = `
+        <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon" alt="${coin.symbol}">
+        <h3>${coin.name} (${coin.symbol})</h3>
+        <p>${coin.description || "No description available."}</p>
+        <p>Price: $${coin.price ?? 0}</p>
       `;
 
-      card.addEventListener("click", () => {
-        window.location.href = `coin.html?symbol=${coin.symbol}`;
+      div.addEventListener("click", ()=>{
+        coinDetails.innerHTML = `
+          <h2>${coin.name} (${coin.symbol})</h2>
+          <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon-large">
+          <p>${coin.description || "No description"}</p>
+          <p>Price: $${coin.price ?? 0}</p>
+          <button id="buyBtn">Buy / Swap</button>
+        `;
+        modal.classList.remove("hidden");
       });
 
-      marketContainer.appendChild(card);
+      marketList.appendChild(div);
     });
-  }
-}
+  });
+});
 
-// Initial load + refresh every 10s
-loadAllCoins();
-setInterval(loadAllCoins, 10000);
+closeModal.addEventListener("click", ()=>{
+  modal.classList.add("hidden");
+});
