@@ -1,0 +1,74 @@
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: sans-serif;
+  background: #000;
+  color: #fff;
+}
+
+.page-title {
+  color: #0f0;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 2rem;
+}
+
+/* Coin cards */
+.coin-card {
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.coin-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.coin-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.coin-name {
+  color: #0f0;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.coin-balance,
+.coin-price,
+.coin-desc {
+  font-size: 1rem;
+  margin: 2px 0;
+}
+
+.price-up {
+  color: #0f0;
+  font-weight: bold;
+}
+
+.price-down {
+  color: #f00;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .coin-card { padding: 12px; }
+  .coin-name { font-size: 1.2rem; }
+  .coin-balance, .coin-price, .coin-desc { font-size: 0.95rem; }
+  .coin-icon { width: 28px; height: 28px; }
+}
+
+@media screen and (max-width: 480px) {
+  .coin-name { font-size: 1rem; }
+  .coin-balance, .coin-price, .coin-desc { font-size: 0.9rem; }
+  .coin-icon { width: 24px; height: 24px; }
+}

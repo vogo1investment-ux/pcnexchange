@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// -------------------- FIREBASE CONFIG --------------------
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -19,14 +19,12 @@ const auth = getAuth(app);
 
 const assetsList = document.getElementById("assetsList");
 
-// Ensure the user is logged in
 onAuthStateChanged(auth, user => {
   if(!user){
     window.location.href = "index.html";
     return;
   }
 
-  // Listen to top-level coins collection
   const coinsRef = collection(db, "coins");
 
   onSnapshot(coinsRef, snapshot => {
@@ -35,21 +33,34 @@ onAuthStateChanged(auth, user => {
       return;
     }
 
-    assetsList.innerHTML = ""; // Clear loading text
+    let coinsArray = [];
+    snapshot.forEach(doc => coinsArray.push(doc.data()));
 
-    snapshot.forEach(doc => {
-      const coin = doc.data();
+    // Sort BTC first
+    coinsArray.sort((a,b)=>{
+      if(a.symbol==="BTC") return -1;
+      if(b.symbol==="BTC") return 1;
+      return 0;
+    });
+
+    assetsList.innerHTML = "";
+
+    coinsArray.forEach(coin => {
+      const priceChange = (coin.price && coin.prevPrice) ? coin.price - coin.prevPrice : 0;
+      const changeClass = priceChange >= 0 ? "price-up" : "price-down";
 
       const div = document.createElement("div");
-      div.className = "bg-zinc-800 p-4 rounded mb-2";
+      div.className = "coin-card";
 
       div.innerHTML = `
-        <h3 style="color:#0f0;">${coin.name || doc.id} (${coin.symbol || ""})</h3>
-        <p>Balance: ${coin.balance ?? 0}</p>
-        <p>Price: ${coin.price ?? 0}</p>
-        <p>Description: ${coin.description || "No description"}</p>
+        <div class="coin-header">
+          <img src="${coin.iconUrl || 'default-coin.png'}" class="coin-icon" alt="${coin.symbol}">
+          <h3 class="coin-name">${coin.name} (${coin.symbol})</h3>
+        </div>
+        <p class="coin-balance">Balance: ${coin.balance ?? 0}</p>
+        <p class="coin-price">Price: $${coin.price ?? 0} <span class="${changeClass}">${priceChange >=0 ? "+" : ""}${priceChange.toFixed(2)}</span></p>
+        <p class="coin-desc">Description: ${coin.description || "No description"}</p>
       `;
-
       assetsList.appendChild(div);
     });
   });
