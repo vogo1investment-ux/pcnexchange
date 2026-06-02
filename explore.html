@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-6">
+
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Platform Explorer</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="exploreList"></div>
+
+<script type="module">
+// Example platform explorer data
+const platforms = [
+  {
+    name: "PayPal",
+    type: "Payment",
+    description: "Secure online payments and money transfer service.",
+    url: "https://www.paypal.com"
+  },
+  {
+    name: "Cash App",
+    type: "Payment",
+    description: "Mobile payment service for sending and receiving money.",
+    url: "https://cash.app/"
+  },
+  {
+    name: "Wise",
+    type: "Payment",
+    description: "International money transfer and global payments.",
+    url: "https://wise.com/"
+  },
+  {
+    name: "MetaMask",
+    type: "Crypto Wallet",
+    description: "Ethereum and other blockchain wallet for decentralized apps.",
+    url: "https://metamask.io/"
+  },
+  {
+    name: "Trust Wallet",
+    type: "Crypto Wallet",
+    description: "Secure cryptocurrency wallet supporting many coins and tokens.",
+    url: "https://trustwallet.com/"
+  },
+  {
+    name: "Binance",
+    type: "Exchange",
+    description: "Global cryptocurrency exchange platform for trading coins.",
+    url: "https://www.binance.com/"
+  },
+  {
+    name: "CoinMarketCap",
+    type: "Market Tracker",
+    description: "Track crypto prices, volumes, market cap, and trends.",
+    url: "https://coinmarketcap.com/"
+  }
+];
+
+// Load platforms into the explorer
+const exploreList = document.getElementById("exploreList");
+
+platforms.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "bg-zinc-800 p-4 rounded hover:bg-zinc-700 transition cursor-pointer";
+  div.innerHTML = `
+    <h2 class="text-xl font-bold">${p.name}</h2>
+    <p class="text-sm text-zinc-400">${p.type}</p>
+    <p class="mt-2">${p.description}</p>
+    <button class="mt-4 bg-emerald-400 text-black px-3 py-1 rounded visit-btn">Visit</button>
+  `;
+
+  div.querySelector(".visit-btn").addEventListener("click", ()=>{
+    window.open(p.url, "_blank");
+  });
+
+  exploreList.appendChild(div);
+});
+</script>
+
+</body>
+</html>
