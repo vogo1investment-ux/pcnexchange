@@ -1,71 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Crypto Assets</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Crypto Assets</title>
+
+<style>
+body{
+background:#000;
+color:white;
+font-family:sans-serif;
+padding:20px;
+}
+
+h1{
+color:#00ff88;
+}
+
+.coin{
+background:#111;
+padding:15px;
+margin-bottom:10px;
+border-radius:10px;
+border:1px solid #222;
+}
+</style>
 </head>
-<body class="bg-black text-white p-6">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">My Crypto Assets</h1>
+<body>
 
-<div id="assetsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  Loading your crypto assets...
+<h1>My Crypto Assets</h1>
+
+<div id="assetsList">
+Loading assets...
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    alert("Please login first!");
-    window.location.href = "index.html";
-    return;
-  }
-
-  const assetsList = document.getElementById("assetsList");
-  assetsList.innerHTML = "Loading your crypto assets...";
-
-  // Listen to user's coins subcollection
-  const userCoinsCol = collection(db, "users", user.uid, "coins");
-  onSnapshot(userCoinsCol, snap => {
-    assetsList.innerHTML = ""; // clear previous
-    if (snap.empty) {
-      assetsList.innerHTML = "You don't have any coins yet.";
-      return;
-    }
-
-    snap.forEach(c => {
-      const coin = c.data();
-      const div = document.createElement("div");
-      div.className = "bg-zinc-800 p-4 rounded hover:bg-zinc-700 transition";
-      div.innerHTML = `
-        <h2 class="text-xl font-bold">${coin.coinName} (${coin.symbol})</h2>
-        <p>Balance: ${coin.balance || 0}</p>
-      `;
-      assetsList.appendChild(div);
-    });
-  });
-});
-</script>
+<script type="module" src="assets.js"></script>
 
 </body>
 </html>
