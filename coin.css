@@ -1,0 +1,117 @@
+body{
+  background:#000;
+  color:#fff;
+  font-family:sans-serif;
+  margin:0;
+  padding:20px;
+}
+
+.back-btn{
+  background:#0f0;
+  color:#000;
+  padding:8px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  margin-bottom:12px;
+}
+
+.back-btn:hover{opacity:0.9;}
+
+.coin-container{
+  max-width:500px;
+  margin:auto;
+  background:#111;
+  border:1px solid #222;
+  border-radius:12px;
+  padding:16px;
+}
+
+.coin-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.coin-icon-large{
+  width:60px;
+  height:60px;
+}
+
+.coin-name{
+  color:#0f0;
+  font-size:1.6rem;
+}
+
+.coin-desc{
+  margin:12px 0;
+}
+
+/* Buttons */
+.coin-actions{
+  display:flex;
+  justify-content:space-around;
+  margin-top:16px;
+}
+
+.coin-actions button{
+  background:#0f0;
+  color:#000;
+  border:none;
+  border-radius:8px;
+  padding:10px 16px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.coin-actions button:hover{
+  opacity:0.9;
+}
+
+/* Buy modal */
+.modal{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.8);
+  display:flex; justify-content:center; align-items:center;
+  z-index:100;
+}
+
+.modal.hidden{
+  display:none;
+}
+
+.modal-content{
+  background:#111;
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+  max-width:400px;
+  position:relative;
+}
+
+.close{
+  position:absolute;
+  top:10px;
+  right:16px;
+  cursor:pointer;
+  font-size:1.5rem;
+  color:#0f0;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  margin:8px 0;
+  border-radius:6px;
+  border:1px solid #333;
+  background:#222;
+  color:#fff;
+}
+
+button#confirmBuyBtn{
+  width:100%;
+  margin-top:10px;
+}

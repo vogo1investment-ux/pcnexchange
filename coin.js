@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -17,51 +17,96 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Get coin symbol from URL
-const urlParams = new URLSearchParams(window.location.search);
-const coinSymbol = urlParams.get("symbol");
-
+// Elements
 const coinNameEl = document.getElementById("coinName");
-const coinDescEl = document.getElementById("coinDescription");
+const coinIconEl = document.getElementById("coinIcon");
+const coinDescEl = document.getElementById("coinDesc");
 const coinPriceEl = document.getElementById("coinPrice");
-const coinMarketCapEl = document.getElementById("coinMarketCap");
-const coinVolumeEl = document.getElementById("coinVolume");
-const coinSupplyEl = document.getElementById("coinSupply");
-const coinChangeEl = document.getElementById("coinChange");
-const userCoinBalanceEl = document.getElementById("userCoinBalance");
+const coinBalanceEl = document.getElementById("coinBalance");
+const sendBtn = document.getElementById("sendBtn");
+const receiveBtn = document.getElementById("receiveBtn");
+const buyBtn = document.getElementById("buyBtn");
+const backBtn = document.getElementById("backBtn");
 
-// Load coin details
-async function loadCoin() {
-  // coins/ADA/ADA document path
-  const coinDoc = doc(db, "coins", coinSymbol, coinSymbol);
-  const snapshot = await getDoc(coinDoc);
+// Buy modal elements
+const buyModal = document.getElementById("buyModal");
+const closeBuyModal = document.getElementById("closeBuyModal");
+const buyCoinName = document.getElementById("buyCoinName");
+const buyAmount = document.getElementById("buyAmount");
+const buyPassword = document.getElementById("buyPassword");
+const confirmBuyBtn = document.getElementById("confirmBuyBtn");
 
-  if(snapshot.exists()){
-    const coin = snapshot.data();
-    coinNameEl.innerText = `${coin.name} (${coin.symbol})`;
-    coinDescEl.innerText = coin.description;
-    coinPriceEl.innerText = coin.price;
-    coinMarketCapEl.innerText = coin.marketCap || "N/A";
-    coinVolumeEl.innerText = coin.volume24h || "N/A";
-    coinSupplyEl.innerText = coin.supply || "N/A";
-    coinChangeEl.innerText = coin.change24h || "0%";
-  } else {
-    coinNameEl.innerText = "Coin not found!";
+let coinId = new URLSearchParams(window.location.search).get("coin"); // e.g., BTC
+let userId = null;
+
+// Ensure logged-in
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href = "index.html";
+    return;
+  }
+  userId = user.uid;
+  loadCoinData();
+});
+
+// Load coin and user balance
+async function loadCoinData(){
+  const coinRef = doc(db,"coins",coinId);
+  const coinSnap = await getDoc(coinRef);
+  if(!coinSnap.exists()){
+    alert("Coin not found!");
+    return;
+  }
+  const coinData = coinSnap.data();
+  coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
+  coinIconEl.src = coinData.iconUrl || "default-coin.png";
+  coinDescEl.innerText = coinData.description || "No description available.";
+  coinPriceEl.innerText = coinData.price ?? 0;
+
+  // Load user coin balance
+  const userCoinRef = doc(db,"users",userId,"coins",coinId);
+  const userCoinSnap = await getDoc(userCoinRef);
+  if(userCoinSnap.exists()){
+    coinBalanceEl.innerText = parseFloat(userCoinSnap.data().balance).toFixed(8);
+  }else{
+    coinBalanceEl.innerText = "0.00000001";
   }
 }
 
-// Load user coin balance
-onAuthStateChanged(auth, async (user)=>{
-  if(!user) return;
+// Button actions
+sendBtn.addEventListener("click", ()=> window.location.href="transfer.html");
+receiveBtn.addEventListener("click", ()=> window.location.href="receive.html");
+backBtn.addEventListener("click", ()=> window.location.href="market.html");
 
-  const userCoinDoc = doc(db, "users", user.uid, "coins", coinSymbol);
-  const userSnapshot = await getDoc(userCoinDoc);
-  if(userSnapshot.exists()){
-    const coinData = userSnapshot.data();
-    userCoinBalanceEl.innerText = coinData.balance || 0;
-  } else {
-    userCoinBalanceEl.innerText = 0;
-  }
+// Buy button
+buyBtn.addEventListener("click", ()=>{
+  buyCoinName.innerText = coinNameEl.innerText;
+  buyAmount.value = "";
+  buyPassword.value = "";
+  buyModal.classList.remove("hidden");
 });
 
-loadCoin();
+closeBuyModal.addEventListener("click", ()=> buyModal.classList.add("hidden"));
+
+confirmBuyBtn.addEventListener("click", async ()=>{
+  const amount = parseFloat(buyAmount.value);
+  const password = buyPassword.value;
+  if(!amount || amount <=0 || !password){
+    alert("Enter amount and password!");
+    return;
+  }
+
+  // Push pending transaction to Firestore
+  const pendingRef = doc(collection(db,"pendingTransactions"));
+  await setDoc(pendingRef,{
+    coinId: coinId,
+    userId: userId,
+    amount: parseFloat(amount.toFixed(8)),
+    price: parseFloat(coinPriceEl.innerText),
+    status: "pending",
+    createdAt: new Date(),
+  });
+
+  alert("Purchase request submitted! Admin will approve.");
+  buyModal.classList.add("hidden");
+});
