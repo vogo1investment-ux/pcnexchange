@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// -------------------- FIREBASE CONFIG --------------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -18,13 +19,14 @@ const auth = getAuth(app);
 
 const assetsList = document.getElementById("assetsList");
 
+// Ensure the user is logged in
 onAuthStateChanged(auth, user => {
   if (!user) {
     window.location.href = "index.html";
     return;
   }
 
-  // Listen to the main coins collection
+  // Fetch all coins from top-level collection "coins"
   const coinsRef = collection(db, "coins");
 
   onSnapshot(coinsRef, snapshot => {
@@ -33,14 +35,14 @@ onAuthStateChanged(auth, user => {
       return;
     }
 
-    assetsList.innerHTML = ""; // Clear previous
+    assetsList.innerHTML = ""; // Clear placeholder
 
     snapshot.forEach(doc => {
       const coin = doc.data();
       const div = document.createElement("div");
       div.className = "bg-zinc-800 p-4 rounded mb-2";
       div.innerHTML = `
-        <h3>${coin.name} (${coin.symbol})</h3>
+        <h3 style="color:#0f0;">${coin.name} (${coin.symbol})</h3>
         <p>Balance: ${coin.balance || 0}</p>
         <p>Price: ${coin.price || 0}</p>
         <p>Description: ${coin.description || "No description"}</p>
