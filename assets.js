@@ -1,60 +1,51 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-getFirestore,
-collection,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth,(user)=>{
+const assetsList = document.getElementById("assetsList");
 
-if(!user){
-window.location="index.html";
-return;
-}
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
 
-const coinsRef = collection(db,"users",user.uid,"coins");
+  // Listen to the main coins collection
+  const coinsRef = collection(db, "coins");
 
-onSnapshot(coinsRef,(snapshot)=>{
+  onSnapshot(coinsRef, snapshot => {
+    if (snapshot.empty) {
+      assetsList.innerHTML = "<p>No coins found.</p>";
+      return;
+    }
 
-let html="";
+    assetsList.innerHTML = ""; // Clear previous
 
-if(snapshot.empty){
-html="<p>No crypto assets found.</p>";
-}
-
-snapshot.forEach((doc)=>{
-
-const coin=doc.data();
-
-html+=`
-<div class="coin">
-<h3>${coin.name || doc.id}</h3>
-<p>Balance: ${coin.balance || 0}</p>
-</div>
-`;
-
-});
-
-document.getElementById("assetsList").innerHTML=html;
-
-});
-
+    snapshot.forEach(doc => {
+      const coin = doc.data();
+      const div = document.createElement("div");
+      div.className = "bg-zinc-800 p-4 rounded mb-2";
+      div.innerHTML = `
+        <h3>${coin.name} (${coin.symbol})</h3>
+        <p>Balance: ${coin.balance || 0}</p>
+        <p>Price: ${coin.price || 0}</p>
+        <p>Description: ${coin.description || "No description"}</p>
+      `;
+      assetsList.appendChild(div);
+    });
+  });
 });
