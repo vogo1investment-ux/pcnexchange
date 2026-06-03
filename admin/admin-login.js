@@ -12,31 +12,40 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// Replace with your admin UID
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// Redirect if already logged in
+const loginBtn = document.getElementById("loginBtn");
+const errorMsg = document.getElementById("errorMsg");
+
+// Keep admin logged in
 onAuthStateChanged(auth, user => {
   if (user && user.uid === ADMIN_UID) {
-    window.location.href = "admin-dashboard-full.html";
+    window.location.href = "/admin-dashboard-full.html"; // Correct path to your admin dashboard
   }
 });
 
-document.getElementById("loginBtn").onclick = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+loginBtn.onclick = async () => {
+  errorMsg.innerText = "";
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
 
-  if(!email || !password){ alert("Enter email and password"); return; }
+  if (!email || !password) {
+    errorMsg.innerText = "Please enter email and password.";
+    return;
+  }
 
-  try{
+  try {
     await setPersistence(auth, browserLocalPersistence);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if(userCredential.user.uid !== ADMIN_UID){
-      alert("Access denied: Not an admin");
+    if (userCredential.user.uid !== ADMIN_UID) {
+      errorMsg.innerText = "Access Denied: You are not an admin.";
       return;
     }
-    window.location.href = "admin-dashboard-full.html";
-  }catch(e){
-    alert("Login failed: " + e.message);
+    window.location.href = "/admin-dashboard-full.html";
+  } catch (e) {
+    errorMsg.innerText = "Login Failed: " + e.message;
     console.error(e);
   }
 };

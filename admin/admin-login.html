@@ -5,93 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Login</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-<style>
-body { background: #000; color: #fff; font-family: sans-serif; }
-.container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.login-box { background: #1f1f1f; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; }
-.login-box h1 { font-size: 28px; color: #00ff88; font-weight: bold; text-align: center; margin-bottom: 30px; }
-.login-box input { width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff; }
-.login-box label { display: flex; align-items: center; margin-bottom: 15px; }
-.login-box input[type="checkbox"] { margin-right: 8px; }
-.login-box button { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
-.login-btn { background: #00ff88; color: #000; }
-.login-btn:hover { background: #00cc66; }
-</style>
 </head>
-<body>
 
-<div class="container">
-  <div class="login-box">
-    <h1>ADMIN LOGIN</h1>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <div class="flex items-center mb-4">
-      <input type="checkbox" id="rememberMe" checked>
-      <label for="rememberMe">Remember Me</label>
-    </div>
-    <button id="loginBtn" class="login-btn">LOGIN</button>
-  </div>
+<body class="bg-black text-white flex items-center justify-center min-h-screen">
+
+<div class="bg-zinc-900 p-8 rounded-2xl w-full max-w-md">
+  <h1 class="text-2xl font-bold text-emerald-400 mb-6">ADMIN LOGIN</h1>
+
+  <input id="email" type="email" placeholder="Email"
+    class="w-full p-4 mb-4 bg-black border border-zinc-700 rounded-xl">
+
+  <input id="password" type="password" placeholder="Password"
+    class="w-full p-4 mb-6 bg-black border border-zinc-700 rounded-xl">
+
+  <button id="loginBtn"
+    class="w-full bg-emerald-400 text-black font-bold p-4 rounded-xl mb-2">
+    LOGIN
+  </button>
+
+  <p id="errorMsg" class="text-red-500 mt-2"></p>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { 
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged, 
-  setPersistence, browserLocalPersistence, browserSessionPersistence 
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-
-// Redirect if already logged in
-onAuthStateChanged(auth, (user) => {
-  if (user && user.uid === ADMIN_UID) {
-    window.location.href = "admin-dashboard.html";
-  }
-});
-
-// Login button
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const rememberMe = document.getElementById("rememberMe").checked;
-
-  if (!email || !password) { alert("Enter both email and password"); return; }
-
-  try {
-    await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    if (user.uid !== ADMIN_UID) {
-      alert("Access denied: Not an admin");
-      await auth.signOut();
-      return;
-    }
-
-    alert("Login successful!");
-    window.location.href = "admin-dashboard.html";
-
-  } catch (error) {
-    console.error(error);
-    alert("Login failed: " + error.message);
-  }
-});
-</script>
-
+<script type="module" src="admin-login.js"></script>
 </body>
 </html>
