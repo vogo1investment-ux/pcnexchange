@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body class="bg-black text-white flex">
+
+<aside class="sidebar">
+  <h2 class="text-emerald-400 font-bold text-2xl mb-6">PCN ADMIN</h2>
+  <nav class="flex flex-col gap-2">
+    <button class="sidebar-btn" data-section="dashboard">Dashboard</button>
+    <button class="sidebar-btn" data-section="users">Users</button>
+    <button class="sidebar-btn" data-section="kyc">KYC</button>
+    <button class="sidebar-btn" data-section="deposits">Deposits</button>
+    <button class="sidebar-btn" data-section="withdrawals">Withdrawals</button>
+    <button class="sidebar-btn" data-section="crypto-assets">Crypto Assets</button>
+    <button class="sidebar-btn" data-section="trades">Trades</button>
+    <button class="sidebar-btn" data-section="notifications">Notifications</button>
+    <button class="sidebar-btn text-red-500" id="logoutBtn">Logout</button>
+  </nav>
+</aside>
+
+<main class="flex-1 p-6 overflow-y-auto">
+  <div id="dashboard-section" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="stat-card bg-zinc-800 p-4 rounded-xl">
+      <p>Total Users</p>
+      <h2 id="totalUsers">0</h2>
+    </div>
+    <div class="stat-card bg-zinc-800 p-4 rounded-xl">
+      <p>Total Deposits</p>
+      <h2 id="totalDeposits">$0.00</h2>
+    </div>
+    <div class="stat-card bg-zinc-800 p-4 rounded-xl">
+      <p>Total Withdrawals</p>
+      <h2 id="totalWithdrawals">$0.00</h2>
+    </div>
+  </div>
+  <div id="section-content" class="text-gray-400 text-center py-10">
+    Select a section from the sidebar to view details.
+  </div>
+</main>
+
+<script type="module" src="admin-dashboard-full.js"></script>
+</body>
+</html>
