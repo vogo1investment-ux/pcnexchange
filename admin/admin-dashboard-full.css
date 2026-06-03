@@ -1,0 +1,26 @@
+body, html { margin:0; padding:0; font-family:sans-serif; }
+.sidebar { background:#1f1f1f; width:250px; min-height:100vh; padding:20px; display:flex; flex-direction:column; }
+.sidebar h2 { font-weight:bold; font-size:24px; color:#00ff88; margin-bottom:20px; text-align:center; }
+.sidebar-btn { background:none; border:none; color:#fff; padding:12px 10px; text-align:left; font-size:16px; cursor:pointer; margin-bottom:6px; border-radius:8px; transition:0.2s; }
+.sidebar-btn:hover { background:#111; }
+.sidebar-btn.text-red-500 { color:#ff5555; }
+.main-content { flex:1; padding:20px; overflow-y:auto; }
+.stat-card { background:#2a2a2a; padding:20px; border-radius:12px; color:#fff; font-weight:bold; text-align:center; transition:0.2s; }
+.stat-card:hover { background:#333; }
+.section-content { margin-top:20px; }
+table { width:100%; border-collapse:collapse; color:#fff; }
+th, td { border:1px solid #333; padding:10px; text-align:left; }
+th { background:#111; font-weight:bold; }
+tr:nth-child(even) { background:#222; }
+button { cursor:pointer; padding:6px 12px; border-radius:6px; border:none; font-weight:bold; }
+button.bg-emerald-400 { background:#00ff88; color:#000; }
+button.bg-emerald-400:hover { background:#00cc66; }
+button.bg-red-500 { background:#ff5555; color:#fff; }
+button.bg-red-500:hover { background:#cc4444; }
+@media(max-width:768px){
+  body{flex-direction:column;}
+  .sidebar{width:100%; min-height:auto; flex-direction:row; flex-wrap:wrap;}
+  .sidebar-btn{flex:1 1 50%; margin-bottom:0; text-align:center;}
+  .main-content{padding:10px;}
+  table, th, td{font-size:12px; padding:6px;}
+}
