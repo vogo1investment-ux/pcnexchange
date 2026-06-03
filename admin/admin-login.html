@@ -11,33 +11,35 @@ body { background: #000; color: #fff; font-family: sans-serif; }
 .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 .login-box { background: #1f1f1f; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; }
 .login-box h1 { font-size: 28px; color: #00ff88; font-weight: bold; text-align: center; margin-bottom: 30px; }
-.login-box input[type="email"],
-.login-box input[type="password"] {
-  width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff;
-}
+.login-box input { width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff; }
 .login-box label { display: flex; align-items: center; margin-bottom: 15px; }
 .login-box input[type="checkbox"] { margin-right: 8px; }
-.login-box button {
-  width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer;
-}
+.login-box button { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
 .login-btn { background: #00ff88; color: #000; }
 .login-btn:hover { background: #00cc66; }
 </style>
 </head>
 <body>
+
 <div class="container">
   <div class="login-box">
     <h1>ADMIN LOGIN</h1>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
-    <label><input type="checkbox" id="rememberMe" checked> Remember Me</label>
+    <div class="flex items-center mb-4">
+      <input type="checkbox" id="rememberMe" checked>
+      <label for="rememberMe">Remember Me</label>
+    </div>
     <button id="loginBtn" class="login-btn">LOGIN</button>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { 
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, 
+  setPersistence, browserLocalPersistence, browserSessionPersistence 
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -52,9 +54,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Check if admin is already logged in
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
+// Redirect if already logged in
 onAuthStateChanged(auth, (user) => {
-  const ADMIN_UID = "YOUR_ADMIN_UID"; // Replace with your real admin UID
   if (user && user.uid === ADMIN_UID) {
     window.location.href = "admin-dashboard.html";
   }
@@ -66,17 +69,14 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const password = document.getElementById("password").value.trim();
   const rememberMe = document.getElementById("rememberMe").checked;
 
-  if (!email || !password) {
-    alert("Enter both email and password");
-    return;
-  }
+  if (!email || !password) { alert("Enter both email and password"); return; }
 
   try {
     await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    const ADMIN_UID = "YOUR_ADMIN_UID"; // replace with your admin UID
     if (user.uid !== ADMIN_UID) {
       alert("Access denied: Not an admin");
       await auth.signOut();
@@ -92,5 +92,6 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   }
 });
 </script>
+
 </body>
 </html>
