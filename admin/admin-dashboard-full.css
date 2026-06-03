@@ -1,13 +1,90 @@
-body, html { margin:0; padding:0; font-family:sans-serif; }
-.sidebar-btn {
-  width: 100%; padding: 10px; text-align: left; font-weight: bold; 
-  background: #111; color: #00ff88; border: none; border-radius: 8px; cursor: pointer; 
+/* Body and global */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #000000;
+  color: white;
+}
+
+/* Summary cards */
+#totalUsersCard,
+#totalDepositsCard,
+#totalWithdrawalsCard,
+#pendingTradesCard,
+#pendingKycCard {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+#totalUsersCard:hover,
+#totalDepositsCard:hover,
+#totalWithdrawalsCard:hover,
+#pendingTradesCard:hover,
+#pendingKycCard:hover {
+  transform: scale(1.03);
+}
+
+/* Admin Buttons */
+.admin-btn {
+  background-color: #00ff88; /* bright green */
+  color: black;
+  font-weight: bold;
+  padding: 1.25rem;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1rem;
+  transition: background-color 0.2s, transform 0.2s;
+}
+.admin-btn:hover {
+  background-color: #00cc66;
+  transform: translateY(-2px);
+}
+
+/* Section content */
+#section-content {
+  min-height: 400px;
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+/* Inputs and buttons inside sections */
+input, textarea {
+  background-color: #222222;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+button {
+  cursor: pointer;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
   transition: 0.2s;
 }
-.sidebar-btn:hover { background: #222; }
-#section-content { min-height: 400px; color: white; }
-@media(max-width:768px){
-  aside { flex-direction: row; flex-wrap: wrap; }
-  .sidebar-btn { flex: 1 1 48%; margin: 1%; }
+
+/* Responsive grid for summary cards and buttons */
+@media (min-width: 768px) {
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
 }
-button { cursor:pointer; }
+
+/* Scroll for long lists */
+#section-content ul {
+  list-style-type: none;
+  padding: 0;
+}
+#section-content div, #section-content li {
+  margin-bottom: 0.75rem;
+}

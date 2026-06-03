@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Users</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="admin-dashboard.css">
+</head>
+<body class="bg-zinc-800 text-white p-4 min-h-screen">
+
+<h2 class="text-emerald-400 font-bold text-xl mb-4">Users Management</h2>
+
+<div id="users-summary" class="grid md:grid-cols-2 gap-4 mb-4">
+  <!-- Summary cards per user -->
+</div>
+
+<table class="w-full text-left border-collapse border border-zinc-700">
+  <thead>
+    <tr class="bg-zinc-900">
+      <th class="p-2 border border-zinc-700">Username</th>
+      <th class="p-2 border border-zinc-700">Email</th>
+      <th class="p-2 border border-zinc-700">Available Balance</th>
+      <th class="p-2 border border-zinc-700">Withdrawable Balance</th>
+      <th class="p-2 border border-zinc-700">Referral Users</th>
+      <th class="p-2 border border-zinc-700">Referral Commission</th>
+      <th class="p-2 border border-zinc-700">Actions</th>
+    </tr>
+  </thead>
+  <tbody id="users-table">
+    <!-- Users data populated via JS -->
+  </tbody>
+</table>
+
+<script type="module" src="admin-users.js"></script>
+</body>
+</html>

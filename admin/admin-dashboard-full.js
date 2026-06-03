@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -19,62 +19,70 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const sectionContent = document.getElementById("section-content");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Sidebar buttons
-document.querySelectorAll(".sidebar-btn").forEach(btn => {
-  btn.addEventListener("click", () => loadSection(btn.dataset.section));
-});
-
 // Logout
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
-  window.location.href = "/admin/admin-login.html";
+  window.location.href = "admin-login.html";
 });
 
-// Check admin auth
+// Admin auth check
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
-    window.location.href = "/admin/admin-login.html";
+    alert("Access Denied. Only admin allowed.");
+    window.location.href = "admin-login.html";
+  } else {
+    updateSummaryCards();
   }
 });
 
-// Load sections
-function loadSection(section) {
-  sectionContent.innerHTML = `<p>Loading ${section}...</p>`;
-  switch(section) {
-    case "wallet": loadWallet(); break;
-    case "trade": sectionContent.innerHTML="<p>Trade Section (Coming)</p>"; break;
-    case "markets": sectionContent.innerHTML="<p>Markets Section (Coming)</p>"; break;
-    case "transfer": sectionContent.innerHTML="<p>Transfer Section (Coming)</p>"; break;
-    case "receive": sectionContent.innerHTML="<p>Receive Section (Coming)</p>"; break;
-    case "history": sectionContent.innerHTML="<p>History Section (Coming)</p>"; break;
-    case "support": sectionContent.innerHTML="<p>Support Section (Coming)</p>"; break;
-    case "airdrop": sectionContent.innerHTML="<p>Airdrop Section (Coming)</p>"; break;
-    case "explore": sectionContent.innerHTML="<p>Explore Section (Coming)</p>"; break;
-    case "crypto-assets": loadCryptoAssets(); break;
-    default: sectionContent.innerHTML="<p>Not implemented</p>";
+// Sidebar buttons: load corresponding section HTML + JS dynamically
+document.querySelectorAll(".admin-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const section = btn.dataset.section;
+    try {
+      const htmlResponse = await fetch(`${section}.html`);
+      const html = await htmlResponse.text();
+      sectionContent.innerHTML = html;
+
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `${section}.js`;
+      document.body.appendChild(script);
+
+      // Update summary after any action
+      setTimeout(updateSummaryCards, 500);
+    } catch (err) {
+      console.error(`Failed to load ${section}:`, err);
+      sectionContent.innerHTML = `<p class="text-red-500">Failed to load ${section}</p>`;
+    }
+  });
+});
+
+// ---------------- Summary Cards ----------------
+async function updateSummaryCards() {
+  try {
+    const usersSnap = await getDocs(collection(db, "users"));
+    const totalUsers = usersSnap.size;
+
+    let totalDeposits = 0, totalWithdrawals = 0;
+    for (const docSnap of usersSnap.docs) {
+      const u = docSnap.data();
+      totalDeposits += u.availableBalance || 0;
+      totalWithdrawals += u.withdrawableBalance || 0;
+    }
+
+    const pendingTradesSnap = await getDocs(collection(db, "pendingTrades"));
+    const pendingTrades = pendingTradesSnap.size;
+
+    const pendingKycSnap = await getDocs(query(collection(db, "kyc"), where("status", "==", "Pending")));
+    const pendingKyc = pendingKycSnap.size;
+
+    document.getElementById("totalUsersCard").innerText = `Users: ${totalUsers}`;
+    document.getElementById("totalDepositsCard").innerText = `Deposits: $${totalDeposits}`;
+    document.getElementById("totalWithdrawalsCard").innerText = `Withdrawals: $${totalWithdrawals}`;
+    document.getElementById("pendingTradesCard").innerText = `Pending Trades: ${pendingTrades}`;
+    document.getElementById("pendingKycCard").innerText = `KYC Pending: ${pendingKyc}`;
+  } catch (err) {
+    console.error("Failed to update summary cards:", err);
   }
-}
-
-// Example: Load Wallet
-async function loadWallet() {
-  const usersSnap = await getDocs(collection(db, "users"));
-  let html = "<h2 class='text-emerald-400 font-bold mb-2'>Users Wallets</h2><ul>";
-  usersSnap.forEach(docSnap => {
-    const u = docSnap.data();
-    html += `<li><strong>${u.username}</strong>: $${u.availableBalance || 0}</li>`;
-  });
-  html += "</ul>";
-  sectionContent.innerHTML = html;
-}
-
-// Example: Load Crypto Assets
-async function loadCryptoAssets() {
-  const coinsSnap = await getDocs(collection(db, "coins"));
-  let html = "<h2 class='text-emerald-400 font-bold mb-2'>Crypto Assets</h2><ul>";
-  coinsSnap.forEach(docSnap => {
-    const c = docSnap.data();
-    html += `<li><strong>${c.name}</strong>: $${c.price} <br>${c.description || ""}</li>`;
-  });
-  html += "</ul>";
-  sectionContent.innerHTML = html;
 }

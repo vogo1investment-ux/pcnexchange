@@ -13,23 +13,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function loadKYC() {
-  const snap = await getDocs(collection(db, "kyc"));
+async function loadTrades() {
+  const snap = await getDocs(collection(db, "pendingTrades"));
   let html = "";
   snap.forEach(docSnap => {
-    const k = docSnap.data();
+    const t = docSnap.data();
     html += `<div class="bg-zinc-800 p-4 rounded-xl mb-2">
-      <p><strong>${k.userId}</strong> - Status: ${k.status || "Pending"}</p>
-      <button onclick="updateKYC('${docSnap.id}','Approved')" class="bg-emerald-400 p-1 rounded mr-1">Approve</button>
-      <button onclick="updateKYC('${docSnap.id}','Rejected')" class="bg-red-500 p-1 rounded">Reject</button>
+      <p>${t.userId} wants to ${t.type} ${t.amount} ${t.coin}</p>
+      <button onclick="approveTrade('${docSnap.id}','Approved')" class="bg-emerald-400 p-1 rounded mr-1">Approve</button>
+      <button onclick="approveTrade('${docSnap.id}','Rejected')" class="bg-red-500 p-1 rounded">Reject</button>
     </div>`;
   });
-  document.getElementById("kyc-list").innerHTML = html;
+  document.getElementById("trades-list").innerHTML = html;
 }
 
-window.updateKYC = async (id, status) => {
-  await updateDoc(doc(db, "kyc", id), { status });
-  loadKYC();
+window.approveTrade = async (id, status) => {
+  await updateDoc(doc(db, "pendingTrades", id), { status });
+  loadTrades();
 };
 
-loadKYC();
+loadTrades();

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-4">
+
+<h1 class="text-emerald-400 font-bold text-xl mb-4">Notifications</h1>
+
+<input id="notifyUser" placeholder="UID (leave blank for all)" class="w-full p-2 mb-2 rounded bg-zinc-800">
+<textarea id="notifyMessage" placeholder="Message" class="w-full p-2 mb-2 rounded bg-zinc-800"></textarea>
+<button id="sendNotifyBtn" class="bg-emerald-400 p-2 rounded font-bold">Send</button>
+
+<script type="module" src="notifications.js"></script>
+</body>
+</html>

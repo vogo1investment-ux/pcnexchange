@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Assets</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-4">
+
+<h1 class="text-emerald-400 font-bold text-xl mb-4">Manage Crypto Assets</h1>
+
+<div class="mb-4">
+  <input id="newCoinName" placeholder="Coin Name" class="p-2 rounded bg-zinc-800 mr-2">
+  <input id="newCoinPrice" placeholder="Price" class="p-2 rounded bg-zinc-800 mr-2">
+  <input id="newCoinDesc" placeholder="Description" class="p-2 rounded bg-zinc-800 mr-2">
+  <button id="addCoinBtn" class="bg-emerald-400 p-2 rounded font-bold">Add Coin</button>
+</div>
+
+<div id="coins-list"></div>
+
+<script type="module" src="crypto-assets.js"></script>
+</body>
+</html>
