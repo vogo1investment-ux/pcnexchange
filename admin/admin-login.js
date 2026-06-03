@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -12,17 +12,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-// Replace with your admin UID
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 const loginBtn = document.getElementById("loginBtn");
 const errorMsg = document.getElementById("errorMsg");
 
-// Keep admin logged in
+// Redirect if already logged in
 onAuthStateChanged(auth, user => {
-  if (user && user.uid === ADMIN_UID) {
-    window.location.href = "/admin-dashboard-full.html"; // Correct path to your admin dashboard
+  if(user && user.uid === ADMIN_UID){
+    window.location.href = "/admin-dashboard-full.html";
   }
 });
 
@@ -31,20 +29,20 @@ loginBtn.onclick = async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!email || !password) {
-    errorMsg.innerText = "Please enter email and password.";
+  if(!email || !password){
+    errorMsg.innerText = "Enter email and password";
     return;
   }
 
-  try {
+  try{
     await setPersistence(auth, browserLocalPersistence);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if (userCredential.user.uid !== ADMIN_UID) {
-      errorMsg.innerText = "Access Denied: You are not an admin.";
+    if(userCredential.user.uid !== ADMIN_UID){
+      errorMsg.innerText = "Access Denied: Not an admin";
       return;
     }
     window.location.href = "/admin-dashboard-full.html";
-  } catch (e) {
+  }catch(e){
     errorMsg.innerText = "Login Failed: " + e.message;
     console.error(e);
   }

@@ -1,11 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
@@ -17,127 +17,178 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const sectionContent=document.getElementById("section-content");
-const buttons=document.querySelectorAll(".sidebar-btn");
+const sectionContent = document.getElementById("section-content");
+const logoutBtn = document.getElementById("logoutBtn");
 
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth,user=>{
-  if(!user || user.uid!==ADMIN_UID) window.location.href="admin-login.html";
+// Sidebar navigation
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const section = btn.dataset.section;
+    loadSection(section);
+  });
 });
 
-// ---------------- LOGOUT ----------------
-document.getElementById("logoutBtn").onclick=async()=>{
-  await signOut(auth); window.location.href="admin-login.html";
-};
+// Logout
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "/admin-login.html";
+});
 
-// ---------------- DASHBOARD ----------------
-async function loadDashboard(){
-  const usersSnap=await getDocs(collection(db,"users"));
-  const txSnap=await getDocs(collection(db,"pendingTransactions"));
-  document.getElementById("totalUsers").innerText=usersSnap.size;
-  let deposits=0, withdrawals=0;
-  txSnap.forEach(doc=>{
-    const d=doc.data();
-    if(d.type==="deposit") deposits+=Number(d.amount||0);
-    if(d.type==="withdrawal") withdrawals+=Number(d.amount||0);
-  });
-  document.getElementById("totalDeposits").innerText=`$${deposits.toLocaleString()}`;
-  document.getElementById("totalWithdrawals").innerText=`$${withdrawals.toLocaleString()}`;
-}
-
-// ---------------- USERS / KYC ----------------
-async function loadUsers(){
-  const snap=await getDocs(collection(db,"users"));
-  let html=`<table><tr><th>Username</th><th>Email</th><th>KYC</th><th>Edit</th></tr>`;
-  snap.forEach(doc=>{
-    const data=doc.data();
-    html+=`<tr><td>${data.username}</td><td>${data.email}</td><td>${data.kycStatus||'Pending'}</td>
-      <td><button onclick="editUser('${doc.id}')">Edit</button></td></tr>`;
-  });
-  html+="</table>";
-  sectionContent.innerHTML=html;
-}
-window.editUser=async(uid)=>{
-  const ref=doc(db,"users",uid); const snap=await getDoc(ref);
-  if(!snap.exists()) return; const data=snap.data();
-  const newUsername=prompt("Username",data.username);
-  const newKYC=prompt("KYC Status",data.kycStatus||"Pending");
-  await updateDoc(ref,{username:newUsername,kycStatus:newKYC});
-  loadUsers();
-};
-
-// ---------------- NOTIFICATIONS ----------------
-async function loadNotifications(){
-  sectionContent.innerHTML=`<h3>Send Notification</h3>
-    <input id="notifUid" placeholder="User UID (blank for all)">
-    <textarea id="notifMsg" placeholder="Message"></textarea>
-    <button id="sendNotifBtn">Send</button>`;
-  document.getElementById("sendNotifBtn").onclick=async()=>{
-    const uid=document.getElementById("notifUid").value.trim();
-    const msg=document.getElementById("notifMsg").value.trim();
-    if(!msg){alert("Enter message");return;}
-    if(uid){await addDoc(collection(db,"notifications"),{userId:uid,message:msg,createdAt:Date.now()});}
-    else{await addDoc(collection(db,"notifications"),{userId:null,message:msg,createdAt:Date.now()});}
-    alert("Notification sent!"); document.getElementById("notifMsg").value=""; document.getElementById("notifUid").value="";
-  };
-}
-
-// ---------------- CRYPTO ASSETS ----------------
-async function loadCryptoAssets(){
-  const usersSnap=await getDocs(collection(db,"users"));
-  let html=`<table><tr><th>User</th><th>Coin</th><th>Balance</th><th>Edit</th></tr>`;
-  for(const u of usersSnap.docs){
-    const coinsCol=collection(db,"users",u.id,"coins");
-    const coinsSnap=await getDocs(coinsCol);
-    coinsSnap.forEach(c=>{
-      const d=c.data();
-      html+=`<tr><td>${u.data().username}</td><td>${d.name}</td><td>${d.balance}</td>
-        <td><button onclick="editCoin('${u.id}','${c.id}')">Edit</button></td></tr>`;
-    });
+// Redirect if not admin
+onAuthStateChanged(auth, user => {
+  if (!user || user.uid !== ADMIN_UID) {
+    window.location.href = "/admin-login.html";
+  } else {
+    loadDashboardStats();
   }
-  html+="</table>"; sectionContent.innerHTML=html;
-}
-window.editCoin=async(uid,coinId)=>{
-  const ref=doc(db,"users",uid,"coins",coinId);
-  const snap=await getDoc(ref);
-  if(!snap.exists()) return;
-  const data=snap.data();
-  const newBalance=prompt("Balance",data.balance||"0.00000000");
-  await updateDoc(ref,{balance:newBalance});
-  loadCryptoAssets();
-};
-
-// ---------------- TRADES ----------------
-async function loadTrades(){
-  const snap=await getDocs(collection(db,"pendingTrades"));
-  let html=`<table><tr><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>`;
-  snap.forEach(doc=>{
-    const d=doc.data();
-    html+=`<tr><td>${d.userId}</td><td>${d.type}</td><td>${d.amount}</td><td>${d.status||"Pending"}</td>
-      <td><button onclick="approveTrade('${doc.id}')">Approve</button>
-          <button onclick="rejectTrade('${doc.id}')">Reject</button></td></tr>`;
-  });
-  html+="</table>"; sectionContent.innerHTML=html;
-}
-window.approveTrade=async(tid)=>{const ref=doc(db,"pendingTrades",tid); await updateDoc(ref,{status:"Approved"}); loadTrades();}
-window.rejectTrade=async(tid)=>{const ref=doc(db,"pendingTrades",tid); await updateDoc(ref,{status:"Rejected"}); loadTrades();}
-
-// ---------------- SIDEBAR NAV ----------------
-buttons.forEach(btn=>{
-  btn.addEventListener("click",async()=>{
-    const section=btn.dataset.section;
-    sectionContent.innerHTML=`<p>Loading ${section}...</p>`;
-    switch(section){
-      case "dashboard": loadDashboard(); break;
-      case "users": loadUsers(); break;
-      case "kyc": loadUsers(); break;
-      case "crypto-assets": loadCryptoAssets(); break;
-      case "trades": loadTrades(); break;
-      case "notifications": loadNotifications(); break;
-      default: sectionContent.innerHTML=`<p>${section} not implemented yet</p>`;
-    }
-  });
 });
 
-// ---------------- INITIAL LOAD ----------------
-loadDashboard();
+// Load Dashboard Stats
+async function loadDashboardStats() {
+  const usersSnap = await getDocs(collection(db, "users"));
+  document.getElementById("totalUsers").innerText = usersSnap.size;
+
+  let totalDeposits = 0, totalWithdrawals = 0;
+  usersSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    totalDeposits += data.availableBalance || 0;
+    totalWithdrawals += data.withdrawableBalance || 0;
+  });
+  document.getElementById("totalDeposits").innerText = "$" + totalDeposits.toLocaleString();
+  document.getElementById("totalWithdrawals").innerText = "$" + totalWithdrawals.toLocaleString();
+}
+
+// Load sections
+function loadSection(section) {
+  sectionContent.innerHTML = `<p class="text-white font-bold">Loading ${section}...</p>`;
+  switch(section) {
+    case "users":
+      loadUsers();
+      break;
+    case "kyc":
+      loadKYC();
+      break;
+    case "deposits":
+      loadDeposits();
+      break;
+    case "withdrawals":
+      loadWithdrawals();
+      break;
+    case "crypto-assets":
+      loadCryptoAssets();
+      break;
+    case "trades":
+      loadTrades();
+      break;
+    case "notifications":
+      loadNotifications();
+      break;
+    default:
+      sectionContent.innerHTML = `<p>Select a section to view.</p>`;
+  }
+}
+
+// Users
+async function loadUsers() {
+  const usersSnap = await getDocs(collection(db, "users"));
+  let html = `<h2 class="text-emerald-400 font-bold mb-4">All Users</h2><table class="w-full text-white border-collapse">`;
+  html += `<tr><th>Email</th><th>Username</th><th>Balance</th><th>Referral Code</th></tr>`;
+  usersSnap.forEach(docSnap => {
+    const u = docSnap.data();
+    html += `<tr class="border-t border-zinc-700"><td>${u.email}</td><td>${u.username}</td><td>$${u.availableBalance}</td><td>${u.username}</td></tr>`;
+  });
+  html += `</table>`;
+  sectionContent.innerHTML = html;
+}
+
+// KYC
+async function loadKYC() {
+  const kycSnap = await getDocs(collection(db, "kyc"));
+  let html = `<h2 class="text-emerald-400 font-bold mb-4">KYC Requests</h2>`;
+  kycSnap.forEach(docSnap => {
+    const k = docSnap.data();
+    html += `<div class="bg-zinc-800 p-4 rounded-xl mb-2">
+      <p><strong>${k.username}</strong> - ${k.status}</p>
+      <button class="approve-btn bg-emerald-400 p-2 rounded mr-2" data-id="${docSnap.id}">Approve</button>
+      <button class="reject-btn bg-red-500 p-2 rounded" data-id="${docSnap.id}">Reject</button>
+    </div>`;
+  });
+  sectionContent.innerHTML = html;
+
+  document.querySelectorAll(".approve-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      await updateDoc(doc(db, "kyc", e.target.dataset.id), {status:"Approved"});
+      loadKYC();
+    });
+  });
+  document.querySelectorAll(".reject-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      await updateDoc(doc(db, "kyc", e.target.dataset.id), {status:"Rejected"});
+      loadKYC();
+    });
+  });
+}
+
+// Crypto Assets
+async function loadCryptoAssets() {
+  const coinsSnap = await getDocs(collection(db, "coins"));
+  let html = `<h2 class="text-emerald-400 font-bold mb-4">Crypto Assets</h2>`;
+  coinsSnap.forEach(docSnap => {
+    const c = docSnap.data();
+    html += `<div class="bg-zinc-800 p-4 rounded-xl mb-2">
+      <p><strong>${c.name}</strong> - $${c.price} <br>${c.description}</p>
+    </div>`;
+  });
+  sectionContent.innerHTML = html;
+}
+
+// Trades
+async function loadTrades() {
+  const tradesSnap = await getDocs(collection(db, "pendingTrades"));
+  let html = `<h2 class="text-emerald-400 font-bold mb-4">Pending Trades</h2>`;
+  tradesSnap.forEach(docSnap => {
+    const t = docSnap.data();
+    html += `<div class="bg-zinc-800 p-4 rounded-xl mb-2">
+      <p>${t.username} wants to ${t.type} ${t.amount} of ${t.coin}</p>
+      <button class="approve-trade bg-emerald-400 p-2 rounded mr-2" data-id="${docSnap.id}">Approve</button>
+      <button class="reject-trade bg-red-500 p-2 rounded" data-id="${docSnap.id}">Reject</button>
+    </div>`;
+  });
+  sectionContent.innerHTML = html;
+
+  document.querySelectorAll(".approve-trade").forEach(btn=>{
+    btn.addEventListener("click", async e=>{
+      await updateDoc(doc(db,"pendingTrades", e.target.dataset.id), {status:"Approved"});
+      loadTrades();
+    });
+  });
+  document.querySelectorAll(".reject-trade").forEach(btn=>{
+    btn.addEventListener("click", async e=>{
+      await updateDoc(doc(db,"pendingTrades", e.target.dataset.id), {status:"Rejected"});
+      loadTrades();
+    });
+  });
+}
+
+// Notifications
+async function loadNotifications() {
+  sectionContent.innerHTML = `<h2 class="text-emerald-400 font-bold mb-4">Send Notification</h2>
+    <input id="notifyUser" placeholder="UID or leave blank for all" class="w-full p-2 mb-2 rounded bg-zinc-800">
+    <textarea id="notifyMessage" placeholder="Message" class="w-full p-2 mb-2 rounded bg-zinc-800"></textarea>
+    <button id="sendNotifyBtn" class="bg-emerald-400 p-2 rounded">Send</button>`;
+
+  document.getElementById("sendNotifyBtn").addEventListener("click", async ()=>{
+    const uid = document.getElementById("notifyUser").value.trim();
+    const msg = document.getElementById("notifyMessage").value.trim();
+    if(!msg) return alert("Enter message");
+    if(uid){
+      await updateDoc(doc(db,"users",uid), {notification:msg});
+    }else{
+      const usersSnap = await getDocs(collection(db,"users"));
+      for(const u of usersSnap.docs){
+        await updateDoc(doc(db,"users",u.id), {notification:msg});
+      }
+    }
+    alert("Notification sent!");
+  });
+}
