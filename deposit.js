@@ -1,94 +1,63 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  collection,
-  addDoc,
-  updateDoc,
-  arrayUnion,
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+// deposits.js
+import { db } from "./admin-dashboard-full.js";
+import { collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
+export function init() {
+  const section = document.getElementById("section-content");
+  section.innerHTML = `
+    <h2 class="font-bold text-lg mb-2">Submit Deposit</h2>
+    <input type="number" id="depositAmount" placeholder="Amount" class="p-2 rounded mb-2">
+    <button id="submitDeposit" class="bg-emerald-500 p-2 rounded font-bold">Submit Deposit</button>
+    <hr class="my-4">
+    <h2 class="font-bold text-lg mb-2">Pending Deposits</h2>
+    <div id="pendingDeposits"></div>
+  `;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-const submitBtn = document.getElementById("submitDeposit");
-const amountInput = document.getElementById("amount");
-const proofInput = document.getElementById("proof");
-
-let currentUserUid = null;
-
-// Wait for user login
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    alert("You must be logged in to make a deposit.");
-    window.location.href = "index.html";
-    return;
-  }
-  currentUserUid = user.uid;
-});
-
-// SUBMIT DEPOSIT
-submitBtn.addEventListener("click", async () => {
-  const amount = parseFloat(amountInput.value);
-
-  if (!amount || amount <= 0) {
-    alert("Please enter a valid deposit amount.");
-    return;
-  }
-
-  // Optional: get proof file
-  const proofFile = proofInput.files[0];
-  let proofName = proofFile ? proofFile.name : null;
-
-  try {
-    if (!currentUserUid) {
-      alert("User not loaded yet. Try again.");
-      return;
-    }
-
-    // === Option 1: Save as subcollection transaction ===
-    const transRef = collection(db, "users", currentUserUid, "transactions");
-
-    await addDoc(transRef, {
-      type: "deposit",
-      amount: amount,
-      timestamp: Date.now(),
-      proofFileName: proofName || null
-    });
-
-    // === Option 2: Also save in transactions array inside user doc ===
-    const userRef = doc(db, "users", currentUserUid);
-    await updateDoc(userRef, {
-      transactions: arrayUnion({
+  document.getElementById("submitDeposit").addEventListener("click", async () => {
+    const amount = parseFloat(document.getElementById("depositAmount").value);
+    if (!amount || amount <= 0) return alert("Enter a valid amount");
+    try {
+      await addDoc(collection(db, "pendingTransactions"), {
+        amount,
         type: "deposit",
-        amount: amount,
-        timestamp: Date.now(),
-        proofFileName: proofName || null
-      })
+        status: "Pending",
+        createdAt: Date.now()
+      });
+      alert("Deposit submitted successfully");
+      loadPendingDeposits();
+    } catch (err) {
+      console.error("Deposit failed:", err);
+      alert(`Deposit failed: ${err.message}`);
+    }
+  });
+
+  async function loadPendingDeposits() {
+    const snap = await getDocs(collection(db, "pendingTransactions"));
+    let html = "";
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      if (d.type === "deposit") {
+        html += `<div class="p-2 bg-zinc-700 rounded mb-1">
+          <span>$${d.amount} - ${d.status}</span>
+          <button onclick="approveDeposit('${docSnap.id}')" class="bg-green-500 p-1 rounded ml-2">Approve</button>
+          <button onclick="rejectDeposit('${docSnap.id}')" class="bg-red-500 p-1 rounded ml-2">Reject</button>
+        </div>`;
+      }
     });
-
-    alert("Deposit submitted successfully!");
-    amountInput.value = "";
-    proofInput.value = "";
-
-  } catch (error) {
-    console.error("Error submitting deposit:", error);
-    alert("Failed to submit deposit. See console for details.");
+    document.getElementById("pendingDeposits").innerHTML = html;
   }
-});
+
+  window.approveDeposit = async (id) => {
+    const txnRef = doc(db, "pendingTransactions", id);
+    await updateDoc(txnRef, { status: "Approved" });
+    loadPendingDeposits();
+  }
+
+  window.rejectDeposit = async (id) => {
+    const txnRef = doc(db, "pendingTransactions", id);
+    await updateDoc(txnRef, { status: "Rejected" });
+    loadPendingDeposits();
+  }
+
+  loadPendingDeposits();
+}

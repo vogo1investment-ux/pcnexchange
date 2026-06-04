@@ -1,74 +1,63 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, collection, addDoc, arrayUnion, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+// withdrawals.js
+import { db } from "./admin-dashboard-full.js";
+import { collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
+export function init() {
+  const section = document.getElementById("section-content");
+  section.innerHTML = `
+    <h2 class="font-bold text-lg mb-2">Submit Withdrawal</h2>
+    <input type="number" id="withdrawAmount" placeholder="Amount" class="p-2 rounded mb-2">
+    <button id="submitWithdrawal" class="bg-emerald-500 p-2 rounded font-bold">Submit Withdrawal</button>
+    <hr class="my-4">
+    <h2 class="font-bold text-lg mb-2">Pending Withdrawals</h2>
+    <div id="pendingWithdrawals"></div>
+  `;
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+  document.getElementById("submitWithdrawal").addEventListener("click", async () => {
+    const amount = parseFloat(document.getElementById("withdrawAmount").value);
+    if (!amount || amount <= 0) return alert("Enter a valid amount");
+    try {
+      await addDoc(collection(db, "pendingTransactions"), {
+        amount,
+        type: "withdrawal",
+        status: "Pending",
+        createdAt: Date.now()
+      });
+      alert("Withdrawal submitted successfully");
+      loadPendingWithdrawals();
+    } catch (err) {
+      console.error("Withdrawal failed:", err);
+      alert(`Withdrawal failed: ${err.message}`);
+    }
+  });
 
-let userUid = null;
-
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-  userUid = user.uid;
-});
-
-document.getElementById("submitWithdraw").addEventListener("click", async () => {
-  const amount = Number(document.getElementById("withdrawAmount").value);
-  const recipient = document.getElementById("recipient").value.trim();
-  const region = document.getElementById("regionSelect").value;
-  const method = document.getElementById("methodSelect").value;
-
-  if (!userUid) return alert("User not authenticated");
-  if (!region) return alert("Select your region");
-  if (!method) return alert("Select a payment method");
-  if (!amount || amount <= 0) return alert("Enter a valid amount");
-  if (!recipient) return alert("Enter recipient details");
-
-  try {
-    const userRef = doc(db, "users", userUid);
-    const transRef = collection(db, "users", userUid, "transactions");
-
-    const newTrans = {
-      type: "withdraw",
-      amount,
-      region,
-      method,
-      to: recipient,
-      timestamp: Date.now(),
-      status: "pending"
-    };
-
-    // Add to subcollection
-    await addDoc(transRef, newTrans);
-
-    // Optional: Add to array in user doc
-    await updateDoc(userRef, {
-      transactions: arrayUnion(newTrans)
+  async function loadPendingWithdrawals() {
+    const snap = await getDocs(collection(db, "pendingTransactions"));
+    let html = "";
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      if (d.type === "withdrawal") {
+        html += `<div class="p-2 bg-zinc-700 rounded mb-1">
+          <span>$${d.amount} - ${d.status}</span>
+          <button onclick="approveWithdrawal('${docSnap.id}')" class="bg-green-500 p-1 rounded ml-2">Approve</button>
+          <button onclick="rejectWithdrawal('${docSnap.id}')" class="bg-red-500 p-1 rounded ml-2">Reject</button>
+        </div>`;
+      }
     });
-
-    alert("Withdrawal request submitted! Status: pending");
-    document.getElementById("withdrawAmount").value = "";
-    document.getElementById("recipient").value = "";
-    document.getElementById("regionSelect").value = "";
-    document.getElementById("methodSelect").value = "";
-
-  } catch (err) {
-    console.error(err);
-    alert("Failed to submit withdrawal.");
+    document.getElementById("pendingWithdrawals").innerHTML = html;
   }
-});
+
+  window.approveWithdrawal = async (id) => {
+    const txnRef = doc(db, "pendingTransactions", id);
+    await updateDoc(txnRef, { status: "Approved" });
+    loadPendingWithdrawals();
+  }
+
+  window.rejectWithdrawal = async (id) => {
+    const txnRef = doc(db, "pendingTransactions", id);
+    await updateDoc(txnRef, { status: "Rejected" });
+    loadPendingWithdrawals();
+  }
+
+  loadPendingWithdrawals();
+}
