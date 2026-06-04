@@ -25,15 +25,19 @@ logoutBtn.addEventListener("click", async () => {
   window.location.href = "admin-login.html";
 });
 
-// Wait for admin to be signed in
+// Admin auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access denied. Admin only.");
+    alert("Access Denied. Admin only.");
     window.location.href = "admin-login.html";
     return;
   }
 
-  // Attach button events only after admin is verified
+  attachButtonEvents();
+  updateSummaryCards();
+});
+
+function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
@@ -42,23 +46,20 @@ onAuthStateChanged(auth, user => {
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
 
-        // Load section JS only after section HTML is injected
         const script = document.createElement("script");
         script.type = "module";
         script.src = `${section}.js`;
         document.body.appendChild(script);
+
       } catch (err) {
         console.error(`Failed to load ${section}`, err);
         sectionContent.innerHTML = `<p class="text-red-500">Failed to load ${section}</p>`;
       }
     });
   });
+}
 
-  // Load the summary cards once admin is signed in
-  updateSummaryCards();
-});
-
-// Update summary cards
+// Summary Cards
 async function updateSummaryCards() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
