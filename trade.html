@@ -3,30 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade & Stake</title>
+<title>Trade / Stake</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white p-5 min-h-screen">
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Trade</h1>
 
-<!-- Trade Section -->
-<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-  <label for="coinSelect" class="block mb-2 font-bold text-emerald-400">Select Coin to Trade:</label>
-  <select id="coinSelect" class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4">
-    <option value="" disabled selected>Select a coin</option>
-  </select>
-  <p class="mb-2">Available Balance: <span id="coinBalance">0.00000000</span></p>
-  <button id="tradeButton" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-2xl">
-    Start Trading (Coming Soon)
-  </button>
-</div>
-
-<!-- Stake Option Button -->
-<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-  <h2 class="text-2xl font-bold text-emerald-400 mb-4">Stake Your Coins</h2>
-  <p class="mb-4 text-zinc-400">Click below to open the staking page and manage your stakes.</p>
-  <button id="stakeOptionBtn" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">
+<!-- Stake Button Only -->
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6 text-center">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Stake Your Coins</h2>
+  <p class="mb-4 text-zinc-400">Click below to open the staking page.</p>
+  <button id="stakeButton" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">
     Go to Stake
   </button>
 </div>
