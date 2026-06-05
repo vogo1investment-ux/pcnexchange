@@ -3,35 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stake</title>
+<title>Stake Coins</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white p-5 min-h-screen">
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Stake Your Coins</h1>
 
+<!-- Staked Balance -->
 <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Staked Balance: <span id="stakedBalance">0.00000000</span></h2>
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">
+    Staked Balance: <span id="stakedBalance">0.00000000</span>
+  </h2>
 </div>
 
+<!-- Coins List -->
 <div id="coinsList" class="space-y-4 max-h-96 overflow-y-auto mb-6">
-  <!-- Coins will populate here -->
+  <!-- Coins populate dynamically -->
 </div>
 
+<!-- Stake History -->
 <h2 class="text-2xl font-bold text-emerald-400 mb-2">Stake History</h2>
 <div id="stakeHistory" class="bg-zinc-900 p-4 rounded-xl max-h-72 overflow-y-auto">
   Loading stake history...
 </div>
 
-<!-- Popup Modal -->
+<!-- Stake Modal -->
 <div id="stakeModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden">
   <div class="bg-zinc-900 p-6 rounded-3xl w-80">
     <h2 class="text-xl font-bold text-emerald-400 mb-4" id="modalCoinName">Stake</h2>
+    <input type="number" id="stakeAmount" placeholder="Amount to stake" class="w-full p-3 mb-3 rounded bg-black border border-zinc-700">
     <input type="password" id="stakePassword" placeholder="Enter Password" class="w-full p-3 mb-3 rounded bg-black border border-zinc-700">
     <input type="date" id="stakeDate" class="w-full p-3 mb-3 rounded bg-black border border-zinc-700">
     <input type="time" id="stakeTime" class="w-full p-3 mb-3 rounded bg-black border border-zinc-700">
-    <button id="confirmStakeBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded">Confirm Stake</button>
-    <button id="closeModalBtn" class="w-full mt-2 bg-red-500 text-black font-bold p-3 rounded">Cancel</button>
+    <button id="confirmStakeBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded mb-2">Confirm Stake</button>
+    <button id="closeModalBtn" class="w-full bg-red-500 text-black font-bold p-3 rounded">Cancel</button>
   </div>
 </div>
 
