@@ -19,13 +19,13 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const sectionContent = document.getElementById("section-content");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Logout button
+// Logout
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "admin-login.html";
 });
 
-// Admin authentication
+// Admin auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
@@ -36,15 +36,14 @@ onAuthStateChanged(auth, user => {
   updateSummaryCards();
 });
 
-// Attach button events for admin panel
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
 
       try {
-        // Unified transactions module for deposits and withdrawals
-        if (section === "deposits" || section === "withdrawals") {
+        // Unified transactions module
+        if (section === "transactions") {
           const htmlRes = await fetch(`admin-transactions.html`);
           const html = await htmlRes.text();
           sectionContent.innerHTML = html;
@@ -69,7 +68,7 @@ function attachButtonEvents() {
           return;
         }
 
-        // Load other sections normally
+        // Other sections
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
@@ -87,7 +86,7 @@ function attachButtonEvents() {
   });
 }
 
-// Summary cards update
+// Update summary cards
 async function updateSummaryCards() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
