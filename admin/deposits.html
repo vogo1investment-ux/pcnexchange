@@ -6,13 +6,11 @@
 <title>Admin Deposits</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-zinc-800 p-4 rounded-xl text-white">
+<body class="bg-zinc-800 p-4 text-white">
 
 <h2 class="text-xl font-bold mb-4 text-emerald-400">Deposit Requests</h2>
+<div id="depositList" class="space-y-2 max-h-[500px] overflow-y-auto"></div>
 
-<div id="depositList" class="space-y-2 max-h-[500px] overflow-y-auto">
-  <!-- Deposit requests will populate here -->
-</div>
-
+<script type="module" src="deposits.js"></script>
 </body>
 </html>
