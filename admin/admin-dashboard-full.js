@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -42,9 +42,9 @@ function attachButtonEvents() {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
 
+      // Stake Overview
       if (section === "stake-overview") {
-        // Load the separate stake module
-        const htmlRes = await fetch(`stake-overview.html`);
+        const htmlRes = await fetch("stake-overview.html");
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
 
@@ -55,6 +55,33 @@ function attachButtonEvents() {
         return;
       }
 
+      // Deposits
+      if (section === "deposits") {
+        const htmlRes = await fetch("deposits.html");
+        const html = await htmlRes.text();
+        sectionContent.innerHTML = html;
+
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "deposits.js";
+        document.body.appendChild(script);
+        return;
+      }
+
+      // Withdrawals
+      if (section === "withdrawals") {
+        const htmlRes = await fetch("withdrawals.html");
+        const html = await htmlRes.text();
+        sectionContent.innerHTML = html;
+
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "withdrawals.js";
+        document.body.appendChild(script);
+        return;
+      }
+
+      // Other sections
       try {
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
