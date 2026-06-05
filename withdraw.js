@@ -22,6 +22,7 @@ const withdrawAmountInput = document.getElementById("withdrawAmount");
 const recipientInput = document.getElementById("recipient");
 const regionSelect = document.getElementById("regionSelect");
 const methodSelect = document.getElementById("methodSelect");
+const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
 const submitWithdrawBtn = document.getElementById("submitWithdraw");
 
 onAuthStateChanged(auth, async user => {
@@ -30,7 +31,7 @@ onAuthStateChanged(auth, async user => {
   await loadUserCoins();
 });
 
-// Load coins, referral, airdrops
+// Load user coins, referrals, airdrops
 async function loadUserCoins() {
   try {
     const userRef = doc(db, "users", currentUser.uid);
@@ -42,52 +43,28 @@ async function loadUserCoins() {
     const referral = userData.referralCommission || 0;
     const airdrop = userData.airdrop || 0;
 
+    // Populate coin list display
     let html = `<div class="p-2 border-b border-zinc-700">
       <strong>Referral Commission:</strong> $${referral}<br>
       <strong>Airdrop:</strong> $${airdrop}
     </div>`;
 
     coins.forEach(c => {
-      html += `
-      <div class="p-2 border-b border-zinc-700">
+      html += `<div class="p-2 border-b border-zinc-700">
         <div class="flex justify-between items-center mb-2">
           <span>${c.name}: ${c.balance}</span>
         </div>
-        <input type="number" placeholder="Amount to withdraw" class="withdrawAmountCoin w-full p-2 rounded bg-black border border-zinc-700 mb-2">
-        <input type="text" placeholder="Enter your account / wallet info" class="withdrawDetailsCoin w-full p-2 rounded bg-black border border-zinc-700 mb-2">
-        <button class="withdrawCoinBtn bg-emerald-400 text-black p-2 rounded w-full font-bold" data-coin="${c.name}">Withdraw ${c.name}</button>
       </div>`;
     });
 
     coinListDiv.innerHTML = html;
 
-    // Attach withdraw click listeners
-    coinListDiv.querySelectorAll(".withdrawCoinBtn").forEach(btn => {
-      btn.addEventListener("click", async e => {
-        const coinName = e.target.dataset.coin;
-        const container = e.target.parentElement;
-        const amountInput = container.querySelector(".withdrawAmountCoin");
-        const detailsInput = container.querySelector(".withdrawDetailsCoin");
-
-        const amount = parseFloat(amountInput.value);
-        const details = detailsInput.value.trim();
-
-        if (!amount || !details) return alert("Enter both amount and withdrawal details");
-
-        await addDoc(collection(db, "pendingTransactions"), {
-          userId: currentUser.uid,
-          type: "withdraw-coin",
-          coin: coinName,
-          amount,
-          details,
-          status: "Pending",
-          createdAt: serverTimestamp()
-        });
-
-        alert(`${coinName} withdrawal request submitted`);
-        amountInput.value = "";
-        detailsInput.value = "";
-      });
+    // Populate the Withdrawal Type dropdown with coins
+    coins.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.name;
+      opt.innerText = c.name;
+      withdrawTypeSelect.appendChild(opt);
     });
 
   } catch (err) {
@@ -96,18 +73,20 @@ async function loadUserCoins() {
   }
 }
 
-// Submit traditional withdrawal (region/method)
+// Submit withdrawal
 submitWithdrawBtn.addEventListener("click", async () => {
   const amount = parseFloat(withdrawAmountInput.value);
   const recipient = recipientInput.value.trim();
   const region = regionSelect.value;
   const method = methodSelect.value;
+  const type = withdrawTypeSelect.value;
 
-  if (!amount || !recipient || !region || !method) return alert("Fill all fields");
+  if (!amount || !recipient || !region || !method || !type) return alert("Fill all fields");
 
   await addDoc(collection(db, "pendingTransactions"), {
     userId: currentUser.uid,
-    type: "withdraw",
+    type: type === "airdrop" ? "withdraw-airdrop" : "withdraw-coin",
+    coin: type !== "airdrop" ? type : null,
     amount,
     recipient,
     region,
@@ -121,4 +100,5 @@ submitWithdrawBtn.addEventListener("click", async () => {
   recipientInput.value = "";
   regionSelect.value = "";
   methodSelect.value = "";
+  withdrawTypeSelect.value = "";
 });
