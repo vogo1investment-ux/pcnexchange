@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config (same as your app)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -16,31 +15,32 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const coinListDiv = document.getElementById("coinList");
-const submitWithdrawBtn = document.getElementById("submitWithdraw");
-
 let currentUser;
 
-onAuthStateChanged(auth, user => {
+const coinListDiv = document.getElementById("coinList");
+const withdrawAmountInput = document.getElementById("withdrawAmount");
+const recipientInput = document.getElementById("recipient");
+const regionSelect = document.getElementById("regionSelect");
+const methodSelect = document.getElementById("methodSelect");
+const submitWithdrawBtn = document.getElementById("submitWithdraw");
+
+onAuthStateChanged(auth, async user => {
   if (!user) return alert("Login required");
   currentUser = user;
-  loadUserCoins();
+  await loadUserCoins();
 });
 
-// --- Display user coins, referral commissions, airdrops ---
+// Load coins, referral, airdrops
 async function loadUserCoins() {
   try {
     const userRef = doc(db, "users", currentUser.uid);
-    const userSnap = await getDocs(collection(db, "users"));
-    // You can also fetch individual fields from user doc
-    const userDoc = userSnap.docs.find(d => d.id === currentUser.uid)?.data();
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) return coinListDiv.innerHTML = "No user data";
 
-    if (!userDoc) return coinListDiv.innerHTML = "No user data";
-
-    // Example coins array in user doc: [{name:"BTC", balance:1.2}, {name:"ETH", balance:0.5}]
-    const coins = userDoc.coins || [];
-    const referral = userDoc.referralCommission || 0;
-    const airdrop = userDoc.airdrop || 0;
+    const userData = userSnap.data();
+    const coins = userData.coins || [];
+    const referral = userData.referralCommission || 0;
+    const airdrop = userData.airdrop || 0;
 
     let html = `<div class="p-2 border-b border-zinc-700">
       <strong>Referral Commission:</strong> $${referral}<br>
@@ -48,31 +48,45 @@ async function loadUserCoins() {
     </div>`;
 
     coins.forEach(c => {
-      html += `<div class="p-2 border-b border-zinc-700 flex justify-between items-center">
-        <span>${c.name}: ${c.balance}</span>
-        <button class="withdrawCoinBtn bg-emerald-400 text-black p-1 rounded" data-coin="${c.name}">Withdraw</button>
+      html += `
+      <div class="p-2 border-b border-zinc-700">
+        <div class="flex justify-between items-center mb-2">
+          <span>${c.name}: ${c.balance}</span>
+        </div>
+        <input type="number" placeholder="Amount to withdraw" class="withdrawAmountCoin w-full p-2 rounded bg-black border border-zinc-700 mb-2">
+        <input type="text" placeholder="Enter your account / wallet info" class="withdrawDetailsCoin w-full p-2 rounded bg-black border border-zinc-700 mb-2">
+        <button class="withdrawCoinBtn bg-emerald-400 text-black p-2 rounded w-full font-bold" data-coin="${c.name}">Withdraw ${c.name}</button>
       </div>`;
     });
 
     coinListDiv.innerHTML = html;
 
-    // Attach click listeners
+    // Attach withdraw click listeners
     coinListDiv.querySelectorAll(".withdrawCoinBtn").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", async e => {
         const coinName = e.target.dataset.coin;
-        const amount = prompt(`Enter amount to withdraw for ${coinName}:`);
-        if (!amount) return;
+        const container = e.target.parentElement;
+        const amountInput = container.querySelector(".withdrawAmountCoin");
+        const detailsInput = container.querySelector(".withdrawDetailsCoin");
 
-        // Add withdrawal request to Firestore
+        const amount = parseFloat(amountInput.value);
+        const details = detailsInput.value.trim();
+
+        if (!amount || !details) return alert("Enter both amount and withdrawal details");
+
         await addDoc(collection(db, "pendingTransactions"), {
           userId: currentUser.uid,
-          type: "withdraw",
+          type: "withdraw-coin",
           coin: coinName,
-          amount: parseFloat(amount),
+          amount,
+          details,
           status: "Pending",
           createdAt: serverTimestamp()
         });
-        alert(`Withdrawal request for ${coinName} submitted`);
+
+        alert(`${coinName} withdrawal request submitted`);
+        amountInput.value = "";
+        detailsInput.value = "";
       });
     });
 
@@ -82,29 +96,29 @@ async function loadUserCoins() {
   }
 }
 
-// --- Optional: regular withdrawal form ---
+// Submit traditional withdrawal (region/method)
 submitWithdrawBtn.addEventListener("click", async () => {
-  const region = document.getElementById("regionSelect").value;
-  const method = document.getElementById("methodSelect").value;
-  const amount = parseFloat(document.getElementById("withdrawAmount").value);
-  const recipient = document.getElementById("recipient").value;
+  const amount = parseFloat(withdrawAmountInput.value);
+  const recipient = recipientInput.value.trim();
+  const region = regionSelect.value;
+  const method = methodSelect.value;
 
-  if (!region || !method || !amount || !recipient) return alert("Fill all fields");
+  if (!amount || !recipient || !region || !method) return alert("Fill all fields");
 
-  try {
-    await addDoc(collection(db, "pendingTransactions"), {
-      userId: currentUser.uid,
-      type: "withdraw",
-      region,
-      method,
-      amount,
-      recipient,
-      status: "Pending",
-      createdAt: serverTimestamp()
-    });
-    alert("Withdrawal submitted!");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to submit withdrawal: " + err.message);
-  }
+  await addDoc(collection(db, "pendingTransactions"), {
+    userId: currentUser.uid,
+    type: "withdraw",
+    amount,
+    recipient,
+    region,
+    method,
+    status: "Pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Withdrawal request submitted");
+  withdrawAmountInput.value = "";
+  recipientInput.value = "";
+  regionSelect.value = "";
+  methodSelect.value = "";
 });
