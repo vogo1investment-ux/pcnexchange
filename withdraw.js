@@ -1,15 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, collection, addDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
-  apiKey: "...",
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "...",
-  appId: "..."
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -31,49 +30,39 @@ async function loadUserBalances() {
   const userRef = doc(db, "users", userId);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) return;
-
   const userData = userSnap.data();
   coinsData = userData.coins || {};
-  const withdrawableBalance = userData.withdrawableBalance || 0;
 
-  // Populate withdrawal type dropdown
   withdrawTypeSelect.innerHTML = `<option value="">Select type</option>`;
-  if (withdrawableBalance > 0)
-    withdrawTypeSelect.innerHTML += `<option value="withdrawable">Withdrawable Balance: $${withdrawableBalance}</option>`;
+
+  // Withdrawable balance
+  if (userData.withdrawableBalance && userData.withdrawableBalance > 0)
+    withdrawTypeSelect.innerHTML += `<option value="withdrawable">Withdrawable Balance: $${userData.withdrawableBalance}</option>`;
+
+  // Referral
   if (userData.referralCommission && userData.referralCommission > 0)
-    withdrawTypeSelect.innerHTML += `<option value="referral">Referral Commission: $${userData.referralCommission}</option>`;
+    withdrawTypeSelect.innerHTML += `<option value="referral">Referral Commission: $${userData.referralCommission} | Withdrawable: $${userData.withdrawableBalance || 0}</option>`;
+
+  // Airdrop
   if (userData.airdrop && userData.airdrop > 0)
-    withdrawTypeSelect.innerHTML += `<option value="airdrop">Airdrop: $${userData.airdrop}</option>`;
+    withdrawTypeSelect.innerHTML += `<option value="airdrop">Airdrop: $${userData.airdrop} | Withdrawable: $${userData.withdrawableBalance || 0}</option>`;
+
+  // Coins
   Object.keys(coinsData).forEach(coin => {
-    withdrawTypeSelect.innerHTML += `<option value="${coin}">${coin} Balance: ${coinsData[coin]}</option>`;
+    withdrawTypeSelect.innerHTML += `<option value="${coin}">${coin} Balance: ${coinsData[coin]} | Withdrawable: $${userData.withdrawableBalance || 0}</option>`;
   });
 
-  // Show coin balances in UI
+  // Display coins
   coinListDiv.innerHTML = "";
-  if (withdrawableBalance > 0) {
-    const div = document.createElement("div");
-    div.className = "p-2 bg-black border border-green-500 rounded";
-    div.innerText = `Withdrawable Balance: $${withdrawableBalance}`;
-    coinListDiv.appendChild(div);
-  }
+  if (userData.withdrawableBalance)
+    coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Withdrawable Balance: $${userData.withdrawableBalance}</div>`;
+  if (userData.referralCommission)
+    coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Referral: $${userData.referralCommission}</div>`;
+  if (userData.airdrop)
+    coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Airdrop: $${userData.airdrop}</div>`;
   Object.entries(coinsData).forEach(([coin, amount]) => {
-    const div = document.createElement("div");
-    div.className = "p-2 bg-black border border-green-500 rounded";
-    div.innerText = `${coin}: ${amount}`;
-    coinListDiv.appendChild(div);
+    coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">${coin}: ${amount}</div>`;
   });
-  if (userData.referralCommission) {
-    const div = document.createElement("div");
-    div.className = "p-2 bg-black border border-green-500 rounded";
-    div.innerText = `Referral Commission: $${userData.referralCommission}`;
-    coinListDiv.appendChild(div);
-  }
-  if (userData.airdrop) {
-    const div = document.createElement("div");
-    div.className = "p-2 bg-black border border-green-500 rounded";
-    div.innerText = `Airdrop: $${userData.airdrop}`;
-    coinListDiv.appendChild(div);
-  }
 }
 
 // Submit withdrawal
@@ -84,7 +73,8 @@ document.getElementById("submitWithdraw").addEventListener("click", async () => 
   const amount = Number(document.getElementById("withdrawAmount").value);
   const recipient = document.getElementById("recipient").value;
 
-  if (!region || !type || !method || !amount || !recipient) return alert("Fill all fields");
+  if (!region || !type || !method || !amount || !recipient)
+    return alert("Fill all fields");
 
   try {
     await addDoc(collection(db, "pendingTransactions"), {

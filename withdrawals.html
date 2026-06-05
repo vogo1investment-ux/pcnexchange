@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdraw Funds</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white min-h-screen p-5">
+
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Withdraw Funds</h1>
+
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Withdrawal Region</h2>
+  <select id="regionSelect" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+    <option value="">Select your region</option>
+    <option value="nigeria">Nigeria</option>
+    <option value="international">International</option>
+  </select>
+</div>
+
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Withdrawal Type</h2>
+  <select id="withdrawTypeSelect" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+    <option value="">Select type</option>
+  </select>
+</div>
+
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Payment Method</h2>
+  <select id="methodSelect" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+    <option value="">Select method</option>
+    <option value="bank">Bank Transfer</option>
+    <option value="paypal">PayPal</option>
+    <option value="cashapp">CashApp</option>
+    <option value="giftcard">Gift Card</option>
+    <option value="skrill">Skrill</option>
+  </select>
+</div>
+
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Withdrawal Details</h2>
+  <input id="withdrawAmount" type="number" placeholder="Enter Amount" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+  <input id="recipient" type="text" placeholder="Recipient Wallet / Account" class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
+  <button id="submitWithdraw" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Submit Withdrawal</button>
+</div>
+
+<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
+  <h2 class="text-2xl font-bold mb-4 text-emerald-400">Your Balances & Coins</h2>
+  <div id="coinList" class="space-y-4 max-h-96 overflow-y-auto"></div>
+</div>
+
+<script type="module" src="withdraw.js"></script>
+</body>
+</html>
