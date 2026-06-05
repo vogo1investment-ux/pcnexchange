@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -15,87 +15,103 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUser;
-
-const coinListDiv = document.getElementById("coinList");
 const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
+const coinListDiv = document.getElementById("coinList");
+const submitBtn = document.getElementById("submitWithdraw");
 const withdrawAmountInput = document.getElementById("withdrawAmount");
 const recipientInput = document.getElementById("recipient");
-const regionSelect = document.getElementById("regionSelect");
 const methodSelect = document.getElementById("methodSelect");
-const submitWithdrawBtn = document.getElementById("submitWithdraw");
+const regionSelect = document.getElementById("regionSelect");
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return alert("Login required");
-  currentUser = user;
-  await loadUserAssets();
+let userUid = null;
+
+// Populate coins and balances
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    alert("Please login");
+    return;
+  }
+  userUid = user.uid;
+
+  const userDoc = await getDoc(doc(db, "users", userUid));
+  if (!userDoc.exists()) return;
+
+  const data = userDoc.data();
+  const coins = data.coins || {};
+  const referrals = data.referralBalance || {};
+  const airdrops = data.airdropBalance || {};
+
+  // Clear previous
+  withdrawTypeSelect.innerHTML = `<option value="">Select type</option>`;
+  coinListDiv.innerHTML = "";
+
+  // Coins
+  for (const [coinName, balance] of Object.entries(coins)) {
+    const option = document.createElement("option");
+    option.value = `coin-${coinName}`;
+    option.textContent = `${coinName} (Balance: ${balance})`;
+    withdrawTypeSelect.appendChild(option);
+
+    const div = document.createElement("div");
+    div.textContent = `${coinName}: ${balance}`;
+    coinListDiv.appendChild(div);
+  }
+
+  // Referral
+  for (const [coinName, balance] of Object.entries(referrals)) {
+    const option = document.createElement("option");
+    option.value = `ref-${coinName}`;
+    option.textContent = `Referral ${coinName} (Balance: ${balance})`;
+    withdrawTypeSelect.appendChild(option);
+
+    const div = document.createElement("div");
+    div.textContent = `Referral ${coinName}: ${balance}`;
+    coinListDiv.appendChild(div);
+  }
+
+  // Airdrops
+  for (const [coinName, balance] of Object.entries(airdrops)) {
+    const option = document.createElement("option");
+    option.value = `airdrop-${coinName}`;
+    option.textContent = `Airdrop ${coinName} (Balance: ${balance})`;
+    withdrawTypeSelect.appendChild(option);
+
+    const div = document.createElement("div");
+    div.textContent = `Airdrop ${coinName}: ${balance}`;
+    coinListDiv.appendChild(div);
+  }
 });
 
-async function loadUserAssets() {
+// Submit withdrawal request
+submitBtn.addEventListener("click", async () => {
+  const withdrawType = withdrawTypeSelect.value;
+  const amount = Number(withdrawAmountInput.value);
+  const recipient = recipientInput.value;
+  const method = methodSelect.value;
+  const region = regionSelect.value;
+
+  if (!withdrawType || !amount || !recipient || !method || !region) {
+    alert("Please fill in all fields");
+    return;
+  }
+
   try {
-    const userRef = doc(db, "users", currentUser.uid);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return coinListDiv.innerHTML = "No user data";
-
-    const userData = userSnap.data();
-    const coins = userData.coins || [];
-    const referral = userData.referralCommission || 0;
-    const airdrop = userData.airdrop || 0;
-
-    // Clear dropdown first
-    withdrawTypeSelect.innerHTML = '<option value="">Select type</option>';
-
-    // Add airdrop and referral to dropdown
-    withdrawTypeSelect.appendChild(new Option("Airdrop", "airdrop"));
-    withdrawTypeSelect.appendChild(new Option("Referral Commission", "referral"));
-
-    let html = `<div class="p-2 border-b border-zinc-700">
-      <strong>Referral Commission:</strong> $${referral}<br>
-      <strong>Airdrop:</strong> $${airdrop}
-    </div>`;
-
-    // Add coins to dropdown and list
-    coins.forEach(c => {
-      withdrawTypeSelect.appendChild(new Option(c.name, c.name));
-      html += `<div class="p-2 border-b border-zinc-700">
-        <strong>${c.name}:</strong> ${c.balance}
-      </div>`;
+    await addDoc(collection(db, "pendingTransactions"), {
+      userId: userUid,
+      type: "withdraw",
+      withdrawType,
+      amount,
+      recipient,
+      method,
+      region,
+      status: "Pending",
+      timestamp: new Date()
     });
-
-    coinListDiv.innerHTML = html;
-
+    alert("Withdrawal submitted for approval!");
+    withdrawAmountInput.value = "";
+    recipientInput.value = "";
   } catch (err) {
     console.error(err);
-    coinListDiv.innerHTML = "Failed to load assets";
+    alert("Failed to submit withdrawal.");
   }
-}
-
-// Submit withdrawal
-submitWithdrawBtn.addEventListener("click", async () => {
-  const amount = parseFloat(withdrawAmountInput.value);
-  const recipient = recipientInput.value.trim();
-  const region = regionSelect.value;
-  const method = methodSelect.value;
-  const type = withdrawTypeSelect.value;
-
-  if (!amount || !recipient || !region || !method || !type) return alert("Fill all fields");
-
-  await addDoc(collection(db, "pendingTransactions"), {
-    userId: currentUser.uid,
-    type: type === "airdrop" ? "withdraw-airdrop" : type === "referral" ? "withdraw-referral" : "withdraw-coin",
-    coin: type !== "airdrop" && type !== "referral" ? type : null,
-    amount,
-    recipient,
-    region,
-    method,
-    status: "Pending",
-    createdAt: serverTimestamp()
-  });
-
-  alert("Withdrawal request submitted");
-  withdrawAmountInput.value = "";
-  recipientInput.value = "";
-  regionSelect.value = "";
-  methodSelect.value = "";
-  withdrawTypeSelect.value = "";
 });
