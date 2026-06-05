@@ -18,11 +18,11 @@ const db = getFirestore(app);
 let currentUser;
 
 const coinListDiv = document.getElementById("coinList");
+const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
 const withdrawAmountInput = document.getElementById("withdrawAmount");
 const recipientInput = document.getElementById("recipient");
 const regionSelect = document.getElementById("regionSelect");
 const methodSelect = document.getElementById("methodSelect");
-const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
 const submitWithdrawBtn = document.getElementById("submitWithdraw");
 
 onAuthStateChanged(auth, async user => {
@@ -31,6 +31,7 @@ onAuthStateChanged(auth, async user => {
   await loadUserCoins();
 });
 
+// Load user coins, referral, airdrops
 async function loadUserCoins() {
   try {
     const userRef = doc(db, "users", currentUser.uid);
@@ -42,7 +43,7 @@ async function loadUserCoins() {
     const referral = userData.referralCommission || 0;
     const airdrop = userData.airdrop || 0;
 
-    // Show all coins, airdrop, referral
+    // Show all coins dynamically
     let html = `<div class="p-2 border-b border-zinc-700">
       <strong>Referral Commission:</strong> $${referral}<br>
       <strong>Airdrop:</strong> $${airdrop}
@@ -53,7 +54,7 @@ async function loadUserCoins() {
         <strong>${c.name}:</strong> ${c.balance}
       </div>`;
 
-      // Add each coin to the withdrawal type dropdown if not already there
+      // Add coin to Withdrawal Type dropdown if not already present
       const exists = Array.from(withdrawTypeSelect.options).some(opt => opt.value === c.name);
       if (!exists) {
         const opt = document.createElement("option");
