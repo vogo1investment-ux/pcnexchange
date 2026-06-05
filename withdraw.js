@@ -4,12 +4,12 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  apiKey: "...",
   authDomain: "pcnexchange.firebaseapp.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 const app = initializeApp(firebaseConfig);
@@ -17,51 +17,63 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let userId;
-let userData = {};
-const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
-const coinListDiv = document.getElementById("coinList");
+let coinsData = {};
+let withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
+let coinListDiv = document.getElementById("coinList");
 
 onAuthStateChanged(auth, async user => {
   if (!user) return window.location.href = "login.html";
   userId = user.uid;
-  await loadBalances();
+  await loadUserBalances();
 });
 
-async function loadBalances() {
+async function loadUserBalances() {
   const userRef = doc(db, "users", userId);
-  const snap = await getDoc(userRef);
-  if (!snap.exists()) return;
-  userData = snap.data();
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) return;
 
-  const coins = userData.coins || {};
-  const withdrawable = userData.withdrawableBalance || {};
-  const airdrop = userData.airdrop || 0;
-  const airdropWithdrawable = userData.airdropWithdrawable || 0;
-  const referral = userData.referralCommission || 0;
-  const referralWithdrawable = userData.referralWithdrawable || 0;
-  const totalWithdrawable = userData.totalWithdrawable || 0;
+  const userData = userSnap.data();
+  coinsData = userData.coins || {};
+  const withdrawableBalance = userData.withdrawableBalance || 0;
 
-  // Populate dropdown
+  // Populate withdrawal type dropdown
   withdrawTypeSelect.innerHTML = `<option value="">Select type</option>`;
-  withdrawTypeSelect.innerHTML += `<option value="withdrawableBalance">Withdrawable Balance: $${totalWithdrawable}</option>`;
-  withdrawTypeSelect.innerHTML += `<option value="referral">Referral: $${referral} | Withdrawable: $${referralWithdrawable}</option>`;
-  withdrawTypeSelect.innerHTML += `<option value="airdrop">Airdrop: $${airdrop} | Withdrawable: $${airdropWithdrawable}</option>`;
-  Object.keys(coins).forEach(coin => {
-    const total = coins[coin] || 0;
-    const w = withdrawable[coin] || 0;
-    withdrawTypeSelect.innerHTML += `<option value="${coin}">${coin}: Total ${total} | Withdrawable ${w}</option>`;
+  if (withdrawableBalance > 0)
+    withdrawTypeSelect.innerHTML += `<option value="withdrawable">Withdrawable Balance: $${withdrawableBalance}</option>`;
+  if (userData.referralCommission && userData.referralCommission > 0)
+    withdrawTypeSelect.innerHTML += `<option value="referral">Referral Commission: $${userData.referralCommission}</option>`;
+  if (userData.airdrop && userData.airdrop > 0)
+    withdrawTypeSelect.innerHTML += `<option value="airdrop">Airdrop: $${userData.airdrop}</option>`;
+  Object.keys(coinsData).forEach(coin => {
+    withdrawTypeSelect.innerHTML += `<option value="${coin}">${coin} Balance: ${coinsData[coin]}</option>`;
   });
 
-  // Display balances
+  // Show coin balances in UI
   coinListDiv.innerHTML = "";
-  coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Withdrawable Balance: $${totalWithdrawable}</div>`;
-  coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Referral: ${referral} | Withdrawable: ${referralWithdrawable}</div>`;
-  coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">Airdrop: ${airdrop} | Withdrawable: ${airdropWithdrawable}</div>`;
-  Object.keys(coins).forEach(coin => {
-    const total = coins[coin] || 0;
-    const w = withdrawable[coin] || 0;
-    coinListDiv.innerHTML += `<div class="p-2 bg-black border border-green-500 rounded">${coin}: Total ${total} | Withdrawable ${w}</div>`;
+  if (withdrawableBalance > 0) {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `Withdrawable Balance: $${withdrawableBalance}`;
+    coinListDiv.appendChild(div);
+  }
+  Object.entries(coinsData).forEach(([coin, amount]) => {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `${coin}: ${amount}`;
+    coinListDiv.appendChild(div);
   });
+  if (userData.referralCommission) {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `Referral Commission: $${userData.referralCommission}`;
+    coinListDiv.appendChild(div);
+  }
+  if (userData.airdrop) {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `Airdrop: $${userData.airdrop}`;
+    coinListDiv.appendChild(div);
+  }
 }
 
 // Submit withdrawal
