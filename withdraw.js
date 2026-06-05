@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, doc, collection, getDoc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -12,106 +13,87 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
-const coinListDiv = document.getElementById("coinList");
-const submitBtn = document.getElementById("submitWithdraw");
-const withdrawAmountInput = document.getElementById("withdrawAmount");
-const recipientInput = document.getElementById("recipient");
-const methodSelect = document.getElementById("methodSelect");
-const regionSelect = document.getElementById("regionSelect");
+let userId;
+let coinsData = {};
+let withdrawTypeSelect = document.getElementById("withdrawTypeSelect");
+let coinListDiv = document.getElementById("coinList");
 
-let userUid = null;
-
-// Populate coins and balances
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    alert("Please login");
-    return;
-  }
-  userUid = user.uid;
-
-  const userDoc = await getDoc(doc(db, "users", userUid));
-  if (!userDoc.exists()) return;
-
-  const data = userDoc.data();
-  const coins = data.coins || {};
-  const referrals = data.referralBalance || {};
-  const airdrops = data.airdropBalance || {};
-
-  // Clear previous
-  withdrawTypeSelect.innerHTML = `<option value="">Select type</option>`;
-  coinListDiv.innerHTML = "";
-
-  // Coins
-  for (const [coinName, balance] of Object.entries(coins)) {
-    const option = document.createElement("option");
-    option.value = `coin-${coinName}`;
-    option.textContent = `${coinName} (Balance: ${balance})`;
-    withdrawTypeSelect.appendChild(option);
-
-    const div = document.createElement("div");
-    div.textContent = `${coinName}: ${balance}`;
-    coinListDiv.appendChild(div);
-  }
-
-  // Referral
-  for (const [coinName, balance] of Object.entries(referrals)) {
-    const option = document.createElement("option");
-    option.value = `ref-${coinName}`;
-    option.textContent = `Referral ${coinName} (Balance: ${balance})`;
-    withdrawTypeSelect.appendChild(option);
-
-    const div = document.createElement("div");
-    div.textContent = `Referral ${coinName}: ${balance}`;
-    coinListDiv.appendChild(div);
-  }
-
-  // Airdrops
-  for (const [coinName, balance] of Object.entries(airdrops)) {
-    const option = document.createElement("option");
-    option.value = `airdrop-${coinName}`;
-    option.textContent = `Airdrop ${coinName} (Balance: ${balance})`;
-    withdrawTypeSelect.appendChild(option);
-
-    const div = document.createElement("div");
-    div.textContent = `Airdrop ${coinName}: ${balance}`;
-    coinListDiv.appendChild(div);
-  }
+onAuthStateChanged(auth, async user => {
+  if (!user) return window.location.href = "login.html";
+  userId = user.uid;
+  await loadUserBalances();
 });
 
-// Submit withdrawal request
-submitBtn.addEventListener("click", async () => {
-  const withdrawType = withdrawTypeSelect.value;
-  const amount = Number(withdrawAmountInput.value);
-  const recipient = recipientInput.value;
-  const method = methodSelect.value;
-  const region = regionSelect.value;
+// Load balances and populate withdrawal type
+async function loadUserBalances() {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) return;
 
-  if (!withdrawType || !amount || !recipient || !method || !region) {
-    alert("Please fill in all fields");
-    return;
+  const userData = userSnap.data();
+  coinsData = userData.coins || {};
+
+  // Populate withdrawal type dropdown
+  withdrawTypeSelect.innerHTML = `<option value="">Select type</option>`;
+  if (userData.referralCommission && userData.referralCommission > 0)
+    withdrawTypeSelect.innerHTML += `<option value="referral">Referral Commission: $${userData.referralCommission}</option>`;
+  if (userData.airdrop && userData.airdrop > 0)
+    withdrawTypeSelect.innerHTML += `<option value="airdrop">Airdrop: $${userData.airdrop}</option>`;
+  Object.keys(coinsData).forEach(coin => {
+    withdrawTypeSelect.innerHTML += `<option value="${coin}">${coin} Balance: ${coinsData[coin]}</option>`;
+  });
+
+  // Show coin balances in UI
+  coinListDiv.innerHTML = "";
+  Object.entries(coinsData).forEach(([coin, amount]) => {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `${coin}: ${amount}`;
+    coinListDiv.appendChild(div);
+  });
+  if (userData.referralCommission) {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `Referral Commission: $${userData.referralCommission}`;
+    coinListDiv.appendChild(div);
   }
+  if (userData.airdrop) {
+    const div = document.createElement("div");
+    div.className = "p-2 bg-black border border-green-500 rounded";
+    div.innerText = `Airdrop: $${userData.airdrop}`;
+    coinListDiv.appendChild(div);
+  }
+}
+
+// Submit withdrawal
+document.getElementById("submitWithdraw").addEventListener("click", async () => {
+  const region = document.getElementById("regionSelect").value;
+  const type = withdrawTypeSelect.value;
+  const method = document.getElementById("methodSelect").value;
+  const amount = Number(document.getElementById("withdrawAmount").value);
+  const recipient = document.getElementById("recipient").value;
+
+  if (!region || !type || !method || !amount || !recipient) return alert("Fill all fields");
 
   try {
     await addDoc(collection(db, "pendingTransactions"), {
-      userId: userUid,
-      type: "withdraw",
-      withdrawType,
+      userId,
+      region,
+      type,
+      method,
       amount,
       recipient,
-      method,
-      region,
       status: "Pending",
-      timestamp: new Date()
+      createdAt: serverTimestamp()
     });
-    alert("Withdrawal submitted for approval!");
-    withdrawAmountInput.value = "";
-    recipientInput.value = "";
+    alert("Withdrawal request submitted!");
+    document.getElementById("withdrawAmount").value = "";
+    document.getElementById("recipient").value = "";
   } catch (err) {
     console.error(err);
-    alert("Failed to submit withdrawal.");
+    alert("Failed to submit withdrawal");
   }
 });
