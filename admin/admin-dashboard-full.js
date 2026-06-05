@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,7 +19,7 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const sectionContent = document.getElementById("section-content");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Logout
+// Logout button
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "admin-login.html";
@@ -37,14 +36,22 @@ onAuthStateChanged(auth, user => {
   updateSummaryCards();
 });
 
-// Attach all buttons
+// Attach buttons
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
 
       if (section === "stake-overview") {
-        renderStakeOverviewRealtime();
+        // Load the separate stake module
+        const htmlRes = await fetch(`stake-overview.html`);
+        const html = await htmlRes.text();
+        sectionContent.innerHTML = html;
+
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "stake-overview.js";
+        document.body.appendChild(script);
         return;
       }
 
@@ -93,54 +100,4 @@ async function updateSummaryCards() {
   } catch (err) {
     console.error("Failed to update summary cards:", err);
   }
-}
-
-// ------------------- Real-time Stake Overview -------------------
-function renderStakeOverviewRealtime() {
-  sectionContent.innerHTML = `<h2 class="text-xl font-bold mb-4 text-emerald-400">Stake Overview</h2>
-    <div id="adminStakeList" class="space-y-2 max-h-[500px] overflow-y-auto"></div>`;
-
-  const stakeListDiv = document.getElementById("adminStakeList");
-
-  // Real-time listener
-  onSnapshot(collection(db, "stakes"), (snapshot) => {
-    stakeListDiv.innerHTML = "";
-
-    snapshot.docs
-      .sort((a, b) => b.data().createdAt?.seconds - a.data().createdAt?.seconds)
-      .forEach(docSnap => {
-        const stake = docSnap.data();
-        const div = document.createElement("div");
-        div.className = "p-2 border border-zinc-700 rounded flex justify-between items-center";
-
-        div.innerHTML = `
-          <div>
-            <strong>${stake.coin}</strong> - Amount: <span class="stakeAmount" data-id="${docSnap.id}">${stake.stakedAmount}</span> 
-            - Status: <span class="stakeStatus">${stake.status}</span> 
-            - User: ${stake.userId} 
-            - Date: ${stake.date} ${stake.time}
-          </div>
-          <div class="flex space-x-2">
-            <button class="editBalanceBtn bg-yellow-400 text-black font-bold p-1 rounded">Edit</button>
-            <button class="endStakeBtn bg-red-500 text-black font-bold p-1 rounded">End</button>
-          </div>
-        `;
-
-        stakeListDiv.appendChild(div);
-
-        // Edit staked balance (admin only)
-        div.querySelector(".editBalanceBtn").addEventListener("click", async () => {
-          const newAmount = prompt("Enter new stake balance:", stake.stakedAmount);
-          if (!newAmount) return;
-          await updateDoc(doc(db, "stakes", docSnap.id), { stakedAmount: parseFloat(newAmount) });
-        });
-
-        // End stake
-        div.querySelector(".endStakeBtn").addEventListener("click", async () => {
-          const confirmEnd = confirm("Are you sure you want to end this stake?");
-          if (!confirmEnd) return;
-          await updateDoc(doc(db, "stakes", docSnap.id), { status: "Ended" });
-        });
-      });
-  });
 }
