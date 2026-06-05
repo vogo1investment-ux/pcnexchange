@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, collection, addDoc, query, where, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -144,7 +144,7 @@ async function renderStakeHistory() {
 
     stakeHistoryDiv.appendChild(div);
 
-    // Edit staked balance
+    // Edit staked balance (admin only)
     div.querySelector(".editBalanceBtn").addEventListener("click", async () => {
       const newAmount = prompt("Enter new stake balance:", data.stakedAmount);
       if (!newAmount) return;
@@ -156,11 +156,11 @@ async function renderStakeHistory() {
         renderStakeHistory();
       } catch (err) {
         console.error(err);
-        alert("Failed to update stake balance.");
+        alert("Failed to update stake balance. Make sure your UID is admin.");
       }
     });
 
-    // End stake (approve)
+    // End stake (admin only)
     div.querySelector(".endStakeBtn").addEventListener("click", async () => {
       const confirmEnd = confirm("Are you sure you want to end this stake?");
       if (!confirmEnd) return;
@@ -172,7 +172,7 @@ async function renderStakeHistory() {
         renderStakeHistory();
       } catch (err) {
         console.error(err);
-        alert("Failed to end stake.");
+        alert("Failed to end stake. Make sure your UID is admin.");
       }
     });
   });
