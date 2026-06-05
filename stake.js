@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -109,21 +109,72 @@ confirmStakeBtn.addEventListener("click", async () => {
   renderStakeHistory();
 });
 
-// Render stake history
+// Render stake history (latest first)
 async function renderStakeHistory() {
   const q = query(collection(db, "stakes"), where("userId", "==", currentUser.uid));
   const snap = await getDocs(q);
   stakeHistoryDiv.innerHTML = "";
   let totalStaked = 0;
 
+  const stakes = [];
   snap.forEach(docSnap => {
     const data = docSnap.data();
+    data.id = docSnap.id;
+    stakes.push(data);
     totalStaked += data.stakedAmount || 0;
+  });
 
+  stakes.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+  stakes.forEach(data => {
     const div = document.createElement("div");
-    div.className = "p-2 border-b border-zinc-700";
-    div.innerHTML = `<strong>${data.coin}</strong> - Amount: ${data.stakedAmount} - Status: ${data.status} - Date: ${data.date} ${data.time}`;
+    div.className = "p-2 border-b border-zinc-700 flex justify-between items-center";
+
+    div.innerHTML = `
+      <div>
+        <strong>${data.coin}</strong> - Amount: <span class="stakeAmount" data-id="${data.id}">${data.stakedAmount}</span> 
+        - Status: <span class="stakeStatus">${data.status}</span> 
+        - Date: ${data.date} ${data.time}
+      </div>
+      <div class="flex space-x-2">
+        <button class="editBalanceBtn bg-yellow-400 text-black font-bold p-1 rounded">Edit</button>
+        <button class="endStakeBtn bg-red-500 text-black font-bold p-1 rounded">End</button>
+      </div>
+    `;
+
     stakeHistoryDiv.appendChild(div);
+
+    // Edit staked balance
+    div.querySelector(".editBalanceBtn").addEventListener("click", async () => {
+      const newAmount = prompt("Enter new stake balance:", data.stakedAmount);
+      if (!newAmount) return;
+      try {
+        await updateDoc(doc(db, "stakes", data.id), {
+          stakedAmount: parseFloat(newAmount)
+        });
+        alert("Stake balance updated!");
+        renderStakeHistory();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update stake balance.");
+      }
+    });
+
+    // End stake (approve)
+    div.querySelector(".endStakeBtn").addEventListener("click", async () => {
+      const confirmEnd = confirm("Are you sure you want to end this stake?");
+      if (!confirmEnd) return;
+      try {
+        await updateDoc(doc(db, "stakes", data.id), {
+          status: "Ended"
+        });
+        alert("Stake ended!");
+        renderStakeHistory();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to end stake.");
+      }
+    });
   });
 
   stakedBalanceSpan.innerText = totalStaked.toFixed(8);
