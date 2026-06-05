@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, doc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -22,30 +23,14 @@ let userUid = null;
 
 // Auth listener
 onAuthStateChanged(auth, user => {
-  if (!user) { window.location.href = "index.html"; return; }
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
   userUid = user.uid;
-  loadUserTransactions(userUid);
+  loadTransactions(userUid);
+  loadStakes(userUid);
 });
-
-// Load both subcollection and pendingTransactions
-function loadUserTransactions(uid) {
-  // Subcollection transactions
-  const txnRef = collection(db, "users", uid, "transactions");
-  const q1 = query(txnRef, orderBy("timestamp", "desc"));
-  onSnapshot(q1, snap => {
-    allTransactions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderHistory();
-  });
-
-  // Pending Transactions (deposits/withdrawals/wallet requests)
-  const pendingRef = collection(db, "pendingTransactions");
-  const q2 = query(pendingRef, where("userId", "==", uid), orderBy("createdAt", "desc"));
-  onSnapshot(q2, snap => {
-    const pendingTxns = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    allTransactions = [...allTransactions.filter(tx => tx.type !== "deposit" && tx.type !== "withdraw"), ...pendingTxns];
-    renderHistory();
-  });
-}
 
 // Tabs
 document.querySelectorAll(".history-tab").forEach(tab => {
@@ -57,25 +42,80 @@ document.querySelectorAll(".history-tab").forEach(tab => {
   });
 });
 
-// Render
+// Load user transactions (deposits, withdrawals, wallet, transfer, receive)
+function loadTransactions(uid) {
+  const txRef = collection(db, "users", uid, "transactions");
+  const q = query(txRef, orderBy("timestamp", "desc"));
+
+  onSnapshot(q, snap => {
+    snap.forEach(docSnap => {
+      const tx = { id: docSnap.id, ...docSnap.data() };
+      const existingIndex = allTransactions.findIndex(t => t.id === tx.id);
+      if (existingIndex === -1) allTransactions.push(tx);
+      else allTransactions[existingIndex] = tx;
+    });
+    renderHistory();
+  });
+}
+
+// Load user stakes
+function loadStakes(uid) {
+  const stakeRef = collection(db, "stakes");
+  const q = query(stakeRef, orderBy("timestamp", "desc"));
+
+  onSnapshot(q, snap => {
+    snap.forEach(docSnap => {
+      const stake = { id: docSnap.id, ...docSnap.data() };
+      // Only add stakes for this user
+      if (stake.userId === uid) {
+        const existingIndex = allTransactions.findIndex(t => t.id === stake.id);
+        if (existingIndex === -1) allTransactions.push({ ...stake, type: "stake" });
+        else allTransactions[existingIndex] = { ...stake, type: "stake" };
+      }
+    });
+    renderHistory();
+  });
+}
+
+// Render function
 function renderHistory() {
   historyList.innerHTML = "";
-  let transactions = allTransactions;
-  if (activeType !== "all") transactions = transactions.filter(tx => (tx.type || "").toLowerCase() === activeType);
-  if (!transactions.length) { historyList.innerHTML = "<p>No transactions found.</p>"; return; }
+
+  let transactions = activeType === "all" ? allTransactions : allTransactions.filter(tx => (tx.type || "").toLowerCase() === activeType);
+
+  if (!transactions.length) {
+    historyList.innerHTML = `<div class="history-card"><p>No transactions found</p></div>`;
+    return;
+  }
 
   transactions.forEach(tx => {
-    const date = tx.timestamp?.toDate ? tx.timestamp.toDate().toLocaleString() : new Date(tx.timestamp).toLocaleString();
-    const amountColor = tx.type === "withdraw" ? "#ff4444" : "#00ff66";
+    let amountColor = "#00ff66"; // green default
+    if (tx.type === "withdraw") amountColor = "#ff4444";
+    if (tx.type === "stake") amountColor = "#1E90FF";
+    if (tx.status === "pending") amountColor = "#FFA500"; // orange pending
+
+    let dateText = "No Date";
+    try {
+      if (tx.timestamp?.toDate) dateText = tx.timestamp.toDate().toLocaleString();
+      else if (tx.timestamp) dateText = new Date(tx.timestamp).toLocaleString();
+    } catch(e){}
+
     const card = document.createElement("div");
     card.className = "history-card";
     card.innerHTML = `
-      <strong>${tx.type?.toUpperCase() || "Transaction"}</strong>
-      <p>Date: ${date}</p>
-      <p>Amount: <span style="color:${amountColor}">${tx.amount || 0}</span></p>
-      ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
-      ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
-      ${tx.status ? `<p>Status: ${tx.status}</p>` : ""}
+      <div class="history-info">
+        <strong>${(tx.type || "Transaction").toUpperCase()}</strong>
+        <small>${dateText}</small>
+        ${tx.to ? `<p>To: ${tx.to}</p>` : ""}
+        ${tx.from ? `<p>From: ${tx.from}</p>` : ""}
+        ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
+        ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
+        ${tx.status ? `<p>Status: ${tx.status}</p>` : ""}
+        ${tx.stakeAmount ? `<p>Staked Amount: ${tx.stakeAmount}</p>` : ""}
+        ${tx.stakeInterest ? `<p>Interest: ${tx.stakeInterest}%</p>` : ""}
+        ${tx.stakeEndDate ? `<p>Ends: ${new Date(tx.stakeEndDate).toLocaleString()}</p>` : ""}
+      </div>
+      <div class="history-amount" style="color:${amountColor}">$${Number(tx.amount || 0).toLocaleString()}</div>
     `;
     historyList.appendChild(card);
   });
