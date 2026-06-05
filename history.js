@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -15,58 +16,94 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+let userId = null;
 const txList = document.getElementById("txList");
 let activeType = "all";
-let userId = null;
+let allTransactions = [];
 
 // Auth listener
 onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
   userId = user.uid;
-  loadUserTransactions(userId);
+  loadAllTransactions(userId);
 });
 
-// Tabs
-document.querySelectorAll(".tx-tab").forEach(btn => {
-  btn.addEventListener("click", () => {
-    activeType = btn.dataset.type;
-    document.querySelectorAll(".tx-tab").forEach(t => t.classList.remove("bg-green-800"));
-    btn.classList.add("bg-green-800");
+// Tab switching
+document.querySelectorAll(".tx-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    activeType = tab.dataset.type;
+    document.querySelectorAll(".tx-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
     renderTransactions();
   });
 });
 
-let allTxs = [];
+// Load all transactions for user
+function loadAllTransactions(uid) {
+  allTransactions = [];
 
-// Load transactions
-function loadUserTransactions(uid) {
-  const q = query(collection(db, "pendingTransactions"), where("userId", "==", uid), orderBy("createdAt", "desc"));
-  onSnapshot(q, snap => {
-    allTxs = [];
-    snap.forEach(doc => allTxs.push({ id: doc.id, ...doc.data() }));
+  // 1. Pending Transactions (deposits, withdrawals, stakes)
+  const pendingRef = collection(db, "pendingTransactions");
+  const pendingQuery = query(pendingRef, where("userId", "==", uid), orderBy("createdAt", "desc"));
+  onSnapshot(pendingQuery, snapshot => {
+    snapshot.forEach(doc => {
+      const tx = { id: doc.id, ...doc.data(), source: "pending" };
+      const index = allTransactions.findIndex(t => t.id === doc.id && t.source === "pending");
+      if (index > -1) allTransactions[index] = tx;
+      else allTransactions.push(tx);
+    });
+    renderTransactions();
+  });
+
+  // 2. Completed user transactions
+  const userTxnRef = collection(db, "users", uid, "transactions");
+  const userQuery = query(userTxnRef, orderBy("timestamp", "desc"));
+  onSnapshot(userQuery, snapshot => {
+    snapshot.forEach(doc => {
+      const tx = { id: doc.id, ...doc.data(), source: "user" };
+      const index = allTransactions.findIndex(t => t.id === doc.id && t.source === "user");
+      if (index > -1) allTransactions[index] = tx;
+      else allTransactions.push(tx);
+    });
     renderTransactions();
   });
 }
 
+// Render transactions
 function renderTransactions() {
   txList.innerHTML = "";
-  let filtered = activeType === "all" ? allTxs : allTxs.filter(tx => tx.type.toLowerCase() === activeType);
+
+  let filtered = activeType === "all" ? allTransactions : allTransactions.filter(tx => (tx.type || "").toLowerCase() === activeType);
 
   if (!filtered.length) {
-    txList.innerHTML = `<p>No transactions found</p>`;
+    txList.innerHTML = `<div class="tx-card"><p>No transactions found</p></div>`;
     return;
   }
 
+  filtered.sort((a,b) => {
+    const aTime = a.createdAt?.toDate ? a.createdAt.toDate() : a.timestamp?.toDate?.() || new Date(0);
+    const bTime = b.createdAt?.toDate ? b.createdAt.toDate() : b.timestamp?.toDate?.() || new Date(0);
+    return bTime - aTime;
+  });
+
   filtered.forEach(tx => {
+    const dateText = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleString() :
+                     tx.timestamp?.toDate ? tx.timestamp.toDate().toLocaleString() :
+                     "-";
+
+    const amountColor = tx.type === "withdraw" ? "#ff4444" : "#00ff66";
     const card = document.createElement("div");
-    card.className = "p-4 bg-zinc-900 border border-zinc-700 rounded-xl";
+    card.className = "tx-card";
     card.innerHTML = `
-      <p><strong>Type:</strong> ${tx.type}</p>
-      <p><strong>Amount:</strong> $${tx.amount}</p>
-      <p><strong>Method:</strong> ${tx.method || "-"}</p>
-      <p><strong>Status:</strong> ${tx.status}</p>
-      <p><strong>Recipient:</strong> ${tx.recipient || "-"}</p>
-      <p><strong>Date:</strong> ${tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleString() : "-"}</p>
+      <div class="tx-info">
+        <strong>Type:</strong> ${tx.type}<br>
+        <strong>Status:</strong> ${tx.status || "Completed"}<br>
+        <strong>Amount:</strong> $${tx.amount || 0}<br>
+        ${tx.method ? `<strong>Method:</strong> ${tx.method}<br>` : ""}
+        ${tx.recipient ? `<strong>Recipient:</strong> ${tx.recipient}<br>` : ""}
+        <strong>Date:</strong> ${dateText}
+      </div>
+      <div class="tx-amount" style="color:${amountColor}">$${tx.amount || 0}</div>
     `;
     txList.appendChild(card);
   });
