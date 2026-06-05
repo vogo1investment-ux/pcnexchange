@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Withdrawals</title>
+<title>Admin Withdrawals</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white p-4">
+<body class="bg-zinc-800 p-4 rounded-xl text-white">
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">Pending Withdrawals</h1>
-<div id="withdrawals-list"></div>
+<h2 class="text-xl font-bold mb-4 text-emerald-400">Withdrawal Requests</h2>
 
-<script type="module" src="withdrawals.js"></script>
+<div id="withdrawList" class="space-y-2 max-h-[500px] overflow-y-auto">
+  <!-- Withdrawal requests populate here -->
+</div>
+
 </body>
 </html>
