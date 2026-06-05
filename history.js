@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -16,107 +15,59 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const historyList = document.getElementById("historyList");
+const txList = document.getElementById("txList");
 let activeType = "all";
-let allTransactions = [];
-let userUid = null;
+let userId = null;
 
 // Auth listener
 onAuthStateChanged(auth, user => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-  userUid = user.uid;
-  loadTransactions(userUid);
-  loadStakes(userUid);
+  if (!user) return window.location.href = "login.html";
+  userId = user.uid;
+  loadUserTransactions(userId);
 });
 
 // Tabs
-document.querySelectorAll(".history-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".history-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    activeType = tab.dataset.type;
-    renderHistory();
+document.querySelectorAll(".tx-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeType = btn.dataset.type;
+    document.querySelectorAll(".tx-tab").forEach(t => t.classList.remove("bg-green-800"));
+    btn.classList.add("bg-green-800");
+    renderTransactions();
   });
 });
 
-// Load user transactions (deposits, withdrawals, wallet, transfer, receive)
-function loadTransactions(uid) {
-  const txRef = collection(db, "users", uid, "transactions");
-  const q = query(txRef, orderBy("timestamp", "desc"));
+let allTxs = [];
 
+// Load transactions
+function loadUserTransactions(uid) {
+  const q = query(collection(db, "pendingTransactions"), where("userId", "==", uid), orderBy("createdAt", "desc"));
   onSnapshot(q, snap => {
-    snap.forEach(docSnap => {
-      const tx = { id: docSnap.id, ...docSnap.data() };
-      const existingIndex = allTransactions.findIndex(t => t.id === tx.id);
-      if (existingIndex === -1) allTransactions.push(tx);
-      else allTransactions[existingIndex] = tx;
-    });
-    renderHistory();
+    allTxs = [];
+    snap.forEach(doc => allTxs.push({ id: doc.id, ...doc.data() }));
+    renderTransactions();
   });
 }
 
-// Load user stakes
-function loadStakes(uid) {
-  const stakeRef = collection(db, "stakes");
-  const q = query(stakeRef, orderBy("timestamp", "desc"));
+function renderTransactions() {
+  txList.innerHTML = "";
+  let filtered = activeType === "all" ? allTxs : allTxs.filter(tx => tx.type.toLowerCase() === activeType);
 
-  onSnapshot(q, snap => {
-    snap.forEach(docSnap => {
-      const stake = { id: docSnap.id, ...docSnap.data() };
-      // Only add stakes for this user
-      if (stake.userId === uid) {
-        const existingIndex = allTransactions.findIndex(t => t.id === stake.id);
-        if (existingIndex === -1) allTransactions.push({ ...stake, type: "stake" });
-        else allTransactions[existingIndex] = { ...stake, type: "stake" };
-      }
-    });
-    renderHistory();
-  });
-}
-
-// Render function
-function renderHistory() {
-  historyList.innerHTML = "";
-
-  let transactions = activeType === "all" ? allTransactions : allTransactions.filter(tx => (tx.type || "").toLowerCase() === activeType);
-
-  if (!transactions.length) {
-    historyList.innerHTML = `<div class="history-card"><p>No transactions found</p></div>`;
+  if (!filtered.length) {
+    txList.innerHTML = `<p>No transactions found</p>`;
     return;
   }
 
-  transactions.forEach(tx => {
-    let amountColor = "#00ff66"; // green default
-    if (tx.type === "withdraw") amountColor = "#ff4444";
-    if (tx.type === "stake") amountColor = "#1E90FF";
-    if (tx.status === "pending") amountColor = "#FFA500"; // orange pending
-
-    let dateText = "No Date";
-    try {
-      if (tx.timestamp?.toDate) dateText = tx.timestamp.toDate().toLocaleString();
-      else if (tx.timestamp) dateText = new Date(tx.timestamp).toLocaleString();
-    } catch(e){}
-
+  filtered.forEach(tx => {
     const card = document.createElement("div");
-    card.className = "history-card";
+    card.className = "p-4 bg-zinc-900 border border-zinc-700 rounded-xl";
     card.innerHTML = `
-      <div class="history-info">
-        <strong>${(tx.type || "Transaction").toUpperCase()}</strong>
-        <small>${dateText}</small>
-        ${tx.to ? `<p>To: ${tx.to}</p>` : ""}
-        ${tx.from ? `<p>From: ${tx.from}</p>` : ""}
-        ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
-        ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
-        ${tx.status ? `<p>Status: ${tx.status}</p>` : ""}
-        ${tx.stakeAmount ? `<p>Staked Amount: ${tx.stakeAmount}</p>` : ""}
-        ${tx.stakeInterest ? `<p>Interest: ${tx.stakeInterest}%</p>` : ""}
-        ${tx.stakeEndDate ? `<p>Ends: ${new Date(tx.stakeEndDate).toLocaleString()}</p>` : ""}
-      </div>
-      <div class="history-amount" style="color:${amountColor}">$${Number(tx.amount || 0).toLocaleString()}</div>
+      <p><strong>Type:</strong> ${tx.type}</p>
+      <p><strong>Amount:</strong> $${tx.amount}</p>
+      <p><strong>Method:</strong> ${tx.method || "-"}</p>
+      <p><strong>Status:</strong> ${tx.status}</p>
+      <p><strong>Recipient:</strong> ${tx.recipient || "-"}</p>
+      <p><strong>Date:</strong> ${tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleString() : "-"}</p>
     `;
-    historyList.appendChild(card);
+    txList.appendChild(card);
   });
 }
