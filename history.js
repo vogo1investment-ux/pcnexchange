@@ -4,8 +4,9 @@ import {
   collection,
   query,
   where,
-  onSnapshot
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
 import {
   getAuth,
   onAuthStateChanged
@@ -26,43 +27,119 @@ const auth = getAuth(app);
 
 const historyList = document.getElementById("historyList");
 
-let activeType = "all";
 let allTransactions = [];
+let activeType = "all";
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async(user) => {
+
   if (!user) {
-    window.location.href = "login.html";
+    location.href = "login.html";
     return;
   }
 
-  loadTransactions(user.uid);
+  await loadHistory(user.uid);
 });
 
-function loadTransactions(uid) {
+async function loadHistory(uid) {
 
-  const q = query(
-    collection(db, "pendingTransactions"),
-    where("userId", "==", uid)
-  );
+  allTransactions = [];
 
-  onSnapshot(q, snapshot => {
+  try {
 
-    allTransactions = [];
+    // ======================
+    // DEPOSITS + WITHDRAWALS
+    // ======================
 
-    snapshot.forEach(doc => {
+    const pendingQuery = query(
+      collection(db, "pendingTransactions"),
+      where("userId", "==", uid)
+    );
+
+    const pendingSnap = await getDocs(pendingQuery);
+
+    pendingSnap.forEach(doc => {
       allTransactions.push({
         id: doc.id,
+        source: "pendingTransactions",
         ...doc.data()
       });
     });
 
-    allTransactions.sort((a, b) => {
-      const aTime = a.createdAt?.seconds || 0;
-      const bTime = b.createdAt?.seconds || 0;
-      return bTime - aTime;
+    // ======================
+    // STAKES
+    // ======================
+
+    const stakeQuery = query(
+      collection(db, "stakes"),
+      where("userId", "==", uid)
+    );
+
+    const stakeSnap = await getDocs(stakeQuery);
+
+    stakeSnap.forEach(doc => {
+
+      const data = doc.data();
+
+      allTransactions.push({
+        id: doc.id,
+        source: "stakes",
+        type: "stake",
+        amount: data.amount || 0,
+        status: data.status || "Pending",
+        createdAt: data.createdAt,
+        ...data
+      });
     });
 
+    // ======================
+    // TRANSFERS / RECEIVED
+    // ======================
+
+    const txQuery = query(
+      collection(db, "transactions"),
+      where("userId", "==", uid)
+    );
+
+    const txSnap = await getDocs(txQuery);
+
+    txSnap.forEach(doc => {
+      allTransactions.push({
+        id: doc.id,
+        source: "transactions",
+        ...doc.data()
+      });
+    });
+
+    sortHistory();
+
     renderHistory();
+
+  } catch(err) {
+    console.error(err);
+
+    historyList.innerHTML = `
+      <div class="history-card">
+        Error loading history
+      </div>
+    `;
+  }
+}
+
+function sortHistory() {
+
+  allTransactions.sort((a,b) => {
+
+    const aTime =
+      a.createdAt?.seconds ||
+      a.timestamp?.seconds ||
+      0;
+
+    const bTime =
+      b.createdAt?.seconds ||
+      b.timestamp?.seconds ||
+      0;
+
+    return bTime - aTime;
   });
 }
 
@@ -87,34 +164,40 @@ function renderHistory() {
 
   historyList.innerHTML = "";
 
-  let transactions = [...allTransactions];
+  let records = [...allTransactions];
 
-  if (activeType !== "all") {
+  if(activeType !== "all") {
 
-    transactions = transactions.filter(tx => {
+    records = records.filter(tx => {
 
-      const type = (tx.type || "").toLowerCase();
+      const type = (tx.type || "")
+        .toLowerCase()
+        .trim();
 
-      if (activeType === "deposit")
-        return type === "deposit";
+      switch(activeType) {
 
-      if (activeType === "withdrawal")
-        return type === "withdraw";
+        case "deposit":
+          return type === "deposit";
 
-      if (activeType === "stake")
-        return type === "stake";
+        case "withdrawal":
+          return type === "withdraw";
 
-      if (activeType === "transfer")
-        return type === "transfer";
+        case "stake":
+          return type === "stake";
 
-      if (activeType === "received")
-        return type === "receive";
+        case "transfer":
+          return type === "transfer";
 
-      return true;
+        case "received":
+          return type === "receive";
+
+        default:
+          return true;
+      }
     });
   }
 
-  if (!transactions.length) {
+  if(records.length === 0) {
 
     historyList.innerHTML = `
       <div class="history-card">
@@ -125,47 +208,56 @@ function renderHistory() {
     return;
   }
 
-  transactions.forEach(tx => {
+  records.forEach(tx => {
 
     let amountColor = "#00ff66";
 
-    if ((tx.type || "").toLowerCase() === "withdraw")
+    if((tx.type || "").toLowerCase() === "withdraw")
       amountColor = "#ff4444";
 
-    if ((tx.status || "").toLowerCase() === "pending")
+    if((tx.status || "").toLowerCase() === "pending")
       amountColor = "#ffaa00";
 
     let dateText = "No Date";
 
     try {
 
-      if (tx.createdAt?.toDate) {
+      if(tx.createdAt?.toDate)
         dateText = tx.createdAt.toDate().toLocaleString();
-      }
 
-    } catch (e) {}
+      else if(tx.timestamp?.toDate)
+        dateText = tx.timestamp.toDate().toLocaleString();
+
+    } catch(e){}
 
     const card = document.createElement("div");
 
     card.className = "history-card";
 
     card.innerHTML = `
+
       <div class="history-info">
-        <strong>${tx.type || "Transaction"}</strong>
+
+        <strong>${(tx.type || "Transaction").toUpperCase()}</strong>
+
         <small>${dateText}</small>
 
-        ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
-        ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
-        ${tx.recipient ? `<p>Recipient: ${tx.recipient}</p>` : ""}
         ${tx.coin ? `<p>Coin: ${tx.coin}</p>` : ""}
+        ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
+        ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
+        ${tx.recipient ? `<p>Recipient: ${tx.recipient}</p>` : ""}
+        ${tx.proofName ? `<p>Proof: ${tx.proofName}</p>` : ""}
 
         <p>Status: ${tx.status || "Pending"}</p>
+
       </div>
 
-      <div class="history-amount"
-           style="color:${amountColor}">
+      <div
+        class="history-amount"
+        style="color:${amountColor}">
         $${Number(tx.amount || 0).toLocaleString()}
       </div>
+
     `;
 
     historyList.appendChild(card);
