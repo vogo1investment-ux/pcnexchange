@@ -1,55 +1,70 @@
-import { db } from "./admin-dashboard-full.js";
-import { collection, addDoc, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-export function init() {
-  const section = document.getElementById("section-content");
-  section.innerHTML = `
-    <h2 class="font-bold text-lg mb-2">Pending Deposits</h2>
-    <div id="pendingDeposits"></div>
-  `;
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
 
-  async function loadPendingDeposits() {
-    const snap = await getDocs(collection(db, "pendingTransactions"));
-    let html = "";
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      if (d.type === "deposit" && d.status === "Pending") {
-        html += `<div class="p-2 bg-zinc-700 rounded mb-1">
-          <span>User: ${d.userId} - $${d.amount}</span>
-          <button onclick="approveDeposit('${docSnap.id}','${d.userId}',${d.amount})" class="bg-green-500 p-1 rounded ml-2">Approve</button>
-          <button onclick="rejectDeposit('${docSnap.id}')" class="bg-red-500 p-1 rounded ml-2">Reject</button>
-        </div>`;
-      }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const requestWalletBtn = document.getElementById("requestWalletBtn");
+const cryptoCoinSelect = document.getElementById("cryptoCoinSelect");
+const walletHistoryDiv = document.getElementById("walletHistory");
+
+// Add new wallet request
+requestWalletBtn.addEventListener("click", async () => {
+  const coin = cryptoCoinSelect.value;
+  const user = auth.currentUser;
+  if (!user) return alert("Login required");
+  if (!coin) return alert("Select a coin");
+
+  try {
+    await addDoc(collection(db, "pendingTransactions"), {
+      userId: user.uid,
+      type: "generateWallet",
+      coin: coin,
+      status: "Pending",
+      createdAt: Date.now()
     });
-    document.getElementById("pendingDeposits").innerHTML = html;
+    alert("Wallet request submitted!");
+    cryptoCoinSelect.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Failed to submit request: " + err.message);
   }
+});
 
-  window.approveDeposit = async (txnId, userId, amount) => {
-    try {
-      // Update the transaction status
-      await updateDoc(doc(db, "pendingTransactions", txnId), { status: "Approved" });
+// Real-time wallet history update
+onAuthStateChanged(auth, user => {
+  if (!user) return walletHistoryDiv.innerHTML = "Login required";
 
-      // Update user's available balance
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        const newBalance = (userData.availableBalance || 0) + amount;
-        await updateDoc(userRef, { availableBalance: newBalance });
-      }
+  const q = query(
+    collection(db, "pendingTransactions"),
+    where("userId", "==", user.uid),
+    where("type", "==", "generateWallet"),
+    orderBy("createdAt", "desc")
+  );
 
-      loadPendingDeposits();
-      alert("Deposit approved and balance updated!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to approve deposit: " + err.message);
-    }
-  };
-
-  window.rejectDeposit = async (txnId) => {
-    await updateDoc(doc(db, "pendingTransactions", txnId), { status: "Rejected" });
-    loadPendingDeposits();
-  };
-
-  loadPendingDeposits();
-}
+  // Listen in real time
+  onSnapshot(q, snapshot => {
+    let html = "";
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      html += `<div class="p-2 border-b border-zinc-700">
+        <span>Coin: ${d.coin}</span><br>
+        <span>Status: ${d.status || "Pending"}</span><br>
+        ${d.adminReply ? `<span class="text-green-400">Wallet: ${d.adminReply}</span>` : ""}
+      </div>`;
+    });
+    walletHistoryDiv.innerHTML = html || "No wallet requests yet";
+  });
+});
