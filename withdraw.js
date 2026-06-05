@@ -31,7 +31,6 @@ onAuthStateChanged(auth, async user => {
   await loadUserCoins();
 });
 
-// Load user coins, referrals, airdrops
 async function loadUserCoins() {
   try {
     const userRef = doc(db, "users", currentUser.uid);
@@ -43,7 +42,7 @@ async function loadUserCoins() {
     const referral = userData.referralCommission || 0;
     const airdrop = userData.airdrop || 0;
 
-    // Populate coin list display
+    // Show all coins, airdrop, referral
     let html = `<div class="p-2 border-b border-zinc-700">
       <strong>Referral Commission:</strong> $${referral}<br>
       <strong>Airdrop:</strong> $${airdrop}
@@ -51,21 +50,20 @@ async function loadUserCoins() {
 
     coins.forEach(c => {
       html += `<div class="p-2 border-b border-zinc-700">
-        <div class="flex justify-between items-center mb-2">
-          <span>${c.name}: ${c.balance}</span>
-        </div>
+        <strong>${c.name}:</strong> ${c.balance}
       </div>`;
+
+      // Add each coin to the withdrawal type dropdown if not already there
+      const exists = Array.from(withdrawTypeSelect.options).some(opt => opt.value === c.name);
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = c.name;
+        opt.innerText = c.name;
+        withdrawTypeSelect.appendChild(opt);
+      }
     });
 
     coinListDiv.innerHTML = html;
-
-    // Populate the Withdrawal Type dropdown with coins
-    coins.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.name;
-      opt.innerText = c.name;
-      withdrawTypeSelect.appendChild(opt);
-    });
 
   } catch (err) {
     console.error(err);
