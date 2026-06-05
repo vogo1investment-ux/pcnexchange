@@ -1,7 +1,6 @@
-// admin-dashboard-full.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -27,47 +26,47 @@ logoutBtn.addEventListener("click", async () => {
   window.location.href = "admin-login.html";
 });
 
-// Admin auth check
+// Admin auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
     window.location.href = "admin-login.html";
     return;
   }
-
   attachButtonEvents();
   updateSummaryCards();
 });
 
-// Attach buttons to dynamically load section HTML and JS
+// Attach all buttons
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
+
+      if (section === "stake-overview") {
+        renderStakeOverviewRealtime();
+        return;
+      }
+
       try {
-        // Load HTML
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
 
-        // Load JS module
-        import(`./${section}.js`)
-          .then(module => {
-            if (module.init) module.init();
-          })
-          .catch(err => {
-            console.error(`Failed to load ${section}.js`, err);
-            sectionContent.innerHTML += `<p class="text-red-500">Failed to load ${section} JS</p>`;
-          });
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = `${section}.js`;
+        document.body.appendChild(script);
+
       } catch (err) {
-        console.error(`Failed to load ${section}.html`, err);
+        console.error(`Failed to load ${section}`, err);
         sectionContent.innerHTML = `<p class="text-red-500">Failed to load ${section}</p>`;
       }
     });
   });
 }
 
-// Update summary cards dynamically
+// Update summary cards
 async function updateSummaryCards() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
@@ -96,31 +95,52 @@ async function updateSummaryCards() {
   }
 }
 
-// Approve wallet request and send reply
-export async function approveWallet(txnId, walletAddress) {
-  try {
-    const txnRef = doc(db, "pendingTransactions", txnId);
-    await updateDoc(txnRef, { adminReply: walletAddress, status: "Approved" });
-    alert("Wallet address sent successfully!");
-  } catch (err) {
-    console.error("Failed to approve wallet:", err);
-    alert("Error sending wallet: " + err.message);
-  }
-}
+// ------------------- Real-time Stake Overview -------------------
+function renderStakeOverviewRealtime() {
+  sectionContent.innerHTML = `<h2 class="text-xl font-bold mb-4 text-emerald-400">Stake Overview</h2>
+    <div id="adminStakeList" class="space-y-2 max-h-[500px] overflow-y-auto"></div>`;
 
-// Optional helper: add deposit programmatically (for testing)
-export async function addDeposit(userId, amount, proofName) {
-  try {
-    await addDoc(collection(db, "pendingTransactions"), {
-      userId,
-      type: "deposit",
-      amount,
-      proofName,
-      status: "Pending",
-      createdAt: serverTimestamp()
-    });
-    alert("Deposit added successfully!");
-  } catch (err) {
-    console.error("Failed to add deposit:", err);
-  }
+  const stakeListDiv = document.getElementById("adminStakeList");
+
+  // Real-time listener
+  onSnapshot(collection(db, "stakes"), (snapshot) => {
+    stakeListDiv.innerHTML = "";
+
+    snapshot.docs
+      .sort((a, b) => b.data().createdAt?.seconds - a.data().createdAt?.seconds)
+      .forEach(docSnap => {
+        const stake = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "p-2 border border-zinc-700 rounded flex justify-between items-center";
+
+        div.innerHTML = `
+          <div>
+            <strong>${stake.coin}</strong> - Amount: <span class="stakeAmount" data-id="${docSnap.id}">${stake.stakedAmount}</span> 
+            - Status: <span class="stakeStatus">${stake.status}</span> 
+            - User: ${stake.userId} 
+            - Date: ${stake.date} ${stake.time}
+          </div>
+          <div class="flex space-x-2">
+            <button class="editBalanceBtn bg-yellow-400 text-black font-bold p-1 rounded">Edit</button>
+            <button class="endStakeBtn bg-red-500 text-black font-bold p-1 rounded">End</button>
+          </div>
+        `;
+
+        stakeListDiv.appendChild(div);
+
+        // Edit staked balance (admin only)
+        div.querySelector(".editBalanceBtn").addEventListener("click", async () => {
+          const newAmount = prompt("Enter new stake balance:", stake.stakedAmount);
+          if (!newAmount) return;
+          await updateDoc(doc(db, "stakes", docSnap.id), { stakedAmount: parseFloat(newAmount) });
+        });
+
+        // End stake
+        div.querySelector(".endStakeBtn").addEventListener("click", async () => {
+          const confirmEnd = confirm("Are you sure you want to end this stake?");
+          if (!confirmEnd) return;
+          await updateDoc(doc(db, "stakes", docSnap.id), { status: "Ended" });
+        });
+      });
+  });
 }
