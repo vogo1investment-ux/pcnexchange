@@ -1,7 +1,7 @@
 // admin-dashboard-full.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -27,7 +27,7 @@ logoutBtn.addEventListener("click", async () => {
   window.location.href = "admin-login.html";
 });
 
-// Admin auth
+// Admin auth check
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
@@ -39,20 +39,22 @@ onAuthStateChanged(auth, user => {
   updateSummaryCards();
 });
 
-// Attach buttons dynamically
+// Attach buttons to dynamically load section HTML and JS
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
       try {
-        // Fetch HTML template
+        // Load HTML
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
 
-        // Dynamically import JS for section
+        // Load JS module
         import(`./${section}.js`)
-          .then(module => { if (module.init) module.init(); })
+          .then(module => {
+            if (module.init) module.init();
+          })
           .catch(err => {
             console.error(`Failed to load ${section}.js`, err);
             sectionContent.innerHTML += `<p class="text-red-500">Failed to load ${section} JS</p>`;
@@ -94,7 +96,7 @@ async function updateSummaryCards() {
   }
 }
 
-// Optional: helper function to approve a wallet request and send to user
+// Approve wallet request and send reply
 export async function approveWallet(txnId, walletAddress) {
   try {
     const txnRef = doc(db, "pendingTransactions", txnId);
@@ -103,5 +105,22 @@ export async function approveWallet(txnId, walletAddress) {
   } catch (err) {
     console.error("Failed to approve wallet:", err);
     alert("Error sending wallet: " + err.message);
+  }
+}
+
+// Optional helper: add deposit programmatically (for testing)
+export async function addDeposit(userId, amount, proofName) {
+  try {
+    await addDoc(collection(db, "pendingTransactions"), {
+      userId,
+      type: "deposit",
+      amount,
+      proofName,
+      status: "Pending",
+      createdAt: serverTimestamp()
+    });
+    alert("Deposit added successfully!");
+  } catch (err) {
+    console.error("Failed to add deposit:", err);
   }
 }
