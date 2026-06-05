@@ -1,11 +1,23 @@
-import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-const db = getFirestore();
-const auth = getAuth();
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const historyList = document.getElementById("historyList");
+const withdrawList = document.getElementById("withdrawList");
 
 // Admin auth
 onAuthStateChanged(auth, user => {
@@ -17,50 +29,55 @@ onAuthStateChanged(auth, user => {
   loadWithdrawals();
 });
 
+// Load pending withdrawals
 function loadWithdrawals() {
-  const pendingRef = collection(db, "pendingTransactions");
-  // Only withdrawals
-  const q = query(pendingRef, where("type", "==", "withdraw"), orderBy("timestamp", "desc"));
-
+  const q = query(collection(db, "pendingTransactions"), where("type", "==", "withdraw"));
   onSnapshot(q, snapshot => {
-    historyList.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const tx = { id: docSnap.id, ...docSnap.data() };
-      const card = document.createElement("div");
-      card.className = "history-card";
+    withdrawList.innerHTML = "";
 
-      const statusColor = tx.status === "pending" ? "#FFA500" : tx.status === "Approved" ? "#00ff66" : "#ff4444";
+    if (snapshot.empty) {
+      withdrawList.innerHTML = `<p class="text-zinc-400">No pending withdrawals.</p>`;
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "p-4 rounded-xl bg-zinc-900 border border-zinc-700 flex flex-col md:flex-row justify-between items-start md:items-center";
 
       card.innerHTML = `
-        <div class="history-info">
-          <strong>WITHDRAWAL</strong>
-          <small>${tx.timestamp?.toDate ? tx.timestamp.toDate().toLocaleString() : new Date(tx.timestamp || Date.now()).toLocaleString()}</small>
-          <p>Amount: $${tx.amount}</p>
-          <p>Method: ${tx.method || "N/A"}</p>
-          <p>Region: ${tx.region || "N/A"}</p>
-          <p>Status: <span style="color:${statusColor}">${tx.status || "pending"}</span></p>
+        <div class="flex-1">
+          <p><strong>User ID:</strong> ${data.userId}</p>
+          <p><strong>Amount:</strong> $${data.amount}</p>
+          <p><strong>Method:</strong> ${data.method}</p>
+          <p><strong>Region:</strong> ${data.region}</p>
+          <p><strong>Status:</strong> <span id="status-${docSnap.id}">${data.status || "Pending"}</span></p>
         </div>
-        <div class="history-amount">
-          <button class="history-btn approve" data-id="${tx.id}">Approve</button>
-          <button class="history-btn reject" data-id="${tx.id}">Reject</button>
+        <div class="mt-2 md:mt-0 flex gap-2">
+          <button class="approve-btn bg-green-500 p-2 rounded font-bold" data-id="${docSnap.id}">Approve</button>
+          <button class="reject-btn bg-red-500 p-2 rounded font-bold" data-id="${docSnap.id}">Reject</button>
         </div>
       `;
-      historyList.appendChild(card);
+
+      withdrawList.appendChild(card);
     });
 
-    // Approve/Reject handlers
-    document.querySelectorAll(".history-btn.approve").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const txId = btn.dataset.id;
-        await updateDoc(doc(db, "pendingTransactions", txId), { status: "Approved" });
-      });
+    // Attach button events
+    document.querySelectorAll(".approve-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.id;
+        await updateDoc(doc(db, "pendingTransactions", id), { status: "Approved" });
+        document.getElementById(`status-${id}`).innerText = "Approved";
+      };
     });
 
-    document.querySelectorAll(".history-btn.reject").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const txId = btn.dataset.id;
-        await updateDoc(doc(db, "pendingTransactions", txId), { status: "Rejected" });
-      });
+    document.querySelectorAll(".reject-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.id;
+        await updateDoc(doc(db, "pendingTransactions", id), { status: "Rejected" });
+        document.getElementById(`status-${id}`).innerText = "Rejected";
+      };
     });
+
   });
 }
