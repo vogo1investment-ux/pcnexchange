@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -25,7 +25,7 @@ logoutBtn.addEventListener("click", async () => {
   window.location.href = "admin-login.html";
 });
 
-// Admin auth
+// Admin authentication
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
@@ -36,53 +36,40 @@ onAuthStateChanged(auth, user => {
   updateSummaryCards();
 });
 
-// Attach buttons
+// Attach button events for admin panel
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
 
-      // Stake Overview
-      if (section === "stake-overview") {
-        const htmlRes = await fetch("stake-overview.html");
-        const html = await htmlRes.text();
-        sectionContent.innerHTML = html;
-
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = "stake-overview.js";
-        document.body.appendChild(script);
-        return;
-      }
-
-      // Deposits
-      if (section === "deposits") {
-        const htmlRes = await fetch("deposits.html");
-        const html = await htmlRes.text();
-        sectionContent.innerHTML = html;
-
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = "deposits.js";
-        document.body.appendChild(script);
-        return;
-      }
-
-      // Withdrawals
-      if (section === "withdrawals") {
-        const htmlRes = await fetch("withdrawals.html");
-        const html = await htmlRes.text();
-        sectionContent.innerHTML = html;
-
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = "withdrawals.js";
-        document.body.appendChild(script);
-        return;
-      }
-
-      // Other sections
       try {
+        // Unified transactions module for deposits and withdrawals
+        if (section === "deposits" || section === "withdrawals") {
+          const htmlRes = await fetch(`admin-transactions.html`);
+          const html = await htmlRes.text();
+          sectionContent.innerHTML = html;
+
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = `admin-transactions.js`;
+          document.body.appendChild(script);
+          return;
+        }
+
+        // Stake overview
+        if (section === "stake-overview") {
+          const htmlRes = await fetch(`stake-overview.html`);
+          const html = await htmlRes.text();
+          sectionContent.innerHTML = html;
+
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = "stake-overview.js";
+          document.body.appendChild(script);
+          return;
+        }
+
+        // Load other sections normally
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
@@ -100,7 +87,7 @@ function attachButtonEvents() {
   });
 }
 
-// Update summary cards
+// Summary cards update
 async function updateSummaryCards() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
