@@ -28,11 +28,10 @@ const submitWithdrawBtn = document.getElementById("submitWithdraw");
 onAuthStateChanged(auth, async user => {
   if (!user) return alert("Login required");
   currentUser = user;
-  await loadUserCoins();
+  await loadUserAssets();
 });
 
-// Load user coins, referral, airdrops
-async function loadUserCoins() {
+async function loadUserAssets() {
   try {
     const userRef = doc(db, "users", currentUser.uid);
     const userSnap = await getDoc(userRef);
@@ -43,32 +42,31 @@ async function loadUserCoins() {
     const referral = userData.referralCommission || 0;
     const airdrop = userData.airdrop || 0;
 
-    // Show all coins dynamically
+    // Clear dropdown first
+    withdrawTypeSelect.innerHTML = '<option value="">Select type</option>';
+
+    // Add airdrop and referral to dropdown
+    withdrawTypeSelect.appendChild(new Option("Airdrop", "airdrop"));
+    withdrawTypeSelect.appendChild(new Option("Referral Commission", "referral"));
+
     let html = `<div class="p-2 border-b border-zinc-700">
       <strong>Referral Commission:</strong> $${referral}<br>
       <strong>Airdrop:</strong> $${airdrop}
     </div>`;
 
+    // Add coins to dropdown and list
     coins.forEach(c => {
+      withdrawTypeSelect.appendChild(new Option(c.name, c.name));
       html += `<div class="p-2 border-b border-zinc-700">
         <strong>${c.name}:</strong> ${c.balance}
       </div>`;
-
-      // Add coin to Withdrawal Type dropdown if not already present
-      const exists = Array.from(withdrawTypeSelect.options).some(opt => opt.value === c.name);
-      if (!exists) {
-        const opt = document.createElement("option");
-        opt.value = c.name;
-        opt.innerText = c.name;
-        withdrawTypeSelect.appendChild(opt);
-      }
     });
 
     coinListDiv.innerHTML = html;
 
   } catch (err) {
     console.error(err);
-    coinListDiv.innerHTML = "Failed to load coins";
+    coinListDiv.innerHTML = "Failed to load assets";
   }
 }
 
@@ -84,8 +82,8 @@ submitWithdrawBtn.addEventListener("click", async () => {
 
   await addDoc(collection(db, "pendingTransactions"), {
     userId: currentUser.uid,
-    type: type === "airdrop" ? "withdraw-airdrop" : "withdraw-coin",
-    coin: type !== "airdrop" ? type : null,
+    type: type === "airdrop" ? "withdraw-airdrop" : type === "referral" ? "withdraw-referral" : "withdraw-coin",
+    coin: type !== "airdrop" && type !== "referral" ? type : null,
     amount,
     recipient,
     region,
