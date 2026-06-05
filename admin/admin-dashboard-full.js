@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -37,29 +37,36 @@ onAuthStateChanged(auth, user => {
   updateSummaryCards();
 });
 
+// Attach all section buttons
 function attachButtonEvents() {
   document.querySelectorAll(".admin-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const section = btn.dataset.section;
       try {
+        // Load HTML
         const htmlRes = await fetch(`${section}.html`);
         const html = await htmlRes.text();
         sectionContent.innerHTML = html;
 
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = `${section}.js`;
-        document.body.appendChild(script);
+        // Dynamically import the JS module for this section
+        import(`./${section}.js`)
+          .then(module => {
+            if (module.init) module.init(); // run init() for the section
+          })
+          .catch(err => {
+            console.error(`Failed to load ${section}.js`, err);
+            sectionContent.innerHTML += `<p class="text-red-500">Failed to load ${section} JS</p>`;
+          });
 
       } catch (err) {
-        console.error(`Failed to load ${section}`, err);
+        console.error(`Failed to load ${section}.html`, err);
         sectionContent.innerHTML = `<p class="text-red-500">Failed to load ${section}</p>`;
       }
     });
   });
 }
 
-// Summary Cards
+// Update summary cards dynamically
 async function updateSummaryCards() {
   try {
     const usersSnap = await getDocs(collection(db, "users"));
