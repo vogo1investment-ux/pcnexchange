@@ -4,36 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Transaction History</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { background-color: #000; color: #0f0; font-family: Arial, sans-serif; }
-.tx-container { max-width: 900px; margin: auto; padding: 20px; }
-h1 { color: #0f0; text-align: center; margin-bottom: 20px; }
-.tx-tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-.tx-tab { flex: 1 1 120px; padding: 10px; text-align: center; background: #111; cursor: pointer; border: 1px solid #0f0; border-radius: 5px; font-weight: bold; color: #0f0; }
-.tx-tab.active { background: #0f0; color: #000; }
-.tx-list { display: flex; flex-direction: column; gap: 15px; }
-.tx-card { background: #111; border: 1px solid #0f0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; flex-wrap: wrap; }
-.tx-info p, .tx-info small, .tx-info strong { margin: 2px 0; }
-.tx-amount { font-weight: bold; font-size: 1.1em; }
-@media (max-width:600px){ .tx-card { flex-direction: column; gap: 8px; } }
+.history-container { max-width: 900px; margin: auto; padding: 20px; }
+h1 { color: #0f0; text-align: center; margin-bottom: 20px; font-size: 1.8rem; }
+.history-tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+.history-tab { flex: 1 1 100px; padding: 10px; text-align: center; background: #111; cursor: pointer; border: 1px solid #0f0; border-radius: 5px; font-weight: bold; color: #0f0; }
+.history-tab.active { background: #0f0; color: #000; }
+.history-list { display: flex; flex-direction: column; gap: 15px; }
+.history-card { background: #111; border: 1px solid #0f0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; flex-wrap: wrap; }
+.history-info p, .history-info small, .history-info strong { margin: 2px 0; }
+.history-amount { font-weight: bold; font-size: 1.1em; }
+@media (max-width:600px){ .history-card { flex-direction: column; gap: 8px; } }
 </style>
 </head>
 <body>
 
-<div class="tx-container">
-  <h1>Transaction History</h1>
+<div class="history-container">
+<h1>Transaction History</h1>
 
-  <div class="tx-tabs">
-    <div class="tx-tab active" data-type="all">All</div>
-    <div class="tx-tab" data-type="deposit">Deposit</div>
-    <div class="tx-tab" data-type="withdraw">Withdrawal</div>
-    <div class="tx-tab" data-type="stake">Stake</div>
-    <div class="tx-tab" data-type="transfer">Transfer</div>
-    <div class="tx-tab" data-type="receive">Received</div>
-  </div>
+<div class="history-tabs">
+  <div class="history-tab active" data-type="all">All</div>
+  <div class="history-tab" data-type="deposit">Deposit</div>
+  <div class="history-tab" data-type="withdrawal">Withdrawal</div>
+  <div class="history-tab" data-type="stake">Stake</div>
+  <div class="history-tab" data-type="transfer">Transfer</div>
+  <div class="history-tab" data-type="received">Received</div>
+  <div class="history-tab" data-type="airdrop">Airdrop</div>
+</div>
 
-  <div id="txList" class="tx-list"></div>
+<div id="historyList" class="history-list"></div>
 </div>
 
 <script type="module" src="history.js"></script>
