@@ -18,29 +18,27 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
 
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("sendBtn");
   const userIdInput = document.getElementById("userIdInput");
   const titleInput = document.getElementById("titleInput");
   const messageInput = document.getElementById("messageInput");
   const imageInput = document.getElementById("imageInput");
 
-  // Ensure admin access
-  onAuthStateChanged(auth, user => {
+  onAuthStateChanged(auth, async user => {
     if (!user || user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
       alert("Access Denied: Admin Only");
       window.location.href = "admin-login.html";
       return;
     }
 
-    // Attach event only once
     sendBtn.addEventListener("click", async () => {
       const userId = userIdInput.value.trim() || "all";
       const title = titleInput.value.trim();
       const message = messageInput.value.trim();
       const imageFile = imageInput.files[0];
 
-      if (!title || !message) return alert("Title and message are required");
+      if (!title || !message) return alert("Title and message required");
 
       try {
         let imageUrl = "";
@@ -64,8 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageInput.value = "";
         imageInput.value = "";
       } catch (err) {
-        console.error("Error sending notification:", err);
-        alert("Failed to send notification. Check console.");
+        console.error("Notification send failed:", err);
+        alert("Failed to send. Check console for error (likely Firestore rules).");
       }
     });
   });
