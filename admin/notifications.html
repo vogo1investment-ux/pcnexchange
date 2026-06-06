@@ -5,33 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Notifications</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #000; color: #0f0; font-family: Arial, sans-serif; }
+</style>
 </head>
-<body class="bg-black text-white p-5">
+<body>
+  <h1 class="text-2xl font-bold mb-4">Send Notification</h1>
+  <input type="text" id="userIdInput" placeholder="User ID (leave blank for all)" class="p-2 w-full mb-2 rounded bg-black border border-green-500">
+  <input type="text" id="titleInput" placeholder="Title" class="p-2 w-full mb-2 rounded bg-black border border-green-500">
+  <textarea id="messageInput" placeholder="Message" class="p-2 w-full mb-2 rounded bg-black border border-green-500"></textarea>
+  <input type="file" id="imageInput" class="mb-2">
+  <button id="sendBtn" class="p-2 rounded bg-green-500 font-bold">Send Notification</button>
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Send Notification</h1>
-
-<div class="mb-4">
-<label>User ID (leave blank for all users):</label>
-<input type="text" id="userIdInput" class="w-full p-2 rounded bg-zinc-900 border border-zinc-700">
-</div>
-
-<div class="mb-4">
-<label>Title:</label>
-<input type="text" id="titleInput" class="w-full p-2 rounded bg-zinc-900 border border-zinc-700">
-</div>
-
-<div class="mb-4">
-<label>Message:</label>
-<textarea id="messageInput" class="w-full p-2 rounded bg-zinc-900 border border-zinc-700"></textarea>
-</div>
-
-<div class="mb-4">
-<label>Image (optional):</label>
-<input type="file" id="imageInput" class="w-full p-2 rounded bg-zinc-900 border border-zinc-700">
-</div>
-
-<button id="sendBtn" class="bg-emerald-400 text-black font-bold p-3 rounded w-full">Send Notification</button>
-
-<script type="module" src="notification.js"></script>
+  <script type="module" src="notification.js"></script>
 </body>
 </html>
