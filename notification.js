@@ -1,12 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
@@ -17,45 +16,39 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const notificationsList = document.getElementById("notificationsList");
+const notificationList = document.getElementById("notificationList");
+const notificationCount = document.getElementById("notificationCount");
 
 onAuthStateChanged(auth, user => {
   if (!user) {
-    window.location.href = "index.html";
+    window.location.href = "login.html";
     return;
   }
 
   const uid = user.uid;
   const notifRef = collection(db, "notifications");
+  const q = query(notifRef, orderBy("createdAt", "desc"));
 
-  // Listen for broadcast messages
-  const broadcastQuery = query(notifRef, where("type", "==", "broadcast"));
-  // Listen for personal messages
-  const personalQuery = query(notifRef, where("type", "==", "personal"), where("userId", "==", uid));
+  onSnapshot(q, snapshot => {
+    notificationList.innerHTML = "";
+    let count = 0;
 
-  onSnapshot(broadcastQuery, broadcastSnap => {
-    onSnapshot(personalQuery, personalSnap => {
-      const allNotifs = [];
-      broadcastSnap.forEach(doc => allNotifs.push(doc.data()));
-      personalSnap.forEach(doc => allNotifs.push(doc.data()));
-
-      if (allNotifs.length === 0) {
-        notificationsList.innerHTML = "<p>No notifications</p>";
-        return;
-      }
-
-      // Sort by newest
-      allNotifs.sort((a, b) => {
-        return (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0);
-      });
-
-      notificationsList.innerHTML = "";
-      allNotifs.forEach(notif => {
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.userId === uid || data.userId === "all") {
+        count++;
         const div = document.createElement("div");
         div.className = "notification-card";
-        div.innerText = notif.message || "No message";
-        notificationsList.appendChild(div);
-      });
+        div.innerHTML = `
+          <h3>${data.title || "Notification"}</h3>
+          <p>${data.message}</p>
+          ${data.imageUrl ? `<img src="${data.imageUrl}" alt="Image">` : ""}
+          <small>${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
+        `;
+        notificationList.appendChild(div);
+      }
     });
+
+    notificationCount.innerText = count;
   });
 });
