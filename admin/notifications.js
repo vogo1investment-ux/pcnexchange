@@ -18,22 +18,22 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 
 onAuthStateChanged(auth, user => {
-  if(!user) window.location.href = "admin-login.html";
+  if (!user) window.location.href = "admin-login.html";
 });
 
 document.getElementById("sendBtn").addEventListener("click", async () => {
-  const userId = document.getElementById("userIdInput").value || "all";
+  const userId = document.getElementById("userIdInput").value.trim() || "all";
   const title = document.getElementById("titleInput").value.trim();
   const message = document.getElementById("messageInput").value.trim();
   const imageFile = document.getElementById("imageInput").files[0];
 
-  if(!title || !message) return alert("Title and message are required");
+  if (!title || !message) return alert("Title and message required");
 
   let imageUrl = "";
-  if(imageFile) {
+  if (imageFile) {
     const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
-    const snapshot = await uploadBytes(storageRef, imageFile);
-    imageUrl = await getDownloadURL(snapshot.ref);
+    const snap = await uploadBytes(storageRef, imageFile);
+    imageUrl = await getDownloadURL(snap.ref);
   }
 
   try {
@@ -45,11 +45,11 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
       createdAt: serverTimestamp()
     });
     alert("Notification sent!");
+    document.getElementById("userIdInput").value = "";
     document.getElementById("titleInput").value = "";
     document.getElementById("messageInput").value = "";
     document.getElementById("imageInput").value = "";
-    document.getElementById("userIdInput").value = "";
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     alert("Failed to send notification");
   }
