@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -21,30 +21,29 @@ const notificationCount = document.getElementById("notificationCount");
 onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
 
-  const uid = user.uid;
-  const notifRef = collection(db, "notifications");
-  const q = query(notifRef, orderBy("createdAt", "desc"));
+  const q = query(
+    collection(db, "notifications"),
+    orderBy("createdAt", "desc"),
+    where("userId", "in", [user.uid, "all"])
+  );
 
   onSnapshot(q, snapshot => {
     notificationList.innerHTML = "";
     let count = 0;
 
     snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.userId === uid || data.userId === "all") {
-        count++;
-        const div = document.createElement("div");
-        div.className = "notification-card";
-        div.innerHTML = `
-          <h3>${data.title || "Notification"}</h3>
-          <p>${data.message}</p>
-          ${data.imageUrl ? `<img src="${data.imageUrl}" alt="Image">` : ""}
-          <small>${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
-        `;
-        notificationList.appendChild(div);
-      }
+      const notif = doc.data();
+      const card = document.createElement("div");
+      card.className = "notification-card";
+      card.innerHTML = `
+        <strong>${notif.title || "Notification"}</strong>
+        <p>${notif.message}</p>
+        ${notif.imageUrl ? `<img src="${notif.imageUrl}" class="mt-2 rounded w-48">` : ""}
+      `;
+      notificationList.appendChild(card);
+      count++;
     });
 
-    notificationCount.innerText = count;
+    notificationCount.innerText = `You have ${count} notification${count !== 1 ? "s" : ""}`;
   });
 });
