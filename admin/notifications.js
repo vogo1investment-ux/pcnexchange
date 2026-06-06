@@ -3,7 +3,6 @@ import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.g
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -18,53 +17,44 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
 
-window.addEventListener("DOMContentLoaded", () => {
-  const sendBtn = document.getElementById("sendBtn");
-  const userIdInput = document.getElementById("userIdInput");
-  const titleInput = document.getElementById("titleInput");
-  const messageInput = document.getElementById("messageInput");
-  const imageInput = document.getElementById("imageInput");
+onAuthStateChanged(auth, user => {
+  if (!user || user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
+    alert("Access Denied: Admin Only");
+    window.location.href = "admin-login.html";
+  }
+});
 
-  onAuthStateChanged(auth, async user => {
-    if (!user || user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
-      alert("Access Denied: Admin Only");
-      window.location.href = "admin-login.html";
-      return;
+document.getElementById("sendBtn").addEventListener("click", async () => {
+  const userId = document.getElementById("userIdInput").value.trim() || "all";
+  const title = document.getElementById("titleInput").value.trim();
+  const message = document.getElementById("messageInput").value.trim();
+  const imageFile = document.getElementById("imageInput").files[0];
+
+  if (!title || !message) return alert("Title and message required");
+
+  try {
+    let imageUrl = "";
+    if (imageFile) {
+      const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
+      const snap = await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(snap.ref);
     }
 
-    sendBtn.addEventListener("click", async () => {
-      const userId = userIdInput.value.trim() || "all";
-      const title = titleInput.value.trim();
-      const message = messageInput.value.trim();
-      const imageFile = imageInput.files[0];
-
-      if (!title || !message) return alert("Title and message required");
-
-      try {
-        let imageUrl = "";
-        if (imageFile) {
-          const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
-          const snap = await uploadBytes(storageRef, imageFile);
-          imageUrl = await getDownloadURL(snap.ref);
-        }
-
-        await addDoc(collection(db, "notifications"), {
-          userId,
-          title,
-          message,
-          imageUrl,
-          createdAt: serverTimestamp()
-        });
-
-        alert("Notification sent!");
-        userIdInput.value = "";
-        titleInput.value = "";
-        messageInput.value = "";
-        imageInput.value = "";
-      } catch (err) {
-        console.error("Notification send failed:", err);
-        alert("Failed to send. Check console for error (likely Firestore rules).");
-      }
+    await addDoc(collection(db, "notifications"), {
+      userId,
+      title,
+      message,
+      imageUrl,
+      createdAt: serverTimestamp()
     });
-  });
+
+    alert("Notification sent!");
+    document.getElementById("userIdInput").value = "";
+    document.getElementById("titleInput").value = "";
+    document.getElementById("messageInput").value = "";
+    document.getElementById("imageInput").value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Failed to send notification. Check Storage rules and network.");
+  }
 });
