@@ -18,7 +18,10 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 
 onAuthStateChanged(auth, user => {
-  if (!user) window.location.href = "admin-login.html";
+  if (!user || user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
+    alert("Access Denied: Admin Only");
+    window.location.href = "admin-login.html";
+  }
 });
 
 document.getElementById("sendBtn").addEventListener("click", async () => {
@@ -29,14 +32,14 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
 
   if (!title || !message) return alert("Title and message required");
 
-  let imageUrl = "";
-  if (imageFile) {
-    const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
-    const snap = await uploadBytes(storageRef, imageFile);
-    imageUrl = await getDownloadURL(snap.ref);
-  }
-
   try {
+    let imageUrl = "";
+    if (imageFile) {
+      const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
+      const snap = await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(snap.ref);
+    }
+
     await addDoc(collection(db, "notifications"), {
       userId,
       title,
@@ -44,6 +47,7 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
       imageUrl,
       createdAt: serverTimestamp()
     });
+
     alert("Notification sent!");
     document.getElementById("userIdInput").value = "";
     document.getElementById("titleInput").value = "";
@@ -51,6 +55,6 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
     document.getElementById("imageInput").value = "";
   } catch (err) {
     console.error(err);
-    alert("Failed to send notification");
+    alert("Failed to send notification. Check Storage rules and network.");
   }
 });
