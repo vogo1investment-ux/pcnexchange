@@ -3,16 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notifications</title>
-<link rel="stylesheet" href="notifications.css">
+<title>User Notifications</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background: #000; color: #0f0; font-family: Arial, sans-serif; }
+.container { max-width: 800px; margin: auto; padding: 20px; }
+.notification-card { background: #111; border: 1px solid #0f0; border-radius: 15px; padding: 15px; margin-bottom: 10px; }
+.notification-card img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+.notification-card h3 { margin: 0; font-size: 1.2rem; }
+.notification-card p { margin: 5px 0; }
+.notification-card small { color: #aaa; }
+</style>
 </head>
 <body>
-
-<div class="notifications-container">
-  <h1>Notifications</h1>
-  <div id="notificationsList">
-    <p>Loading notifications...</p>
-  </div>
+<div class="container">
+<h1 class="text-2xl font-bold mb-4">Notifications</h1>
+<div id="notificationList">
+<p>Loading notifications...</p>
+</div>
 </div>
 
 <script type="module" src="notifications.js"></script>
