@@ -22,25 +22,30 @@ onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
   const userId = user.uid;
 
+  // Query notifications where userId is current user or "all" (broadcast)
   const notifRef = collection(db, "notifications");
-  const q = query(notifRef, orderBy("createdAt", "desc"), where("userId", "in", [userId, "all"]));
+  const q = query(notifRef, orderBy("createdAt", "desc"));
 
-  onSnapshot(q, snap => {
+  onSnapshot(q, snapshot => {
     notifList.innerHTML = "";
     let count = 0;
-    snap.forEach(doc => {
+
+    snapshot.forEach(doc => {
       const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "p-4 bg-zinc-900 border border-green-500 rounded-xl";
-      div.innerHTML = `
-        <strong>${data.title || "Notification"}</strong>
-        <p>${data.message || ""}</p>
-        ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-h-48 mt-2 rounded">` : ""}
-        <small class="text-gray-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
-      `;
-      notifList.appendChild(div);
-      count++;
+      if (data.userId === userId || data.userId === "all") {
+        count++;
+        const div = document.createElement("div");
+        div.className = "p-4 bg-zinc-900 border border-green-500 rounded-xl";
+        div.innerHTML = `
+          <strong>${data.title || "Notification"}</strong>
+          <p>${data.message || ""}</p>
+          ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-h-48 mt-2 rounded">` : ""}
+          <small class="text-gray-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
+        `;
+        notifList.appendChild(div);
+      }
     });
+
     notifCount.innerText = count > 0 ? `You have ${count} notification(s)` : "No notifications";
   });
 });
