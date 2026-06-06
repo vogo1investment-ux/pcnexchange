@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
@@ -16,41 +16,40 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+let userUid;
 const notifList = document.getElementById("notifList");
 const notifCount = document.getElementById("notifCount");
 
 onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
-  const uid = user.uid;
+  userUid = user.uid;
+  listenNotifications();
+});
 
+function listenNotifications() {
   const notifRef = collection(db, "notifications");
-  const q = query(notifRef, orderBy("createdAt", "desc"));
+  // Listen to notifications for this user OR global "all"
+  const q = query(
+    notifRef,
+    where("userId", "in", [userUid, "all"]),
+    orderBy("createdAt", "desc")
+  );
 
   onSnapshot(q, snapshot => {
     notifList.innerHTML = "";
-    let count = 0;
+    notifCount.innerText = snapshot.size;
 
     snapshot.forEach(doc => {
       const data = doc.data();
-
-      // Show only notifications for this user or broadcast
-      if (data.userId === uid || data.userId === "all") {
-        count++;
-
-        const div = document.createElement("div");
-        div.className = "p-4 bg-zinc-900 border border-green-500 rounded-xl";
-
-        div.innerHTML = `
-          <strong>${data.title || "Notification"}</strong>
-          <p>${data.message || ""}</p>
-          ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-h-48 mt-2 rounded">` : ""}
-          <small class="text-gray-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
-        `;
-
-        notifList.appendChild(div);
-      }
+      const div = document.createElement("div");
+      div.className = "p-4 rounded-xl bg-zinc-900 border border-emerald-500";
+      div.innerHTML = `
+        <strong class="text-emerald-400">${data.title || "Notification"}</strong>
+        <p>${data.message || ""}</p>
+        ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-w-xs mt-2 rounded-lg" />` : ""}
+        <small class="text-zinc-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
+      `;
+      notifList.appendChild(div);
     });
-
-    notifCount.innerText = count > 0 ? `You have ${count} notification(s)` : "No notifications";
   });
-});
+}
