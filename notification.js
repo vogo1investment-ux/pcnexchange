@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,9 +21,8 @@ const notifCount = document.getElementById("notifCount");
 
 onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
-  const userId = user.uid;
+  const uid = user.uid;
 
-  // Query notifications where userId is current user or "all" (broadcast)
   const notifRef = collection(db, "notifications");
   const q = query(notifRef, orderBy("createdAt", "desc"));
 
@@ -32,16 +32,21 @@ onAuthStateChanged(auth, user => {
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      if (data.userId === userId || data.userId === "all") {
+
+      // Show only notifications for this user or broadcast
+      if (data.userId === uid || data.userId === "all") {
         count++;
+
         const div = document.createElement("div");
         div.className = "p-4 bg-zinc-900 border border-green-500 rounded-xl";
+
         div.innerHTML = `
           <strong>${data.title || "Notification"}</strong>
           <p>${data.message || ""}</p>
           ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-h-48 mt-2 rounded">` : ""}
           <small class="text-gray-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
         `;
+
         notifList.appendChild(div);
       }
     });
