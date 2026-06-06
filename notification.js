@@ -15,35 +15,32 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const notificationList = document.getElementById("notificationList");
-const notificationCount = document.getElementById("notificationCount");
+const notifList = document.getElementById("notifList");
+const notifCount = document.getElementById("notifCount");
 
 onAuthStateChanged(auth, user => {
   if (!user) return window.location.href = "login.html";
+  const userId = user.uid;
 
-  const q = query(
-    collection(db, "notifications"),
-    orderBy("createdAt", "desc"),
-    where("userId", "in", [user.uid, "all"])
-  );
+  const notifRef = collection(db, "notifications");
+  const q = query(notifRef, orderBy("createdAt", "desc"), where("userId", "in", [userId, "all"]));
 
-  onSnapshot(q, snapshot => {
-    notificationList.innerHTML = "";
+  onSnapshot(q, snap => {
+    notifList.innerHTML = "";
     let count = 0;
-
-    snapshot.forEach(doc => {
-      const notif = doc.data();
-      const card = document.createElement("div");
-      card.className = "notification-card";
-      card.innerHTML = `
-        <strong>${notif.title || "Notification"}</strong>
-        <p>${notif.message}</p>
-        ${notif.imageUrl ? `<img src="${notif.imageUrl}" class="mt-2 rounded w-48">` : ""}
+    snap.forEach(doc => {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.className = "p-4 bg-zinc-900 border border-green-500 rounded-xl";
+      div.innerHTML = `
+        <strong>${data.title || "Notification"}</strong>
+        <p>${data.message || ""}</p>
+        ${data.imageUrl ? `<img src="${data.imageUrl}" class="max-h-48 mt-2 rounded">` : ""}
+        <small class="text-gray-400">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ""}</small>
       `;
-      notificationList.appendChild(card);
+      notifList.appendChild(div);
       count++;
     });
-
-    notificationCount.innerText = `You have ${count} notification${count !== 1 ? "s" : ""}`;
+    notifCount.innerText = count > 0 ? `You have ${count} notification(s)` : "No notifications";
   });
 });

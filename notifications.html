@@ -5,16 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User Notifications</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { background: #000; color: #0f0; font-family: Arial, sans-serif; }
-  .notification-card { background: #111; border: 1px solid #0f0; padding: 15px; margin-bottom: 10px; border-radius: 10px; }
-</style>
 </head>
-<body>
-  <h1 class="text-2xl font-bold mb-4">Notifications</h1>
-  <div id="notificationCount" class="mb-4 font-bold"></div>
-  <div id="notificationList"></div>
+<body class="bg-black text-white p-5">
 
-  <script type="module" src="notification.js"></script>
+<h1 class="text-3xl font-bold text-emerald-400 mb-4">Notifications</h1>
+<div id="notifCount" class="mb-4 font-bold text-xl text-red-500"></div>
+<div id="notifList" class="space-y-4 max-h-[500px] overflow-y-auto"></div>
+
+<script type="module" src="notification.js"></script>
 </body>
 </html>
