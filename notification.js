@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,10 +19,7 @@ const notificationList = document.getElementById("notificationList");
 const notificationCount = document.getElementById("notificationCount");
 
 onAuthStateChanged(auth, user => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
+  if (!user) return window.location.href = "login.html";
 
   const uid = user.uid;
   const notifRef = collection(db, "notifications");
