@@ -4,77 +4,18 @@
 <meta charset="UTF-8">
 <title>User Notifications</title>
 <style>
-  body { font-family: Arial, sans-serif; }
+  body { font-family: Arial, sans-serif; padding: 20px; }
   .notification { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
   .notification img { max-width: 100%; margin-top: 5px; }
 </style>
 </head>
 <body>
 
-<h2>Your Notifications</h2>
-<div id="notifications">Loading...</div>
+<h2>Platform Notifications</h2>
+<div id="notifications">Loading notifications...</div>
 
-<script type="module">
-  // Firebase Imports
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+<!-- Include the external JS -->
+<script type="module" src="notifications.js"></script>
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-    authDomain: "pcnexchange.firebaseapp.com",
-    databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-    projectId: "pcnexchange",
-    storageBucket: "pcnexchange.firebasestorage.app",
-    messagingSenderId: "278761036604",
-    appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  const notifContainer = document.getElementById("notifications");
-
-  // Listen for logged-in user
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const currentUserId = user.uid;
-
-      // Query notifications for this user or broadcast to "all"
-      const notifRef = collection(db, "notifications");
-      const q = query(
-        notifRef,
-        where("userId", "in", [currentUserId, "all"]),
-        orderBy("createdAt", "desc")
-      );
-
-      onSnapshot(q, (snapshot) => {
-        notifContainer.innerHTML = ""; // clear previous
-        if (snapshot.empty) {
-          notifContainer.innerHTML = "<p>No notifications yet.</p>";
-          return;
-        }
-
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "notification";
-          div.innerHTML = `
-            <h3>${data.title}</h3>
-            <p>${data.message}</p>
-            ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ""}
-            <small>${data.createdAt?.toDate?.() || ''}</small>
-          `;
-          notifContainer.appendChild(div);
-        });
-      });
-    } else {
-      notifContainer.innerHTML = "<p>Please log in to see notifications.</p>";
-    }
-  });
-</script>
 </body>
 </html>
