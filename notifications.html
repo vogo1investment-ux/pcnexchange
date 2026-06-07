@@ -3,19 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>User Notifications</title>
-<style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  .notification { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-  .notification img { max-width: 100%; margin-top: 5px; }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<h2>Platform Notifications</h2>
-<div id="notifications">Loading notifications...</div>
+<div class="notifications-container">
+  <h1>Platform Notifications</h1>
+  <div id="notifications">Loading notifications...</div>
+</div>
 
-<!-- Include the external JS -->
+<!-- Load external JS -->
 <script type="module" src="notifications.js"></script>
-
 </body>
 </html>
