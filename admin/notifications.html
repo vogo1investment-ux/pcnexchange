@@ -1,102 +1,201 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Notification Panel</title>
-<style>
-body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
-.container { max-width:600px; margin:auto; background:#111; padding:20px; border-radius:12px; border:1px solid #222; }
-h1 { color:#0f0; text-align:center; }
-input, textarea, button { width:100%; margin-bottom:10px; padding:10px; border-radius:6px; border:none; }
-button { background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
-button:hover { background:#0c0; }
-#log { margin-top:10px; padding:10px; border-radius:6px; background:#222; max-height:200px; overflow:auto; }
-.log-success { color:#0f0; }
-.log-error { color:#f00; }
-</style>
-</head>
-<body>
-<div class="container">
-<h1>Admin Notification Panel</h1>
-<input type="email" id="email" placeholder="Admin Email" />
-<input type="password" id="password" placeholder="Admin Password" />
-<button id="loginBtn">Login as Admin</button>
-<input type="text" id="userId" placeholder="User ID or 'all' for broadcast" />
-<input type="text" id="title" placeholder="Notification Title" />
-<textarea id="message" placeholder="Notification Message"></textarea>
-<button id="sendBtn">Send Notification</button>
-<div id="log"></div>
-</div>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN Admin Notifications</title><style>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain:"pcnexchange.firebaseapp.com",
-  databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId:"pcnexchange",
-  storageBucket:"pcnexchange.appspot.com",
-  messagingSenderId:"278761036604",
-  appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const log = document.getElementById("log");
-
-function appendLog(msg, success=true){
-  const div = document.createElement("div");
-  div.textContent = msg;
-  div.className = success ? "log-success" : "log-error";
-  log.prepend(div);
+body{
+background:#050505;
+color:white;
+font-family:Arial,sans-serif;
+padding:20px;
+margin:0;
 }
 
-// Admin login
-document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  if(!email || !password){ appendLog("Email and password required", false); return; }
+.container{
+max-width:700px;
+margin:auto;
+background:#111;
+padding:25px;
+border-radius:20px;
+border:1px solid #222;
+}
 
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    if(user.uid !== ADMIN_UID){ appendLog("Not the correct admin!", false); return; }
-    appendLog("Admin logged in successfully ✅");
-  } catch(err){
-    appendLog("Login failed: "+err.message,false);
-  }
+h1{
+text-align:center;
+color:#00ff88;
+}
+
+input,textarea,select{
+width:100%;
+padding:15px;
+margin-top:10px;
+margin-bottom:15px;
+background:#000;
+color:white;
+border:1px solid #333;
+border-radius:10px;
+box-sizing:border-box;
+}
+
+textarea{
+height:150px;
+resize:none;
+}
+
+button{
+width:100%;
+padding:15px;
+background:#00ff88;
+color:black;
+border:none;
+border-radius:10px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+#status{
+margin-top:15px;
+text-align:center;
+font-weight:bold;
+}
+
+</style></head><body><div class="container"><h1>PCN Admin Notifications</h1><select id="targetType"><option value="all">
+Send To Everyone
+</option><option value="user">
+Send To Specific UID
+</option></select><input
+type="text"
+id="userId"
+placeholder="Enter User UID"
+style="display:none;"
+
+«»
+
+<input
+type="text"
+id="title"
+placeholder="Notification Title"
+
+«»
+
+<textarea
+id="message"
+placeholder="Notification Message"
+></textarea><button id="sendBtn">
+Send Notification
+</button><div id="status"></div></div><script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const targetType =
+document.getElementById("targetType");
+
+const uidInput =
+document.getElementById("userId");
+
+targetType.addEventListener("change",()=>{
+
+uidInput.style.display =
+targetType.value === "user"
+? "block"
+: "none";
+
 });
 
-// Send notification
-document.getElementById("sendBtn").addEventListener("click", async ()=>{
-  const user = auth.currentUser;
-  if(!user || user.uid !== ADMIN_UID){ appendLog("You must log in as admin first!", false); return; }
+document.getElementById("sendBtn")
+.addEventListener("click",async()=>{
 
-  const userId = document.getElementById("userId").value.trim() || "all";
-  const title = document.getElementById("title").value.trim();
-  const message = document.getElementById("message").value.trim();
-  if(!title || !message){ appendLog("Title and message required!", false); return; }
+const title =
+document.getElementById("title").value.trim();
 
-  try{
-    await addDoc(collection(db,"notifications"),{
-      title,
-      message,
-      userId,
-      createdAt: serverTimestamp()
-    });
-    appendLog(`Notification sent to '${userId}' ✅`);
-    document.getElementById("userId").value="";
-    document.getElementById("title").value="";
-    document.getElementById("message").value="";
-  } catch(err){
-    appendLog("Failed to send notification: "+err.message,false);
-  }
+const message =
+document.getElementById("message").value.trim();
+
+const target =
+targetType.value;
+
+const userId =
+uidInput.value.trim();
+
+const status =
+document.getElementById("status");
+
+if(!title || !message){
+
+status.style.color="red";
+status.innerText="Fill all fields";
+
+return;
+
+}
+
+if(target==="user" && !userId){
+
+status.style.color="red";
+status.innerText="Enter User UID";
+
+return;
+
+}
+
+try{
+
+await addDoc(
+collection(db,"notifications"),
+{
+title,
+message,
+target,
+userId: target==="user" ? userId : null,
+createdAt: serverTimestamp()
+}
+);
+
+status.style.color="#00ff88";
+status.innerText="Notification Sent Successfully";
+
+document.getElementById("title").value="";
+document.getElementById("message").value="";
+uidInput.value="";
+
+}catch(err){
+
+status.style.color="red";
+status.innerText=err.message;
+
+console.error(err);
+
+}
+
 });
-</script>
-</body>
+
+</script></body>
 </html>
