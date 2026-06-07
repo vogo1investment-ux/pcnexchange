@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -12,47 +13,64 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
+// Admin UID from your Firestore rules
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const log = document.getElementById("log");
+// DOM elements
+const userInput = document.getElementById("userId");
+const titleInput = document.getElementById("title");
+const messageInput = document.getElementById("message");
+const sendBtn = document.getElementById("sendBtn");
+const logDiv = document.getElementById("log");
 
-function appendLog(msg, success = true) {
-  if (!log) return;
-  const div = document.createElement("div");
-  div.textContent = msg;
-  div.className = success ? "log-success" : "log-error";
-  log.prepend(div);
+function logMessage(msg, success=true){
+    const div = document.createElement("div");
+    div.textContent = msg;
+    div.className = success ? "log-success" : "log-error";
+    logDiv.prepend(div);
 }
 
-async function sendNotification() {
-  const user = auth.currentUser;
-  if (!user) { appendLog("You must be logged in!", false); return; }
-  if (user.uid !== ADMIN_UID) { appendLog("Not authorized to send notifications!", false); return; }
+// Send notification function
+async function sendNotification(){
+    const user = auth.currentUser;
+    if(!user){
+        logMessage("You must be logged in as admin!", false);
+        return;
+    }
+    if(user.uid !== ADMIN_UID){
+        logMessage("You are not authorized to send notifications!", false);
+        return;
+    }
 
-  const userId = document.getElementById("userId").value.trim() || "all";
-  const title = document.getElementById("title").value.trim();
-  const message = document.getElementById("message").value.trim();
+    const userId = userInput.value.trim() || "all";
+    const title = titleInput.value.trim();
+    const message = messageInput.value.trim();
 
-  if (!title || !message) { appendLog("Title and message are required!", false); return; }
+    if(!title || !message){
+        logMessage("Title and message cannot be empty!", false);
+        return;
+    }
 
-  try {
-    await addDoc(collection(db, "notifications"), {
-      userId,
-      title,
-      message,
-      createdAt: serverTimestamp()
-    });
-    appendLog(`Notification sent to '${userId}' ✅`);
-    document.getElementById("userId").value = "";
-    document.getElementById("title").value = "";
-    document.getElementById("message").value = "";
-  } catch (err) {
-    appendLog("Failed to send notification: " + err.message, false);
-  }
+    try{
+        await addDoc(collection(db, "notifications"), {
+            userId,
+            title,
+            message,
+            createdAt: serverTimestamp()
+        });
+        logMessage(`Notification sent to '${userId}' ✅`);
+        // Clear inputs
+        userInput.value = "";
+        titleInput.value = "";
+        messageInput.value = "";
+    }catch(err){
+        logMessage("Failed to send notification: " + err.message, false);
+    }
 }
 
-document.getElementById("sendBtn").addEventListener("click", sendNotification);
+sendBtn.addEventListener("click", sendNotification);
