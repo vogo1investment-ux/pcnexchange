@@ -2,15 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trades</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Admin Coin Image Upload</title>
+<style>
+body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
+.container { max-width:600px; margin:auto; background:#111; padding:20px; border-radius:12px; border:1px solid #222; }
+h1 { color:#0f0; text-align:center; }
+select,input,button{width:100%; margin-bottom:10px; padding:8px; border-radius:6px; border:none;}
+button{background:#0f0;color:#000;font-weight:bold;cursor:pointer;}
+button:hover{background:#0c0;}
+</style>
 </head>
-<body class="bg-black text-white p-4">
+<body>
+<div class="container">
+<h1>Upload Coin Image</h1>
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">Pending Trades</h1>
-<div id="trades-list"></div>
+<select id="coinSelect">
+  <option value="">Select Coin</option>
+  <option value="BTC">BTC</option>
+  <option value="ETH">ETH</option>
+  <option value="LTC">LTC</option>
+  <!-- Add more coins here -->
+</select>
 
-<script type="module" src="trades.js"></script>
+<input type="file" id="coinImageFile">
+<button id="uploadBtn">Upload Image</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain:"pcnexchange.firebaseapp.com",
+  databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId:"pcnexchange",
+  storageBucket:"pcnexchange.appspot.com",
+  messagingSenderId:"278761036604",
+  appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const storage=getStorage(app);
+const auth=getAuth(app);
+const ADMIN_UID="XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
+signInAnonymously(auth).catch(console.error);
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user){alert("Auth failed"); return;}
+  if(user.uid!==ADMIN_UID){alert("Not admin!"); return;}
+
+  document.getElementById("uploadBtn").addEventListener("click", async ()=>{
+    const coin = document.getElementById("coinSelect").value;
+    const file = document.getElementById("coinImageFile").files[0];
+    if(!coin){ alert("Please select a coin."); return;}
+    if(!file){ alert("Please select an image."); return;}
+
+    try{
+      const storageRef = ref(storage, `coins/${coin}_${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef,file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Save image URL in Firestore under coins collection
+      const coinDocRef = doc(db,"coins",coin);
+      await updateDoc(coinDocRef,{ imageUrl: downloadURL });
+
+      alert(`Image uploaded successfully for ${coin}!`);
+      document.getElementById("coinImageFile").value="";
+    }catch(err){
+      console.error(err);
+      alert("Failed to upload image.");
+    }
+  });
+});
+</script>
 </body>
 </html>
