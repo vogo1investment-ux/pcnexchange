@@ -1,8 +1,11 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Admin Notifications</title><style>
+<title>PCN Admin Notifications</title>
+
+<style>
 
 body{
 background:#050505;
@@ -28,8 +31,7 @@ margin-bottom:20px;
 }
 
 input,
-textarea,
-select{
+textarea{
 width:100%;
 padding:15px;
 margin-bottom:15px;
@@ -38,6 +40,7 @@ color:white;
 border:1px solid #333;
 border-radius:10px;
 box-sizing:border-box;
+font-size:15px;
 }
 
 textarea{
@@ -51,10 +54,10 @@ padding:15px;
 background:#00ff88;
 color:black;
 font-weight:bold;
+font-size:16px;
 border:none;
 border-radius:10px;
 cursor:pointer;
-font-size:16px;
 }
 
 button:hover{
@@ -67,31 +70,41 @@ text-align:center;
 font-weight:bold;
 }
 
-</style></head><body><div class="container"><h1>PCN Notification Center</h1><select id="targetType"><option value="all">
-Send To Everyone
-</option><option value="user">
-Send To Specific UID
-</option></select><input
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>PCN Notification Center</h1>
+
+<input
 type="text"
 id="userId"
-placeholder="Enter User UID"
-style="display:none;"
-
-«»
+placeholder="User UID (Leave Empty = Send To Everyone)"
+>
 
 <input
 type="text"
 id="title"
 placeholder="Notification Title"
-
-«»
+>
 
 <textarea
 id="message"
-placeholder="Type notification message here..."
-></textarea><button id="sendBtn">
+placeholder="Write your notification message here..."
+></textarea>
+
+<button id="sendBtn">
 Send Notification
-</button><div id="status"></div></div><script type="module">
+</button>
+
+<div id="status"></div>
+
+</div>
+
+<script type="module">
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -105,50 +118,24 @@ serverTimestamp
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
-
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-
 authDomain: "pcnexchange.firebaseapp.com",
-
 databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-
 projectId: "pcnexchange",
-
 storageBucket: "pcnexchange.firebasestorage.app",
-
 messagingSenderId: "278761036604",
-
 appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
-
-const targetType =
-document.getElementById("targetType");
-
-const uidInput =
-document.getElementById("userId");
-
-targetType.addEventListener("change",()=>{
-
-if(targetType.value==="user"){
-
-uidInput.style.display="block";
-
-}else{
-
-uidInput.style.display="none";
-
-}
-
-});
 
 document
 .getElementById("sendBtn")
-.addEventListener("click",async()=>{
+.addEventListener("click", async()=>{
+
+const userId =
+document.getElementById("userId").value.trim();
 
 const title =
 document.getElementById("title").value.trim();
@@ -156,37 +143,19 @@ document.getElementById("title").value.trim();
 const message =
 document.getElementById("message").value.trim();
 
-const target =
-document.getElementById("targetType").value;
-
-const userId =
-document.getElementById("userId").value.trim();
-
 const status =
 document.getElementById("status");
 
 if(!title || !message){
 
 status.style.color="red";
-
-status.innerText="Fill all fields";
-
-return;
-
-}
-
-if(target==="user" && !userId){
-
-status.style.color="red";
-
-status.innerText="Enter User UID";
+status.innerText="Please enter title and message.";
 
 return;
 
 }
 
 status.style.color="white";
-
 status.innerText="Sending...";
 
 try{
@@ -196,36 +165,40 @@ collection(db,"notifications"),
 {
 title:title,
 message:message,
-target:target,
+
+target:
+userId
+? "user"
+: "all",
+
 userId:
-target==="user"
-? userId
-: null,
-createdAt:serverTimestamp()
+userId || null,
+
+createdAt:
+serverTimestamp()
 }
 );
 
 status.style.color="#00ff88";
+status.innerText="Notification Sent Successfully";
 
-status.innerText=
-"Notification Sent Successfully";
-
+document.getElementById("userId").value="";
 document.getElementById("title").value="";
 document.getElementById("message").value="";
-document.getElementById("userId").value="";
 
-}catch(error){
+}
+catch(error){
 
 console.error(error);
 
 status.style.color="red";
-
-status.innerText=
-error.message;
+status.innerText=error.message;
 
 }
 
 });
 
-</script></body>
+</script>
+
+</body>
 </html>
