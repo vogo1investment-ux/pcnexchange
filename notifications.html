@@ -4,85 +4,29 @@
 <meta charset="UTF-8">
 <title>User Notifications</title>
 <style>
-body {
-  background: #000;
-  color: #fff;
-  font-family: sans-serif;
-  padding: 20px;
-}
-
-.notifications-container {
-  max-width: 700px;
-  margin: auto;
-  padding: 16px;
-  background: #111;
-  border-radius: 12px;
-  border: 1px solid #222;
-}
-
-h1 {
-  color: #0f0;
-  text-align: center;
-}
-
-button {
-  display: block;
-  margin: 16px auto;
-  padding: 12px 24px;
-  font-size: 1rem;
-  background: #0f0;
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-button:hover { background: #0c0; }
-
-.notification-card {
-  background: #222;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  color: #0f0;
-  opacity: 0;
-  transform: translateY(-20px);
-  animation: slideIn 0.5s forwards;
-}
-
-.notification-card img {
-  max-width: 100%;
-  margin-top: 8px;
-  border-radius: 6px;
-}
-
-.notification-card small {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.8rem;
-  color: #0c0;
-}
-
-@keyframes slideIn {
-  to { opacity: 1; transform: translateY(0); }
-}
+body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
+.container { max-width: 700px; margin:auto; padding:16px; background:#111; border-radius:12px; border:1px solid #222; }
+h1 { color:#0f0; text-align:center; }
+button { display:block; margin:10px auto; padding:10px 20px; background:#0f0; color:#000; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
+button:hover { background:#0c0; }
+.notification-card { background:#222; border:1px solid #333; border-radius:8px; padding:12px; margin-bottom:12px; color:#0f0; opacity:0; transform:translateY(-20px); animation:slideIn 0.5s forwards; }
+.notification-card img { max-width:100%; margin-top:8px; border-radius:6px; }
+.notification-card small { display:block; margin-top:6px; font-size:0.8rem; color:#0c0; }
+@keyframes slideIn { to { opacity:1; transform:translateY(0); } }
 </style>
 </head>
 <body>
-
-<div class="notifications-container">
-  <h1>Platform Notifications</h1>
-  <button id="seeNotifBtn">See Notifications</button>
-  <div id="notifications"></div>
+<div class="container">
+<h1>User Notifications</h1>
+<button id="seeNotifBtn">See Notifications</button>
+<div id="notifications"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -96,66 +40,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
 const notifContainer = document.getElementById("notifications");
-const btn = document.getElementById("seeNotifBtn");
+const seeBtn = document.getElementById("seeNotifBtn");
 
-signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
+signInAnonymously(auth).catch(console.error);
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    notifContainer.innerHTML = "<p>Authentication failed.</p>";
-    return;
-  }
-
+onAuthStateChanged(auth,(user)=>{
+  if(!user){ notifContainer.innerHTML="<p>Auth failed</p>"; return; }
   const currentUserId = user.uid;
 
-  btn.addEventListener("click", async () => {
-    try {
-      // Create a placeholder notification for the user to trigger display
-      await addDoc(collection(db, "notifications"), {
-        title: "Welcome!",
-        message: "You can now see all admin notifications.",
-        userId: currentUserId,
-        createdAt: serverTimestamp()
+  seeBtn.addEventListener("click",()=>{
+    seeBtn.disabled=true; seeBtn.textContent="Loading...";
+    const notifRef = collection(db,"notifications");
+    const q = query(notifRef, where("userId","in",[currentUserId,"all"]), orderBy("createdAt","desc"));
+    
+    onSnapshot(q,(snapshot)=>{
+      notifContainer.innerHTML="";
+      if(snapshot.empty){ notifContainer.innerHTML="<p>No notifications yet.</p>"; return; }
+      snapshot.forEach((doc)=>{
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className="notification-card";
+        div.innerHTML=`
+          <h3>${data.title}</h3>
+          <p>${data.message}</p>
+          ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ''}
+          <small>${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : new Date().toLocaleString()}</small>
+        `;
+        notifContainer.appendChild(div);
       });
-      btn.disabled = true;
-      btn.textContent = "Notifications Ready";
-    } catch(err) {
-      console.error("Failed to create notification:", err);
-    }
-  });
-
-  // Real-time listener for broadcast and user-specific notifications
-  const notifRef = collection(db, "notifications");
-  const q = query(
-    notifRef,
-    where("userId", "in", [currentUserId, "all"]),
-    orderBy("createdAt", "desc")
-  );
-
-  onSnapshot(q, (snapshot) => {
-    notifContainer.innerHTML = "";
-    if (snapshot.empty) {
-      notifContainer.innerHTML = "<p>No notifications yet.</p>";
-      return;
-    }
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "notification-card";
-      div.innerHTML = `
-        <h3>${data.title}</h3>
-        <p>${data.message}</p>
-        ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ''}
-        <small>${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : new Date().toLocaleString()}</small>
-      `;
-      notifContainer.appendChild(div);
     });
   });
 });
 </script>
-
 </body>
 </html>
