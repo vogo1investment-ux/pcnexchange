@@ -1,144 +1,96 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Notifications</title><style>
-body{
-background:#050505;
-color:white;
-font-family:Arial,sans-serif;
-margin:0;
-padding:20px;
-}
+<title>Admin Notification Panel</title>
+<style>
+body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
+.container { max-width:600px; margin:auto; background:#111; padding:20px; border-radius:12px; border:1px solid #222; }
+h1 { color:#0f0; text-align:center; }
+input, textarea, button { width:100%; margin-bottom:10px; padding:10px; border-radius:6px; border:none; }
+button { background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
+button:hover { background:#0c0; }
+#log { margin-top:10px; padding:10px; border-radius:6px; background:#222; max-height:200px; overflow:auto; }
+.log-success { color:#0f0; }
+.log-error { color:#f00; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Admin Notification Panel</h1>
+<input type="text" id="userId" placeholder="User ID or 'all' for broadcast" />
+<input type="text" id="title" placeholder="Notification Title" />
+<textarea id="message" placeholder="Notification Message"></textarea>
+<button id="sendBtn">Send Notification</button>
+<div id="log"></div>
+</div>
 
-.container{
-max-width:700px;
-margin:auto;
-background:#111;
-padding:25px;
-border-radius:20px;
-border:1px solid #222;
-}
-
-h1{
-color:#00ff88;
-text-align:center;
-}
-
-input,textarea{
-width:100%;
-padding:15px;
-margin-top:10px;
-margin-bottom:15px;
-background:#000;
-border:1px solid #333;
-border-radius:10px;
-color:white;
-box-sizing:border-box;
-}
-
-textarea{
-height:150px;
-resize:none;
-}
-
-button{
-width:100%;
-padding:15px;
-background:#00ff88;
-border:none;
-border-radius:10px;
-font-weight:bold;
-font-size:16px;
-cursor:pointer;
-}
-
-button:hover{
-opacity:.9;
-}
-
-#status{
-margin-top:15px;
-text-align:center;
-font-weight:bold;
-}
-</style></head>
-<body><div class="container"><h1>Admin Notification Center</h1><input type="text" id="title" placeholder="Notification Title"><textarea id="message" placeholder="Notification Message"></textarea><button id="sendBtn">
-Send Notification
-</button><div id="status"></div></div><script type="module">
-
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-addDoc,
-serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-authDomain: "pcnexchange.firebaseapp.com",
-databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain:"pcnexchange.firebaseapp.com",
+  databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId:"pcnexchange",
+  storageBucket:"pcnexchange.appspot.com",
+  messagingSenderId:"278761036604",
+  appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const log = document.getElementById("log");
 
-const sendBtn =
-document.getElementById("sendBtn");
-
-sendBtn.addEventListener("click", async()=>{
-
-const title =
-document.getElementById("title").value.trim();
-
-const message =
-document.getElementById("message").value.trim();
-
-const status =
-document.getElementById("status");
-
-if(!title || !message){
-
-status.style.color="red";
-status.innerText="Fill all fields";
-
-return;
-
+function appendLog(msg, success=true){
+  const div = document.createElement("div");
+  div.textContent = msg;
+  div.className = success ? "log-success" : "log-error";
+  log.prepend(div);
 }
 
-try{
-
-await addDoc(
-collection(db,"notifications"),
-{
-title:title,
-message:message,
-createdAt:serverTimestamp()
-}
-);
-
-status.style.color="#00ff88";
-status.innerText="Notification Sent Successfully";
-
-document.getElementById("title").value="";
-document.getElementById("message").value="";
-
-}catch(err){
-
-status.style.color="red";
-status.innerText=err.message;
-
-}
-
+// Use anonymous sign-in for admin
+signInAnonymously(auth).catch(err=>{
+  appendLog("Auth failed: "+err.message,false);
 });
 
-</script></body>
+onAuthStateChanged(auth, (user)=>{
+  if(!user) return appendLog("No user signed in", false);
+  if(user.uid !== ADMIN_UID){
+    appendLog("Not admin account! Current UID: "+user.uid,false);
+    return;
+  }
+  appendLog("Admin signed in successfully ✅");
+
+  document.getElementById("sendBtn").addEventListener("click", async ()=>{
+    const userId = document.getElementById("userId").value.trim() || "all";
+    const title = document.getElementById("title").value.trim();
+    const message = document.getElementById("message").value.trim();
+    if(!title || !message){
+      appendLog("Title and message are required!", false);
+      return;
+    }
+    try{
+      await addDoc(collection(db,"notifications"),{
+        title,
+        message,
+        userId,
+        createdAt: serverTimestamp()
+      });
+      appendLog(`Notification sent to '${userId}' ✅`);
+      document.getElementById("title").value="";
+      document.getElementById("message").value="";
+      document.getElementById("userId").value="";
+    } catch(err){
+      console.error(err);
+      appendLog("Failed to send notification: "+err.message,false);
+    }
+  });
+});
+</script>
+</body>
 </html>
