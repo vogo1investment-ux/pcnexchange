@@ -1,27 +1,32 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notifications</title>
+<title>Notification</title>
+
 <link rel="stylesheet" href="notification.css">
-</head><body><div class="box"><h2>Send Notification</h2><input
-type="text"
-id="userId"
-placeholder="User UID (leave empty for everyone)"
+</head>
 
-«»
+<body>
 
-<input
-type="text"
-id="title"
-placeholder="Notification Title"
+<div class="container">
 
-«»
+<h2>Send Notification</h2>
 
-<textarea
-id="message"
-placeholder="Type your message"
-></textarea><button id="sendBtn">
-Send Message
-</button><p id="status"></p></div><script type="module" src="notification.js"></script></body>
+<input type="text" id="userId" placeholder="User UID (leave empty = everyone)">
+
+<input type="text" id="title" placeholder="Notification Title">
+
+<textarea id="message" placeholder="Notification Message"></textarea>
+
+<button id="sendBtn">Send Notification</button>
+
+<p id="status"></p>
+
+</div>
+
+<script type="module" src="notification.js"></script>
+
+</body>
 </html>

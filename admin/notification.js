@@ -1,13 +1,11 @@
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
 import {
 getFirestore,
 collection,
 addDoc,
 serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -21,54 +19,48 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-document.getElementById("sendBtn").onclick = async () => {
+const sendBtn = document.getElementById("sendBtn");
 
-const uid =
-document.getElementById("userId").value.trim();
+sendBtn.addEventListener("click", async () => {
 
-const title =
-document.getElementById("title").value.trim();
+const uid = document.getElementById("userId").value.trim();
+const title = document.getElementById("title").value.trim();
+const message = document.getElementById("message").value.trim();
+const status = document.getElementById("status");
 
-const message =
-document.getElementById("message").value.trim();
-
-const status =
-document.getElementById("status");
-
-if(title==="" || message===""){
-status.innerText="Enter title and message";
-status.style.color="red";
+if (!title || !message) {
+status.innerText = "Fill title and message";
+status.style.color = "red";
 return;
 }
 
-try{
+status.innerText = "Sending...";
+status.style.color = "white";
 
-await addDoc(
-collection(db,"notifications"),
-{
-title:title,
-message:message,
-userId: uid || null,
+try {
+
+await addDoc(collection(db, "notifications"), {
+title: title,
+message: message,
 target: uid ? "user" : "all",
+userId: uid || null,
 createdAt: serverTimestamp()
-}
-);
+});
 
-status.innerText="Notification Sent";
-status.style.color="#00ff88";
+status.innerText = "Notification Sent Successfully";
+status.style.color = "#00ff88";
 
-document.getElementById("userId").value="";
-document.getElementById("title").value="";
-document.getElementById("message").value="";
+document.getElementById("userId").value = "";
+document.getElementById("title").value = "";
+document.getElementById("message").value = "";
 
-}
-catch(error){
+} catch (error) {
 
 console.error(error);
 
-status.innerText=error.message;
-status.style.color="red";
+status.innerText = error.message;
+status.style.color = "red";
 
 }
 
-};
+});
