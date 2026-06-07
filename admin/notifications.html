@@ -10,15 +10,22 @@ h1 { color:#0f0; text-align:center; }
 input, textarea, button { width:100%; margin-bottom:10px; padding:10px; border-radius:6px; border:none; }
 button { background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
 button:hover { background:#0c0; }
+#log { margin-top:10px; padding:10px; border-radius:6px; background:#222; max-height:200px; overflow:auto; }
+.log-success { color:#0f0; }
+.log-error { color:#f00; }
 </style>
 </head>
 <body>
 <div class="container">
 <h1>Admin Notification Panel</h1>
-<input type="text" id="userId" placeholder="User ID or type 'all' for broadcast" />
+<input type="email" id="email" placeholder="Admin Email" />
+<input type="password" id="password" placeholder="Admin Password" />
+<button id="loginBtn">Login as Admin</button>
+<input type="text" id="userId" placeholder="User ID or 'all' for broadcast" />
 <input type="text" id="title" placeholder="Notification Title" />
 <textarea id="message" placeholder="Notification Message"></textarea>
 <button id="sendBtn">Send Notification</button>
+<div id="log"></div>
 </div>
 
 <script type="module">
@@ -37,55 +44,64 @@ const firebaseConfig = {
 };
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const log = document.getElementById("log");
 
-// Replace with your admin email/password
-const ADMIN_EMAIL = "youradmin@example.com";
-const ADMIN_PASSWORD = "yourAdminPassword";
+function appendLog(msg, success=true){
+  const div = document.createElement("div");
+  div.textContent = msg;
+  div.className = success ? "log-success" : "log-error";
+  log.prepend(div);
+}
 
-signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD)
-  .then(userCredential => {
+const loginBtn = document.getElementById("loginBtn");
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  if(!email || !password){ appendLog("Email and password required", false); return; }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     if(user.uid !== ADMIN_UID){
-      alert("This is not the correct admin account!");
+      appendLog("Wrong admin account!", false);
       return;
     }
-
-    const sendBtn = document.getElementById("sendBtn");
-    sendBtn.addEventListener("click", async () => {
-      const userId = document.getElementById("userId").value.trim() || "all";
-      const title = document.getElementById("title").value.trim();
-      const message = document.getElementById("message").value.trim();
-
-      if(!title || !message){
-        alert("Title and message are required.");
-        return;
-      }
-
-      try {
-        await addDoc(collection(db,"notifications"),{
-          title,
-          message,
-          userId,
-          createdAt: serverTimestamp()
-        });
-        alert("Notification sent!");
-        document.getElementById("userId").value="";
-        document.getElementById("title").value="";
-        document.getElementById("message").value="";
-      } catch(err) {
-        console.error(err);
-        alert("Failed to send notification.");
-      }
-    });
-  })
-  .catch(err => {
+    appendLog("Admin logged in successfully ✅");
+  } catch(err){
     console.error(err);
-    alert("Admin login failed: " + err.message);
-  });
+    appendLog("Login failed: "+err.message,false);
+  }
+});
+
+const sendBtn = document.getElementById("sendBtn");
+sendBtn.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if(!user || user.uid !== ADMIN_UID){ appendLog("You must log in as admin first!", false); return; }
+
+  const userId = document.getElementById("userId").value.trim() || "all";
+  const title = document.getElementById("title").value.trim();
+  const message = document.getElementById("message").value.trim();
+  if(!title || !message){ appendLog("Title and message are required", false); return; }
+
+  try{
+    await addDoc(collection(db,"notifications"),{
+      title,
+      message,
+      userId,
+      createdAt: serverTimestamp()
+    });
+    appendLog(`Notification sent to '${userId}' ✅`);
+    document.getElementById("userId").value="";
+    document.getElementById("title").value="";
+    document.getElementById("message").value="";
+  } catch(err){
+    console.error(err);
+    appendLog("Failed to send notification: "+err.message,false);
+  }
+});
 </script>
 </body>
 </html>
