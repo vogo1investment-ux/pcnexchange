@@ -8,8 +8,8 @@ body{
 background:#050505;
 color:white;
 font-family:Arial,sans-serif;
-padding:20px;
 margin:0;
+padding:20px;
 }
 
 .container{
@@ -24,12 +24,14 @@ border:1px solid #222;
 h1{
 text-align:center;
 color:#00ff88;
+margin-bottom:20px;
 }
 
-input,textarea,select{
+input,
+textarea,
+select{
 width:100%;
 padding:15px;
-margin-top:10px;
 margin-bottom:15px;
 background:#000;
 color:white;
@@ -39,7 +41,7 @@ box-sizing:border-box;
 }
 
 textarea{
-height:150px;
+height:180px;
 resize:none;
 }
 
@@ -48,11 +50,11 @@ width:100%;
 padding:15px;
 background:#00ff88;
 color:black;
+font-weight:bold;
 border:none;
 border-radius:10px;
-font-size:16px;
-font-weight:bold;
 cursor:pointer;
+font-size:16px;
 }
 
 button:hover{
@@ -65,7 +67,7 @@ text-align:center;
 font-weight:bold;
 }
 
-</style></head><body><div class="container"><h1>PCN Admin Notifications</h1><select id="targetType"><option value="all">
+</style></head><body><div class="container"><h1>PCN Notification Center</h1><select id="targetType"><option value="all">
 Send To Everyone
 </option><option value="user">
 Send To Specific UID
@@ -86,7 +88,7 @@ placeholder="Notification Title"
 
 <textarea
 id="message"
-placeholder="Notification Message"
+placeholder="Type notification message here..."
 ></textarea><button id="sendBtn">
 Send Notification
 </button><div id="status"></div></div><script type="module">
@@ -103,16 +105,25 @@ serverTimestamp
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
+
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+
 authDomain: "pcnexchange.firebaseapp.com",
+
 databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+
 projectId: "pcnexchange",
+
 storageBucket: "pcnexchange.firebasestorage.app",
+
 messagingSenderId: "278761036604",
+
 appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
 const targetType =
@@ -123,14 +134,20 @@ document.getElementById("userId");
 
 targetType.addEventListener("change",()=>{
 
-uidInput.style.display =
-targetType.value === "user"
-? "block"
-: "none";
+if(targetType.value==="user"){
+
+uidInput.style.display="block";
+
+}else{
+
+uidInput.style.display="none";
+
+}
 
 });
 
-document.getElementById("sendBtn")
+document
+.getElementById("sendBtn")
 .addEventListener("click",async()=>{
 
 const title =
@@ -140,10 +157,10 @@ const message =
 document.getElementById("message").value.trim();
 
 const target =
-targetType.value;
+document.getElementById("targetType").value;
 
 const userId =
-uidInput.value.trim();
+document.getElementById("userId").value.trim();
 
 const status =
 document.getElementById("status");
@@ -151,6 +168,7 @@ document.getElementById("status");
 if(!title || !message){
 
 status.style.color="red";
+
 status.innerText="Fill all fields";
 
 return;
@@ -160,38 +178,50 @@ return;
 if(target==="user" && !userId){
 
 status.style.color="red";
+
 status.innerText="Enter User UID";
 
 return;
 
 }
 
+status.style.color="white";
+
+status.innerText="Sending...";
+
 try{
 
 await addDoc(
 collection(db,"notifications"),
 {
-title,
-message,
-target,
-userId: target==="user" ? userId : null,
-createdAt: serverTimestamp()
+title:title,
+message:message,
+target:target,
+userId:
+target==="user"
+? userId
+: null,
+createdAt:serverTimestamp()
 }
 );
 
 status.style.color="#00ff88";
-status.innerText="Notification Sent Successfully";
+
+status.innerText=
+"Notification Sent Successfully";
 
 document.getElementById("title").value="";
 document.getElementById("message").value="";
-uidInput.value="";
+document.getElementById("userId").value="";
 
-}catch(err){
+}catch(error){
+
+console.error(error);
 
 status.style.color="red";
-status.innerText=err.message;
 
-console.error(err);
+status.innerText=
+error.message;
 
 }
 
