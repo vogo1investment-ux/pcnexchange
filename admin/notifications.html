@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Notifications</title>
-  <link rel="stylesheet" href="notification.css">
-  <script type="module" src="notification.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Notifications</title>
+<link rel="stylesheet" href="notification.css">
 </head>
 <body>
-  <div class="notifications-container">
+  <div class="container">
     <h1>Send Notification</h1>
     <input type="text" id="userId" placeholder="User UID (leave empty = everyone)">
-    <textarea id="message" placeholder="Enter your notification message"></textarea>
+    <textarea id="message" placeholder="Type your notification here..."></textarea>
     <button id="sendBtn">Send Notification</button>
-    <div id="status"></div>
+    <p id="status"></p>
   </div>
+
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js"></script>
+<script src="notification.js"></script>
 </body>
 </html>

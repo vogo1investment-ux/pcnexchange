@@ -1,8 +1,4 @@
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-// Your Firebase config
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -13,54 +9,46 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-const sendBtn = document.getElementById("sendBtn");
+// UI elements
 const userIdInput = document.getElementById("userId");
 const messageInput = document.getElementById("message");
-const statusDiv = document.getElementById("status");
+const sendBtn = document.getElementById("sendBtn");
+const statusEl = document.getElementById("status");
 
+// Send notification function
 sendBtn.addEventListener("click", async () => {
   const message = messageInput.value.trim();
   const userId = userIdInput.value.trim() || "all";
 
   if (!message) {
-    statusDiv.textContent = "Please enter a message!";
-    statusDiv.style.color = "red";
+    statusEl.textContent = "⚠️ Please enter a message before sending!";
+    statusEl.style.color = "red";
     return;
   }
 
-  const currentUser = auth.currentUser;
-  if (!currentUser) {
-    statusDiv.textContent = "You must be logged in as admin!";
-    statusDiv.style.color = "red";
-    return;
-  }
-
-  // Ensure this is the correct admin UID
-  if (currentUser.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
-    statusDiv.textContent = "You are not authorized to send notifications.";
-    statusDiv.style.color = "red";
-    return;
-  }
+  sendBtn.disabled = true;
+  statusEl.textContent = "Sending...";
+  statusEl.style.color = "#0f0";
 
   try {
-    await addDoc(collection(db, "notifications"), {
-      message,
-      userId,
-      createdAt: serverTimestamp()
+    await db.collection("notifications").add({
+      message: message,
+      userId: userId,
+      createdAt: Date.now()
     });
 
-    statusDiv.textContent = `Notification sent to ${userId === "all" ? "everyone" : userId}!`;
-    statusDiv.style.color = "#0f0";
+    statusEl.textContent = "✅ Notification sent!";
     messageInput.value = "";
     userIdInput.value = "";
-
   } catch (error) {
     console.error("Error sending notification:", error);
-    statusDiv.textContent = "Failed to send notification.";
-    statusDiv.style.color = "red";
+    statusEl.textContent = "❌ Failed to send notification!";
+    statusEl.style.color = "red";
+  } finally {
+    sendBtn.disabled = false;
   }
 });
