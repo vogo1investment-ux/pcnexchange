@@ -3,7 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <title>User Notifications</title>
-<link rel="stylesheet" href="styles.css">
+<style>
+body {
+  background: #000;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+.notifications-container {
+  max-width: 700px;
+  margin: auto;
+  padding: 16px;
+  background: #111;
+  border-radius: 12px;
+  border: 1px solid #222;
+}
+
+h1 {
+  color: #0f0;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.notification-card {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: #0f0;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideIn 0.5s forwards;
+}
+
+.notification-card:hover {
+  background: #2a2a2a;
+  transform: translateY(0) scale(1.02);
+}
+
+.notification-card p {
+  margin: 8px 0 0 0;
+  word-break: break-word;
+}
+
+.notification-card img {
+  max-width: 100%;
+  margin-top: 8px;
+  border-radius: 6px;
+}
+
+.notification-card small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #0c0;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .notification-card { padding: 10px; }
+}
+
+@media screen and (max-width: 480px) {
+  .notification-card { font-size: 0.9rem; padding: 8px; }
+}
+</style>
 </head>
 <body>
 
@@ -12,6 +87,70 @@
   <div id="notifications">Loading notifications...</div>
 </div>
 
-<script type="module" src="notifications.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const notifContainer = document.getElementById("notifications");
+
+// Anonymous login so we satisfy rules for reading notifications
+signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    notifContainer.innerHTML = "<p>Failed to authenticate.</p>";
+    return;
+  }
+
+  const currentUserId = user.uid;
+
+  // Query notifications for this user and broadcasts
+  const notifRef = collection(db, "notifications");
+  const q = query(
+    notifRef,
+    where("userId", "in", [currentUserId, "all"]),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+    notifContainer.innerHTML = "";
+    if (snapshot.empty) {
+      notifContainer.innerHTML = "<p>No notifications yet.</p>";
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.className = "notification-card";
+      div.innerHTML = `
+        <h3>${data.title}</h3>
+        <p>${data.message}</p>
+        ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ''}
+        <small>${data.createdAt?.toDate?.().toLocaleString() || ''}</small>
+      `;
+      notifContainer.appendChild(div);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
