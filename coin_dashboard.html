@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Coin Dashboard</title>
+<style>
+body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
+.container { max-width: 900px; margin: auto; display: flex; flex-wrap: wrap; gap: 20px; }
+.coin-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; width: 150px; text-align: center; transition: transform 0.2s; }
+.coin-card:hover { transform: scale(1.05); }
+.coin-card img { max-width: 100%; border-radius: 6px; margin-bottom: 8px; }
+.coin-card h3 { margin: 0; font-size: 1rem; color: #0f0; }
+</style>
+</head>
+<body>
+<h1 style="text-align:center; color:#0f0;">Coin Dashboard</h1>
+<div class="container" id="coinContainer">Loading coins...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain:"pcnexchange.firebaseapp.com",
+  databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId:"pcnexchange",
+  storageBucket:"pcnexchange.appspot.com",
+  messagingSenderId:"278761036604",
+  appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const container = document.getElementById("coinContainer");
+
+async function loadCoins() {
+  try {
+    const coinsSnap = await getDocs(collection(db, "coins"));
+    container.innerHTML = "";
+    coinsSnap.forEach(doc => {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.className = "coin-card";
+      div.innerHTML = `
+        ${data.imageUrl ? `<img src="${data.imageUrl}" alt="${doc.id}">` : '<div style="height:80px;"></div>'}
+        <h3>${doc.id}</h3>
+      `;
+      container.appendChild(div);
+    });
+  } catch(err) {
+    console.error(err);
+    container.innerHTML = "<p>Failed to load coins.</p>";
+  }
+}
+
+loadCoins();
+</script>
+</body>
+</html>
