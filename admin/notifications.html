@@ -2,22 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Notifications</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Notifications Dashboard</title>
+<style>
+body {
+  background: #000;
+  color: #fff;
+  font-family: sans-serif;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #222;
+}
+h1 { color: #0f0; text-align: center; }
+button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-weight: bold;
+  background: #0f0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover { background: #0c0; }
+.notification-card {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  color: #0f0;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideIn 0.5s forwards;
+}
+.notification-card img {
+  max-width: 100%;
+  margin-top: 8px;
+  border-radius: 6px;
+}
+.notification-card small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #0c0;
+}
+@keyframes slideIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
 </head>
-<body class="bg-black text-white p-5">
+<body>
+<div class="container">
+  <h1>Notifications Dashboard</h1>
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-4">Send Notification</h1>
+  <!-- Admin Form -->
+  <div id="adminSection">
+    <input type="text" id="title" placeholder="Title" style="width: 100%; margin-bottom:8px;">
+    <textarea id="message" placeholder="Message" style="width: 100%; margin-bottom:8px;"></textarea>
+    <input type="text" id="imageUrl" placeholder="Image URL (optional)" style="width: 100%; margin-bottom:8px;">
+    <button id="sendBtn">Send Notification</button>
+  </div>
 
-<div class="space-y-4 max-w-lg">
-  <input id="userIdInput" type="text" placeholder="UserID or leave blank for all" class="w-full p-3 rounded bg-zinc-900 border border-green-500">
-  <input id="titleInput" type="text" placeholder="Notification Title" class="w-full p-3 rounded bg-zinc-900 border border-green-500">
-  <textarea id="messageInput" placeholder="Message" class="w-full p-3 rounded bg-zinc-900 border border-green-500"></textarea>
-  <input type="file" id="imageInput" class="w-full p-2 rounded bg-zinc-900 border border-green-500">
-  <button id="sendBtn" class="w-full p-3 bg-emerald-400 font-bold text-black rounded">Send Notification</button>
+  <button id="seeNotifBtn">See Notifications</button>
+
+  <div id="notifications"></div>
 </div>
 
-<script type="module" src="notification.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const notifContainer = document.getElementById("notifications");
+const sendBtn = document.getElementById("sendBtn");
+const seeNotifBtn = document.getElementById("seeNotifBtn");
+
+// Anonymous login for rules
+signInAnonymously(auth).catch(console.error);
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    notifContainer.innerHTML = "<p>Authentication failed.</p>";
+    return;
+  }
+
+  const currentUserId = user.uid;
+  const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
+  // Admin send notification
+  sendBtn.addEventListener("click", async () => {
+    if (currentUserId !== ADMIN_UID) {
+      alert("Only admin can send notifications.");
+      return;
+    }
+    const title = document.getElementById("title").value;
+    const message = document.getElementById("message").value;
+    const imageUrl = document.getElementById("imageUrl").value;
+
+    if (!title || !message) {
+      alert("Title and message required.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "notifications"), {
+        title,
+        message,
+        imageUrl,
+        userId: "all",
+        createdAt: serverTimestamp()
+      });
+      document.getElementById("title").value = "";
+      document.getElementById("message").value = "";
+      document.getElementById("imageUrl").value = "";
+      alert("Notification sent!");
+    } catch(err) {
+      console.error(err);
+      alert("Failed to send notification.");
+    }
+  });
+
+  // User sees notifications after clicking button
+  seeNotifBtn.addEventListener("click", () => {
+    seeNotifBtn.disabled = true;
+    seeNotifBtn.textContent = "Loading notifications...";
+
+    const notifRef = collection(db, "notifications");
+    const q = query(
+      notifRef,
+      where("userId", "in", [currentUserId, "all"]),
+      orderBy("createdAt", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+      notifContainer.innerHTML = "";
+      if (snapshot.empty) {
+        notifContainer.innerHTML = "<p>No notifications yet.</p>";
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "notification-card";
+        div.innerHTML = `
+          <h3>${data.title}</h3>
+          <p>${data.message}</p>
+          ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ''}
+          <small>${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : new Date().toLocaleString()}</small>
+        `;
+        notifContainer.appendChild(div);
+      });
+    });
+  });
+});
+</script>
 </body>
 </html>
