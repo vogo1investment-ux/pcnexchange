@@ -1,9 +1,8 @@
-// notification.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -19,6 +18,7 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+
 const log = document.getElementById("log");
 
 function appendLog(msg, success = true) {
@@ -29,34 +29,28 @@ function appendLog(msg, success = true) {
   log.prepend(div);
 }
 
-// Admin login
-export async function adminLogin(email, password) {
-  if(!email || !password) { appendLog("Email and password required!", false); return false; }
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    if(user.uid !== ADMIN_UID){ appendLog("Not the correct admin account!", false); return false; }
-    appendLog("Admin logged in successfully ✅");
-    return true;
-  } catch(err) {
-    appendLog("Login failed: " + err.message, false);
-    return false;
-  }
-}
-
-// Send notification
-export async function sendNotification() {
+async function sendNotification() {
   const user = auth.currentUser;
-  if(!user || user.uid !== ADMIN_UID){ appendLog("You must log in as admin first!", false); return; }
+  if (!user) {
+    appendLog("You must be logged in to send notifications.", false);
+    return;
+  }
+  if (user.uid !== ADMIN_UID) {
+    appendLog("You are not authorized to send notifications.", false);
+    return;
+  }
 
   const userId = document.getElementById("userId").value.trim() || "all";
   const title = document.getElementById("title").value.trim();
   const message = document.getElementById("message").value.trim();
 
-  if(!title || !message){ appendLog("Title and message are required!", false); return; }
+  if (!title || !message) {
+    appendLog("Title and message are required!", false);
+    return;
+  }
 
   try {
-    await addDoc(collection(db,"notifications"), {
+    await addDoc(collection(db, "notifications"), {
       userId,
       title,
       message,
@@ -66,25 +60,10 @@ export async function sendNotification() {
     document.getElementById("userId").value = "";
     document.getElementById("title").value = "";
     document.getElementById("message").value = "";
-  } catch(err) {
-    appendLog("Failed to send notification: " + err.message,false);
+  } catch (err) {
+    appendLog("Failed to send notification: " + err.message, false);
   }
 }
 
-// Attach button events
-const loginBtn = document.getElementById("loginBtn");
 const sendBtn = document.getElementById("sendBtn");
-
-if(loginBtn){
-  loginBtn.addEventListener("click", async ()=>{
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    await adminLogin(email,password);
-  });
-}
-
-if(sendBtn){
-  sendBtn.addEventListener("click", async ()=>{
-    await sendNotification();
-  });
-}
+sendBtn.addEventListener("click", sendNotification);

@@ -2,31 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notification</title>
-
-<link rel="stylesheet" href="notification.css">
+<title>Notifications</title>
+<link rel="stylesheet" href="your-styles.css">
 </head>
-
 <body>
-
 <div class="container">
+<h1>Send Notification</h1>
 
-<h2>Send Notification</h2>
+<div>
+  <input type="text" id="userId" placeholder="User UID (leave empty = all users)">
+  <input type="text" id="title" placeholder="Notification Title">
+  <textarea id="message" placeholder="Notification Message"></textarea>
+  <button id="sendBtn">Send Notification</button>
+</div>
 
-<input type="text" id="userId" placeholder="User UID (leave empty = everyone)">
-
-<input type="text" id="title" placeholder="Notification Title">
-
-<textarea id="message" placeholder="Notification Message"></textarea>
-
-<button id="sendBtn">Send Notification</button>
-
-<p id="status"></p>
-
+<div id="log"></div>
 </div>
 
 <script type="module" src="notification.js"></script>
-
 </body>
 </html>
