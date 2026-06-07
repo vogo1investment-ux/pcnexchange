@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -31,23 +30,14 @@ function appendLog(msg, success = true) {
 
 async function sendNotification() {
   const user = auth.currentUser;
-  if (!user) {
-    appendLog("You must be logged in to send notifications.", false);
-    return;
-  }
-  if (user.uid !== ADMIN_UID) {
-    appendLog("You are not authorized to send notifications.", false);
-    return;
-  }
+  if (!user) { appendLog("You must be logged in!", false); return; }
+  if (user.uid !== ADMIN_UID) { appendLog("Not authorized to send notifications!", false); return; }
 
   const userId = document.getElementById("userId").value.trim() || "all";
   const title = document.getElementById("title").value.trim();
   const message = document.getElementById("message").value.trim();
 
-  if (!title || !message) {
-    appendLog("Title and message are required!", false);
-    return;
-  }
+  if (!title || !message) { appendLog("Title and message are required!", false); return; }
 
   try {
     await addDoc(collection(db, "notifications"), {
@@ -65,5 +55,4 @@ async function sendNotification() {
   }
 }
 
-const sendBtn = document.getElementById("sendBtn");
-sendBtn.addEventListener("click", sendNotification);
+document.getElementById("sendBtn").addEventListener("click", sendNotification);
