@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Notifications</title>
+<title>Admin Panel with Image Upload</title>
 <style>
-body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
-.container { max-width: 600px; margin: auto; background: #111; padding: 20px; border-radius: 12px; border:1px solid #222; }
-h1 { color: #0f0; text-align:center; }
-input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; border-radius:6px; border:none; }
-button { background: #0f0; color:#000; padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
-button:hover { background:#0c0; }
+body{background:#000;color:#fff;font-family:sans-serif;padding:20px;}
+.container{max-width:600px;margin:auto;background:#111;padding:20px;border-radius:12px;border:1px solid #222;}
+h1{color:#0f0;text-align:center;}
+input,textarea,button{width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
+button{background:#0f0;color:#000;font-weight:bold;cursor:pointer;}
+button:hover{background:#0c0;}
 </style>
 </head>
 <body>
@@ -17,8 +17,8 @@ button:hover { background:#0c0; }
 <h1>Admin Panel</h1>
 <input type="text" id="title" placeholder="Title">
 <textarea id="message" placeholder="Message"></textarea>
-<input type="text" id="imageUrl" placeholder="Image URL (optional)">
-<input type="text" id="userId" placeholder="User ID or type 'all'">
+<input type="file" id="imageFile">
+<input type="text" id="userId" placeholder="User ID or 'all'">
 <button id="sendBtn">Send Notification</button>
 </div>
 
@@ -26,56 +26,59 @@ button:hover { background:#0c0; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
-// Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey:"AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain:"pcnexchange.firebaseapp.com",
+  databaseURL:"https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId:"pcnexchange",
+  storageBucket:"pcnexchange.appspot.com",
+  messagingSenderId:"278761036604",
+  appId:"1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
+const storage=getStorage(app);
+const ADMIN_UID="XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 signInAnonymously(auth).catch(console.error);
 
-onAuthStateChanged(auth, (user)=>{
-    if(!user){ alert("Auth failed"); return; }
-    if(user.uid !== ADMIN_UID){ alert("Not admin account!"); return; }
-
-    const btn = document.getElementById("sendBtn");
-    btn.addEventListener("click", async ()=>{
-        const title = document.getElementById("title").value.trim();
-        const message = document.getElementById("message").value.trim();
-        const imageUrl = document.getElementById("imageUrl").value.trim();
-        const userIdInput = document.getElementById("userId").value.trim() || "all";
-
-        if(!title || !message){ alert("Title and message required."); return; }
-
-        try{
-            await addDoc(collection(db, "notifications"),{
-                title, 
-                message,
-                imageUrl,
-                userId: userIdInput,
-                createdAt: serverTimestamp()
-            });
-            alert("Notification sent!");
-            document.getElementById("title").value="";
-            document.getElementById("message").value="";
-            document.getElementById("imageUrl").value="";
-            document.getElementById("userId").value="";
-        }catch(err){
-            console.error(err);
-            alert("Failed to send notification.");
-        }
-    });
+onAuthStateChanged(auth,(user)=>{
+  if(!user){alert("Auth failed"); return;}
+  if(user.uid!==ADMIN_UID){alert("Not admin!"); return;}
+  
+  document.getElementById("sendBtn").addEventListener("click", async ()=>{
+    const title=document.getElementById("title").value.trim();
+    const message=document.getElementById("message").value.trim();
+    const userIdInput=document.getElementById("userId").value.trim()||"all";
+    const imageFile=document.getElementById("imageFile").files[0];
+    
+    if(!title || !message){alert("Title and message required."); return;}
+    
+    let imageUrl="";
+    if(imageFile){
+      const storageRef=ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
+      await uploadBytes(storageRef,imageFile);
+      imageUrl=await getDownloadURL(storageRef);
+    }
+    
+    try{
+      await addDoc(collection(db,"notifications"),{
+        title,message,userId:userIdInput,imageUrl,createdAt:serverTimestamp()
+      });
+      alert("Notification sent!");
+      document.getElementById("title").value="";
+      document.getElementById("message").value="";
+      document.getElementById("userId").value="";
+      document.getElementById("imageFile").value="";
+    }catch(err){
+      console.error(err);
+      alert("Failed to send notification.");
+    }
+  });
 });
 </script>
 </body>
