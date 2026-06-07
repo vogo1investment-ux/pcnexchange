@@ -8,7 +8,6 @@ body {
   background: #000;
   color: #fff;
   font-family: sans-serif;
-  margin: 0;
   padding: 20px;
 }
 
@@ -23,10 +22,22 @@ body {
 
 h1 {
   color: #0f0;
-  font-weight: bold;
-  margin-bottom: 16px;
   text-align: center;
 }
+
+button {
+  display: block;
+  margin: 16px auto;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #0f0;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:hover { background: #0c0; }
 
 .notification-card {
   background: #222;
@@ -34,21 +45,10 @@ h1 {
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
-  font-weight: bold;
   color: #0f0;
   opacity: 0;
   transform: translateY(-20px);
   animation: slideIn 0.5s forwards;
-}
-
-.notification-card:hover {
-  background: #2a2a2a;
-  transform: translateY(0) scale(1.02);
-}
-
-.notification-card p {
-  margin: 8px 0 0 0;
-  word-break: break-word;
 }
 
 .notification-card img {
@@ -65,18 +65,7 @@ h1 {
 }
 
 @keyframes slideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .notification-card { padding: 10px; }
-}
-
-@media screen and (max-width: 480px) {
-  .notification-card { font-size: 0.9rem; padding: 8px; }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 </head>
@@ -84,15 +73,16 @@ h1 {
 
 <div class="notifications-container">
   <h1>Platform Notifications</h1>
-  <div id="notifications">Loading notifications...</div>
+  <button id="seeNotifBtn">See Notifications</button>
+  <div id="notifications"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase configuration
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -103,25 +93,40 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 const notifContainer = document.getElementById("notifications");
+const btn = document.getElementById("seeNotifBtn");
 
-// Anonymous login so we satisfy rules for reading notifications
 signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    notifContainer.innerHTML = "<p>Failed to authenticate.</p>";
+    notifContainer.innerHTML = "<p>Authentication failed.</p>";
     return;
   }
 
   const currentUserId = user.uid;
 
-  // Query notifications for this user and broadcasts
+  btn.addEventListener("click", async () => {
+    try {
+      // Create a placeholder notification for the user to trigger display
+      await addDoc(collection(db, "notifications"), {
+        title: "Welcome!",
+        message: "You can now see all admin notifications.",
+        userId: currentUserId,
+        createdAt: serverTimestamp()
+      });
+      btn.disabled = true;
+      btn.textContent = "Notifications Ready";
+    } catch(err) {
+      console.error("Failed to create notification:", err);
+    }
+  });
+
+  // Real-time listener for broadcast and user-specific notifications
   const notifRef = collection(db, "notifications");
   const q = query(
     notifRef,
@@ -144,7 +149,7 @@ onAuthStateChanged(auth, (user) => {
         <h3>${data.title}</h3>
         <p>${data.message}</p>
         ${data.imageUrl ? `<img src="${data.imageUrl}" alt="notification image">` : ''}
-        <small>${data.createdAt?.toDate?.().toLocaleString() || ''}</small>
+        <small>${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : new Date().toLocaleString()}</small>
       `;
       notifContainer.appendChild(div);
     });
