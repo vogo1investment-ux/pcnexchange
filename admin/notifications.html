@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admin Notification Panel</title>
-<link rel="stylesheet" href="notification.css">
+  <meta charset="UTF-8">
+  <title>Admin Notifications</title>
+  <link rel="stylesheet" href="notification.css">
+  <script type="module" src="notification.js" defer></script>
 </head>
 <body>
-
-<div class="container">
-  <h1>Send Notification</h1>
-
-  <input type="text" id="userId" placeholder="User UID (leave empty = all users)">
-  <input type="text" id="title" placeholder="Notification Title">
-  <textarea id="message" placeholder="Notification Message"></textarea>
-  <button id="sendBtn">Send Notification</button>
-
-  <div id="log"></div>
-</div>
-
-<script type="module" src="notification.js"></script>
+  <div class="notifications-container">
+    <h1>Send Notification</h1>
+    <input type="text" id="userId" placeholder="User UID (leave empty = everyone)">
+    <textarea id="message" placeholder="Enter your notification message"></textarea>
+    <button id="sendBtn">Send Notification</button>
+    <div id="status"></div>
+  </div>
 </body>
 </html>
