@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config (same as your other admin scripts)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -13,73 +12,78 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
-
+const auth = getAuth(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
+const container = document.getElementById("walletRequestsContainer");
+
+// Admin auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access Denied: Admin Only");
+    alert("Access Denied. Admin only.");
     window.location.href = "admin-login.html";
-  } else {
-    loadWalletRequests();
+    return;
   }
+  loadWalletRequests();
 });
 
+// Load wallet requests in real-time
 function loadWalletRequests() {
-  const listDiv = document.getElementById("walletRequestsList");
-
-  const q = query(collection(db, "pendingTransactions"), orderBy("createdAt", "desc"));
-
+  const q = query(collection(db, "pendingTransactions"), where("type", "==", "generateWallet"));
+  
   onSnapshot(q, snapshot => {
-    listDiv.innerHTML = "";
+    container.innerHTML = "";
+    if (snapshot.empty) {
+      container.innerHTML = "<div>No wallet requests found.</div>";
+      return;
+    }
+
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      // Only show wallet requests
-      if (data.type === "wallet") {
-        const div = document.createElement("div");
-        div.className = "request-card";
+      const div = document.createElement("div");
+      div.className = "p-4 border border-green-500 rounded bg-zinc-900 flex flex-col md:flex-row md:justify-between items-start md:items-center space-y-2 md:space-y-0";
 
-        div.innerHTML = `
-          <p><strong>User ID:</strong> ${data.userId}</p>
-          <p><strong>Amount:</strong> $${data.amount}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Method / Account:</strong> ${data.recipient || "-"}</p>
-          <div class="flex gap-2 mt-2">
-            <button class="approveBtn">Approve</button>
-            <button class="rejectBtn">Reject</button>
-          </div>
-        `;
+      const info = document.createElement("div");
+      info.innerHTML = `
+        <strong>User ID:</strong> ${data.userId}<br>
+        <strong>Coin:</strong> ${data.coin}<br>
+        <strong>Status:</strong> ${data.status}<br>
+        <strong>Created At:</strong> ${data.createdAt?.toDate().toLocaleString() || "N/A"}<br>
+        <strong>Admin Reply:</strong> ${data.adminReply || "-"}
+      `;
 
-        listDiv.appendChild(div);
-
-        // Approve button
-        div.querySelector(".approveBtn").addEventListener("click", async () => {
-          try {
-            await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Approved" });
-            div.querySelector("p:nth-child(3)").innerText = "Status: Approved";
-          } catch (err) {
-            console.error(err);
-            alert("Failed to approve request");
-          }
+      const buttons = document.createElement("div");
+      buttons.className = "flex space-x-2";
+      
+      const approveBtn = document.createElement("button");
+      approveBtn.innerText = "Approve";
+      approveBtn.className = "bg-green-500 p-2 rounded font-bold";
+      approveBtn.onclick = async () => {
+        await updateDoc(doc(db, "pendingTransactions", docSnap.id), {
+          status: "Approved",
+          adminReply: "Approved",
+          updatedAt: serverTimestamp()
         });
+      };
 
-        // Reject button
-        div.querySelector(".rejectBtn").addEventListener("click", async () => {
-          try {
-            await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Rejected" });
-            div.querySelector("p:nth-child(3)").innerText = "Status: Rejected";
-          } catch (err) {
-            console.error(err);
-            alert("Failed to reject request");
-          }
+      const rejectBtn = document.createElement("button");
+      rejectBtn.innerText = "Reject";
+      rejectBtn.className = "bg-red-500 p-2 rounded font-bold";
+      rejectBtn.onclick = async () => {
+        await updateDoc(doc(db, "pendingTransactions", docSnap.id), {
+          status: "Rejected",
+          adminReply: "Rejected",
+          updatedAt: serverTimestamp()
         });
-      }
+      };
+
+      buttons.appendChild(approveBtn);
+      buttons.appendChild(rejectBtn);
+
+      div.appendChild(info);
+      div.appendChild(buttons);
+      container.appendChild(div);
     });
-
-    if (listDiv.innerHTML === "") {
-      listDiv.innerHTML = `<p style="color:#0f0; padding:10px;">No wallet requests found.</p>`;
-    }
   });
 }
