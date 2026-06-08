@@ -3,20 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Upload Coins History</title>
+<title>Upload Coins to Firestore</title>
+<link rel="stylesheet" href="notification.css">
 <style>
-body { font-family: Arial, sans-serif; background: #111; color: #0f0; text-align: center; padding: 50px; }
-button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin-top: 20px; }
-#status { margin-top: 20px; }
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+  .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+  h2 { margin-bottom: 15px; }
+  input, button { margin: 5px 0; padding: 10px; width: 100%; font-size: 16px; }
+  table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background: #eee; }
+  .success { color: green; }
+  .fail { color: red; }
 </style>
 </head>
 <body>
-<h1>Upload Coins to Firestore</h1>
-<input type="file" id="fileInput" accept=".json">
-<br>
-<button id="uploadBtn">Start Upload</button>
-<div id="status"></div>
+  <div class="container">
+    <h2>Upload Coins JSON</h2>
+    <input type="file" id="jsonFileInput" accept=".json">
+    <button id="uploadBtn">Upload to Firestore</button>
+    <div id="status"></div>
+    <table id="progressTable">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Name</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-<script type="module" src="notification.js"></script>
+  <script type="module" src="notification.js"></script>
 </body>
 </html>

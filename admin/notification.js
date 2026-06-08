@@ -17,50 +17,79 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const fileInput = document.getElementById("fileInput");
+const jsonFileInput = document.getElementById("jsonFileInput");
 const uploadBtn = document.getElementById("uploadBtn");
 const statusDiv = document.getElementById("status");
+const progressTableBody = document.querySelector("#progressTable tbody");
 
-let coinsData = null;
+let adminUid = null;
 
-fileInput.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return alert("Please select a JSON file!");
-  
-  const text = await file.text();
-  try {
-    coinsData = JSON.parse(text);
-    statusDiv.innerText = `Loaded ${coinsData.length} coins from file.`;
-  } catch (err) {
-    alert("Invalid JSON file!");
-    console.error(err);
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    alert("You must log in as admin to upload coins.");
+    window.location.href = "index.html";
+    return;
+  }
+  adminUid = user.uid;
+  if(adminUid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12"){
+    alert("You are not authorized to upload coins.");
+    window.location.href = "index.html";
+    return;
   }
 });
 
 uploadBtn.addEventListener("click", async () => {
-  if (!coinsData) return alert("No coins loaded. Please select JSON file first.");
-  
-  onAuthStateChanged(auth, async user => {
-    if (!user) return alert("Please log in to upload coins.");
-    
-    let uploaded = 0;
-    for (const coin of coinsData) {
-      try {
-        const coinRef = doc(db, "coins", coin.symbol);
-        await setDoc(coinRef, {
-          name: coin.name,
-          symbol: coin.symbol,
-          price: coin.price,
-          prevPrice: coin.prevPrice,
-          description: coin.description,
-          iconUrl: coin.iconUrl || "",  // Make sure your JSON has iconUrl field
-        });
-        uploaded++;
-        statusDiv.innerText = `Uploaded ${uploaded} of ${coinsData.length} coins...`;
-      } catch (err) {
-        console.error(`Failed to upload ${coin.symbol}:`, err);
+  const file = jsonFileInput.files[0];
+  if (!file) {
+    alert("Please select a JSON file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const jsonData = JSON.parse(e.target.result);
+      if(!Array.isArray(jsonData)){
+        alert("Invalid JSON format. Must be an array of coins.");
+        return;
       }
+
+      progressTableBody.innerHTML = "";
+      statusDiv.innerText = "Uploading coins...";
+
+      let uploadedCount = 0;
+
+      for(const coin of jsonData){
+        const row = document.createElement("tr");
+        const symbolCell = document.createElement("td");
+        symbolCell.innerText = coin.symbol || "N/A";
+        const nameCell = document.createElement("td");
+        nameCell.innerText = coin.name || "N/A";
+        const statusCell = document.createElement("td");
+        statusCell.innerText = "Pending...";
+        row.append(symbolCell, nameCell, statusCell);
+        progressTableBody.appendChild(row);
+
+        try {
+          if(!coin.symbol) throw new Error("Missing symbol");
+          const coinRef = doc(db, "coins", coin.symbol);
+          await setDoc(coinRef, coin); // overwrite/add
+          statusCell.innerText = "Uploaded";
+          statusCell.classList.add("success");
+          uploadedCount++;
+        } catch(err) {
+          statusCell.innerText = "Failed";
+          statusCell.classList.add("fail");
+          console.error("Failed to upload coin:", coin, err);
+        }
+      }
+
+      statusDiv.innerText = `Upload complete: ${uploadedCount}/${jsonData.length} coins uploaded.`;
+
+    } catch(err) {
+      console.error(err);
+      alert("Failed to read JSON file. Check console.");
     }
-    statusDiv.innerText = `Upload complete! ${uploaded} coins uploaded successfully.`;
-  });
+  };
+  reader.readAsText(file);
 });
