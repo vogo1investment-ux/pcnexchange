@@ -1,0 +1,47 @@
+.notif-container {
+background: #111;
+padding: 20px;
+border-radius: 12px;
+max-width: 500px;
+margin: auto;
+color: white;
+}
+
+.notif-container h2 {
+color: #00ff88;
+text-align: center;
+}
+
+input, textarea, select {
+width: 100%;
+padding: 12px;
+margin-top: 10px;
+margin-bottom: 10px;
+border-radius: 8px;
+border: 1px solid #333;
+background: black;
+color: white;
+}
+
+textarea {
+height: 120px;
+}
+
+button {
+width: 100%;
+padding: 12px;
+background: #00ff88;
+border: none;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+}
+
+button:hover {
+opacity: 0.8;
+}
+
+#status {
+text-align: center;
+margin-top: 10px;
+}
