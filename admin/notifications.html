@@ -3,76 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Send Notification</title>
+<title>Admin Notifications</title>
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #121212;
-  color: #fff;
-  padding: 20px;
+  background: #111;
+  color: #0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
 }
-
 .container {
-  max-width: 500px;
-  margin: auto;
-  background: #1e1e1e;
+  background: #222;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
   border: 1px solid #333;
 }
-
 h2 {
-  color: #0f0;
-  text-align: center;
+  margin-bottom: 15px;
 }
-
 input, textarea, button {
   width: 100%;
   margin-bottom: 10px;
-  padding: 12px;
+  padding: 10px;
   border-radius: 6px;
   border: 1px solid #444;
-  background: #222;
-  color: #fff;
+  background: #111;
+  color: #0f0;
   font-size: 1rem;
 }
-
 button {
   background: #0f0;
   color: #000;
   font-weight: bold;
   cursor: pointer;
 }
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+button:hover {
+  background: #0c0;
 }
-
 #status {
-  font-weight: bold;
   margin-top: 10px;
-  text-align: center;
+  font-weight: bold;
 }
 </style>
 </head>
 <body>
-
 <div class="container">
   <h2>Send Notification</h2>
   <input type="text" id="userId" placeholder="User UID (leave empty = all)">
-  <textarea id="message" rows="5" placeholder="Type your notification message here..."></textarea>
+  <textarea id="message" placeholder="Type notification message here..." rows="5"></textarea>
   <button id="sendBtn">Send Notification</button>
-  <div id="status"></div>
+  <p id="status"></p>
 </div>
 
-<!-- Firebase v12 modules -->
+<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// TODO: Replace with your Firebase config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -83,36 +78,35 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
+// Admin UID
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// UI elements
+// Elements
 const userIdInput = document.getElementById("userId");
 const messageInput = document.getElementById("message");
 const sendBtn = document.getElementById("sendBtn");
 const statusEl = document.getElementById("status");
 
-// Only allow sending if logged-in admin
+// Check admin login
 onAuthStateChanged(auth, user => {
-  if (!user) {
-    statusEl.textContent = "⚠️ You must be logged in as admin to send notifications!";
+  if (!user || user.uid !== ADMIN_UID) {
+    statusEl.textContent = "⚠️ You must be logged in as admin to send notifications.";
+    statusEl.style.color = "red";
     sendBtn.disabled = true;
-    return;
+  } else {
+    sendBtn.disabled = false;
   }
-  if (user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
-    statusEl.textContent = "⚠️ Only admin can send notifications!";
-    sendBtn.disabled = true;
-    return;
-  }
-  sendBtn.disabled = false;
 });
 
 // Send notification
 sendBtn.addEventListener("click", async () => {
   const message = messageInput.value.trim();
-  const userId = userIdInput.value.trim() || "all"; // default broadcast
+  const userId = userIdInput.value.trim() || "all";
 
   if (!message) {
     statusEl.textContent = "⚠️ Please enter a message before sending!";
@@ -126,24 +120,23 @@ sendBtn.addEventListener("click", async () => {
 
   try {
     await addDoc(collection(db, "notifications"), {
-      message: message,
-      userId: userId,
+      userId,
+      message,
       createdAt: serverTimestamp()
     });
 
-    statusEl.textContent = "✅ Notification sent successfully!";
+    statusEl.textContent = `✅ Notification sent to "${userId}"`;
     statusEl.style.color = "#0f0";
     messageInput.value = "";
     userIdInput.value = "";
   } catch (err) {
     console.error("Error sending notification:", err);
-    statusEl.textContent = "❌ Failed to send notification! Check console.";
+    statusEl.textContent = "❌ Failed to send notification!";
     statusEl.style.color = "red";
   } finally {
     sendBtn.disabled = false;
   }
 });
 </script>
-
 </body>
 </html>
