@@ -1,9 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config (your existing one)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -15,71 +13,110 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const auth = getAuth(app);
 
-const sectionContent = document.getElementById("section-content");
+// Redirect if not admin
+onAuthStateChanged(auth, (user) => {
+  if (!user || user.uid !== "XphWRwjVK6NWEtHw9XeoNxXsfT12") {
+    alert("Access Denied: Admin Only");
+    window.location.href = "admin-login.html";
+  } else {
+    loadSummaryCards();
+    initButtons();
+  }
+});
 
-function loadNotifyUsersPanel() {
-  sectionContent.innerHTML = `
-    <div class="notify-panel">
-      <h2 class="text-emerald-400 font-bold mb-4">Send Notification</h2>
-      <input type="text" id="notifyTitle" placeholder="Notification Title">
-      <textarea id="notifyMessage" placeholder="Message" rows="4"></textarea>
-      <input type="text" id="notifyUserId" placeholder="User ID (leave empty for all)">
-      <input type="file" id="notifyImage">
-      <button id="notifySendBtn">Send Notification</button>
-    </div>
-  `;
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "admin-login.html";
+});
 
-  document.getElementById("notifySendBtn").addEventListener("click", async () => {
-    const title = document.getElementById("notifyTitle").value.trim();
-    const message = document.getElementById("notifyMessage").value.trim();
-    const userIdInput = document.getElementById("notifyUserId").value.trim();
-    const imageFile = document.getElementById("notifyImage").files[0];
-    const userId = userIdInput || "all";
+// Load Summary Cards
+async function loadSummaryCards() {
+  const usersSnap = await getDocs(collection(db, "users"));
+  document.getElementById("totalUsersCard").innerText = `Users: ${usersSnap.size}`;
 
-    if (!title || !message) return alert("Title and message are required.");
+  const pendingTxSnap = await getDocs(collection(db, "pendingTransactions"));
+  const deposits = pendingTxSnap.docs.filter(doc => doc.data().type === "deposit").length;
+  const withdrawals = pendingTxSnap.docs.filter(doc => doc.data().type === "withdraw").length;
+  document.getElementById("totalDepositsCard").innerText = `Deposits: $${deposits}`;
+  document.getElementById("totalWithdrawalsCard").innerText = `Withdrawals: $${withdrawals}`;
 
-    try {
-      let imageUrl = "";
-      if (imageFile) {
-        const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
-        const snap = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snap.ref);
+  const pendingTradesSnap = await getDocs(collection(db, "pendingTrades"));
+  document.getElementById("pendingTradesCard").innerText = `Pending Trades: ${pendingTradesSnap.size}`;
+
+  const pendingKycSnap = await getDocs(collection(db, "kyc"));
+  document.getElementById("pendingKycCard").innerText = `KYC Pending: ${pendingKycSnap.size}`;
+}
+
+// Initialize section buttons
+function initButtons() {
+  const buttons = document.querySelectorAll(".admin-btn");
+  const sectionContent = document.getElementById("section-content");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const section = btn.getAttribute("data-section");
+      if (!sectionContent) return;
+
+      switch (section) {
+        case "overview":
+          sectionContent.innerHTML = "<p>Overview Section Loaded</p>";
+          break;
+        case "notify-users":
+          sectionContent.innerHTML = `
+            <h2>Send Notification</h2>
+            <input type="text" id="notifTitle" placeholder="Title" />
+            <textarea id="notifMessage" placeholder="Message"></textarea>
+            <input type="text" id="notifUser" placeholder="User ID (leave empty for all)" />
+            <input type="file" id="notifImage" />
+            <button id="sendNotifBtn">Send Notification</button>
+          `;
+          initNotifyUsers();
+          break;
+        default:
+          sectionContent.innerHTML = `<p>${section} Section Loaded</p>`;
       }
-
-      await addDoc(collection(db, "notifications"), {
-        userId,
-        title,
-        message,
-        imageUrl,
-        createdAt: serverTimestamp()
-      });
-
-      alert("Notification sent!");
-      document.getElementById("notifyTitle").value = "";
-      document.getElementById("notifyMessage").value = "";
-      document.getElementById("notifyUserId").value = "";
-      document.getElementById("notifyImage").value = "";
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send notification. Check your rules and network.");
-    }
+    });
   });
 }
 
-// Attach admin buttons
-document.querySelectorAll(".admin-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const section = btn.dataset.section;
+// Notify Users section
+function initNotifyUsers() {
+  const sendBtn = document.getElementById("sendNotifBtn");
+  if (!sendBtn) return;
 
-    if (section === "notify-users") {
-      loadNotifyUsersPanel();
-      return;
+  sendBtn.addEventListener("click", async () => {
+    const title = document.getElementById("notifTitle").value.trim();
+    const message = document.getElementById("notifMessage").value.trim();
+    const userId = document.getElementById("notifUser").value.trim() || "all";
+    const imageFile = document.getElementById("notifImage").files[0];
+
+    if (!title || !message) return alert("Title and Message are required");
+
+    let imageUrl = "";
+    if (imageFile) {
+      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js");
+      const storage = getStorage();
+      const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
+      const snap = await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(snap.ref);
     }
 
-    // Your existing section loading logic for other buttons
-    // ...
+    try {
+      await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js").then(async ({ getFirestore, collection, addDoc, serverTimestamp }) => {
+        const db = getFirestore();
+        await addDoc(collection(db, "notifications"), { title, message, userId, imageUrl, createdAt: serverTimestamp() });
+      });
+      alert("Notification sent!");
+      document.getElementById("notifTitle").value = "";
+      document.getElementById("notifMessage").value = "";
+      document.getElementById("notifUser").value = "";
+      document.getElementById("notifImage").value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send notification");
+    }
   });
-});
+}
