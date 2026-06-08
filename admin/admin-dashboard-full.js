@@ -3,12 +3,12 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, collection, getDocs, query, where, doc, updateDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -21,59 +21,37 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 // Logout
 logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "admin-login.html";
+await signOut(auth);
+window.location.href = "admin-login.html";
 });
 
 // Admin auth
 onAuthStateChanged(auth, user => {
-  if (!user || user.uid !== ADMIN_UID) {
-    alert("Access Denied. Admin only.");
-    window.location.href = "admin-login.html";
-    return;
-  }
-  attachButtonEvents();
-  updateSummaryCards();
+if (!user || user.uid !== ADMIN_UID) {
+alert("Access Denied. Admin only.");
+window.location.href = "admin-login.html";
+return;
+}
+attachButtonEvents();
+updateSummaryCards();
 });
 
 function attachButtonEvents() {
-document.querySelectorAll(".admin-btn").forEach(btn => {
-btn.addEventListener("click", async () => {
 
-  const section = btn.dataset.section;
+document.querySelectorAll(".admin-btn").forEach(btn => {
+
+btn.onclick = async function() {
+
+  const section = this.dataset.section;
 
   try {
 
-    // Coin Import
-    if (section === "coin-import") {
-      const htmlRes = await fetch("coin-import.html");
-      const html = await htmlRes.text();
-      sectionContent.innerHTML = html;
+    sectionContent.innerHTML =
+    "<div style='padding:20px;color:#00ff88'>Loading...</div>";
 
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = "coin-import.js";
-      document.body.appendChild(script);
-      return;
-    }
-
-    // Send Notification
-    if (section === "send-notification") {
-      const htmlRes = await fetch("notification.html");
-      const html = await htmlRes.text();
-      sectionContent.innerHTML = html;
-
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = "notification.js";
-      document.body.appendChild(script);
-      return;
-    }
-
-    // Unified Transactions
-    if (section === "transactions") {
-      const htmlRes = await fetch("admin-transactions.html");
-      const html = await htmlRes.text();
+    // Transactions
+    if(section === "transactions"){
+      const html = await (await fetch("admin-transactions.html")).text();
       sectionContent.innerHTML = html;
 
       const script = document.createElement("script");
@@ -84,9 +62,8 @@ btn.addEventListener("click", async () => {
     }
 
     // Stake Overview
-    if (section === "stake-overview") {
-      const htmlRes = await fetch("stake-overview.html");
-      const html = await htmlRes.text();
+    if(section === "stake-overview"){
+      const html = await (await fetch("stake-overview.html")).text();
       sectionContent.innerHTML = html;
 
       const script = document.createElement("script");
@@ -96,55 +73,82 @@ btn.addEventListener("click", async () => {
       return;
     }
 
-    // Default Loader
-    const htmlRes = await fetch(`${section}.html`);
-    const html = await htmlRes.text();
+    // Coin Import
+    if(section === "coin-import"){
+      const html = await (await fetch("coin-import.html")).text();
+      sectionContent.innerHTML = html;
+
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "coin-import.js";
+      document.body.appendChild(script);
+      return;
+    }
+
+    // Notification
+    if(section === "send-notification"){
+      const html = await (await fetch("notification.html")).text();
+      sectionContent.innerHTML = html;
+
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "notification.js";
+      document.body.appendChild(script);
+      return;
+    }
+
+    // Default Pages
+    const html = await (await fetch(section + ".html")).text();
     sectionContent.innerHTML = html;
 
     const script = document.createElement("script");
     script.type = "module";
-    script.src = `${section}.js`;
+    script.src = section + ".js";
     document.body.appendChild(script);
 
-  } catch (err) {
+  } catch(error){
 
-    console.error(`Failed to load ${section}`, err);
+    console.error(error);
 
     sectionContent.innerHTML =
-    `<p class="text-red-500">Failed to load ${section}</p>`;
+    "<div style='padding:20px;color:red'>Failed to load " +
+    section +
+    "</div>";
   }
 
-});
+};
 
 });
-}
-}
 
+}
 // Update summary cards
 async function updateSummaryCards() {
-  try {
-    const usersSnap = await getDocs(collection(db, "users"));
-    const totalUsers = usersSnap.size;
+try {
+const usersSnap = await getDocs(collection(db, "users"));
+const totalUsers = usersSnap.size;
 
-    let totalDeposits = 0, totalWithdrawals = 0;
-    usersSnap.forEach(docSnap => {
-      const u = docSnap.data();
-      totalDeposits += u.availableBalance || 0;
-      totalWithdrawals += u.withdrawableBalance || 0;
-    });
+let totalDeposits = 0, totalWithdrawals = 0;  
+usersSnap.forEach(docSnap => {  
+  const u = docSnap.data();  
+  totalDeposits += u.availableBalance || 0;  
+  totalWithdrawals += u.withdrawableBalance || 0;  
+});  
 
-    const pendingTradesSnap = await getDocs(collection(db, "pendingTrades"));
-    const pendingTrades = pendingTradesSnap.size;
+const pendingTradesSnap = await getDocs(collection(db, "pendingTrades"));  
+const pendingTrades = pendingTradesSnap.size;  
 
-    const pendingKycSnap = await getDocs(query(collection(db, "kyc"), where("status", "==", "Pending")));
-    const pendingKyc = pendingKycSnap.size;
+const pendingKycSnap = await getDocs(query(collection(db, "kyc"), where("status", "==", "Pending")));  
+const pendingKyc = pendingKycSnap.size;  
 
-    document.getElementById("totalUsersCard").innerText = `Users: ${totalUsers}`;
-    document.getElementById("totalDepositsCard").innerText = `Deposits: $${totalDeposits}`;
-    document.getElementById("totalWithdrawalsCard").innerText = `Withdrawals: $${totalWithdrawals}`;
-    document.getElementById("pendingTradesCard").innerText = `Pending Trades: ${pendingTrades}`;
-    document.getElementById("pendingKycCard").innerText = `KYC Pending: ${pendingKyc}`;
-  } catch (err) {
-    console.error("Failed to update summary cards:", err);
-  }
+document.getElementById("totalUsersCard").innerText = `Users: ${totalUsers}`;  
+document.getElementById("totalDepositsCard").innerText = `Deposits: $${totalDeposits}`;  
+document.getElementById("totalWithdrawalsCard").innerText = `Withdrawals: $${totalWithdrawals}`;  
+document.getElementById("pendingTradesCard").innerText = `Pending Trades: ${pendingTrades}`;  
+document.getElementById("pendingKycCard").innerText = `KYC Pending: ${pendingKyc}`;
+
+} catch (err) {
+console.error("Failed to update summary cards:", err);
 }
+}
+
+Here is the J's code add the new one with out changing my old format and give me a good complete working code
