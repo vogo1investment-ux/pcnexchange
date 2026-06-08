@@ -1,7 +1,8 @@
-import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config (same as your other admin scripts)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -14,6 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 onAuthStateChanged(auth, user => {
@@ -27,32 +29,57 @@ onAuthStateChanged(auth, user => {
 
 function loadWalletRequests() {
   const listDiv = document.getElementById("walletRequestsList");
+
   const q = query(collection(db, "pendingTransactions"), orderBy("createdAt", "desc"));
 
   onSnapshot(q, snapshot => {
     listDiv.innerHTML = "";
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.type === "wallet") { // Only show wallet requests
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      // Only show wallet requests
+      if (data.type === "wallet") {
         const div = document.createElement("div");
-        div.className = "p-2 border border-green-500 rounded bg-black text-white";
+        div.className = "request-card";
+
         div.innerHTML = `
-          <p><strong>User:</strong> ${data.userId}</p>
-          <p><strong>Amount:</strong> ${data.amount}</p>
+          <p><strong>User ID:</strong> ${data.userId}</p>
+          <p><strong>Amount:</strong> $${data.amount}</p>
           <p><strong>Status:</strong> ${data.status}</p>
-          <p><strong>Method/Account:</strong> ${data.recipient || "-"}</p>
-          <button class="approveBtn bg-emerald-500 p-1 rounded mt-1">Approve</button>
-          <button class="rejectBtn bg-red-500 p-1 rounded mt-1 ml-1">Reject</button>
+          <p><strong>Method / Account:</strong> ${data.recipient || "-"}</p>
+          <div class="flex gap-2 mt-2">
+            <button class="approveBtn">Approve</button>
+            <button class="rejectBtn">Reject</button>
+          </div>
         `;
+
         listDiv.appendChild(div);
 
+        // Approve button
         div.querySelector(".approveBtn").addEventListener("click", async () => {
-          await doc.ref.update({ status: "Approved" });
+          try {
+            await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Approved" });
+            div.querySelector("p:nth-child(3)").innerText = "Status: Approved";
+          } catch (err) {
+            console.error(err);
+            alert("Failed to approve request");
+          }
         });
+
+        // Reject button
         div.querySelector(".rejectBtn").addEventListener("click", async () => {
-          await doc.ref.update({ status: "Rejected" });
+          try {
+            await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Rejected" });
+            div.querySelector("p:nth-child(3)").innerText = "Status: Rejected";
+          } catch (err) {
+            console.error(err);
+            alert("Failed to reject request");
+          }
         });
       }
     });
+
+    if (listDiv.innerHTML === "") {
+      listDiv.innerHTML = `<p style="color:#0f0; padding:10px;">No wallet requests found.</p>`;
+    }
   });
 }
