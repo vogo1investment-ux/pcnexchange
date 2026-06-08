@@ -94,7 +94,11 @@ async function loadCoinData(){
   }
   const coinData = coinSnap.data();
   coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
-  coinIconEl.src = coinData.iconUrl || "default-coin.png";
+
+  // ✅ Updated to load coin image from public/coins folder
+  coinIconEl.src = `/coins/${coinData.symbol.toUpperCase()}.jpg`;
+  coinIconEl.alt = coinData.name;
+
   coinDescEl.innerText = coinData.description || "No description available.";
   coinPriceEl.innerText = coinData.price ?? 0;
 
