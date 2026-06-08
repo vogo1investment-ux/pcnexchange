@@ -1,6 +1,27 @@
-<div class="p-4">
-  <h2 class="text-emerald-400 font-bold mb-4">Wallet Requests</h2>
-  <div id="walletRequestsList" class="space-y-3 max-h-96 overflow-y-auto">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallet Requests</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background-color: #000; color: #0f0; font-family: Arial, sans-serif; }
+  h1 { color: #0f0; margin-bottom: 20px; text-align: center; }
+  .request-card { background-color: #111; border: 1px solid #0f0; border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .request-card button { padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+  .approveBtn { background-color: #0f0; color: #000; }
+  .rejectBtn { background-color: #ff4444; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="container p-4">
+  <h1>Admin Wallet Requests</h1>
+  <div id="walletRequestsList" class="space-y-3 max-h-[70vh] overflow-y-auto">
     <!-- Wallet requests will populate here -->
   </div>
 </div>
+
+</body>
+</html>
