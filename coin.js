@@ -34,6 +34,11 @@ const buyPassword = document.getElementById("buyPassword");
 const confirmBuyBtn = document.getElementById("confirmBuyBtn");
 
 let coinId = new URLSearchParams(window.location.search).get("coin");
+if (!coinId) {
+  alert("No coin selected!");
+  window.location.href = "market.html";
+}
+
 let userId = null;
 let userCoinRef = null;
 
@@ -86,36 +91,39 @@ onAuthStateChanged(auth, user => {
 });
 
 async function loadCoinData(){
-  const coinRef = doc(db,"coins",coinId);
-  const coinSnap = await getDoc(coinRef);
-  if(!coinSnap.exists()){
-    alert("Coin not found!");
-    return;
-  }
-  const coinData = coinSnap.data();
-  coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
-
-  // ✅ Updated to load coin image from public/coins folder
-  coinIconEl.src = `/coins/${coinData.symbol.toUpperCase()}.jpg`;
-  coinIconEl.alt = coinData.name;
-
-  coinDescEl.innerText = coinData.description || "No description available.";
-  coinPriceEl.innerText = coinData.price ?? 0;
-
-  userCoinRef = doc(db,"users",userId,"coins",coinId);
-
-  const userCoinSnap = await getDoc(userCoinRef);
-  if(!userCoinSnap.exists()){
-    await setDoc(userCoinRef,{
-      balance: 0.00000001
-    });
-  }
-
-  onSnapshot(userCoinRef, snap => {
-    if(snap.exists()){
-      coinBalanceEl.innerText = parseFloat(snap.data().balance).toFixed(8);
-    } else {
-      coinBalanceEl.innerText = "0.00000001";
+  try {
+    const coinRef = doc(db,"coins",coinId);
+    const coinSnap = await getDoc(coinRef);
+    if(!coinSnap.exists()){
+      alert("Coin not found!");
+      window.location.href = "market.html";
+      return;
     }
-  });
+    const coinData = coinSnap.data();
+    coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
+
+    // Load image from public/coins/<symbol>.jpg with fallback
+    coinIconEl.src = `/coins/${coinData.symbol.toUpperCase()}.jpg`;
+    coinIconEl.onerror = () => coinIconEl.src = "default-coin.png";
+    coinIconEl.alt = coinData.name;
+
+    coinDescEl.innerText = coinData.description || "No description available.";
+    coinPriceEl.innerText = coinData.price ?? 0;
+
+    userCoinRef = doc(db,"users",userId,"coins",coinId);
+
+    const userCoinSnap = await getDoc(userCoinRef);
+    if(!userCoinSnap.exists()){
+      await setDoc(userCoinRef,{ balance: 0.00000001 });
+    }
+
+    onSnapshot(userCoinRef, snap => {
+      coinBalanceEl.innerText = snap.exists() ? parseFloat(snap.data().balance).toFixed(8) : "0.00000001";
+    });
+
+  } catch (e) {
+    console.error("Error loading coin data:", e);
+    alert("Failed to load coin. Check console.");
+    window.location.href = "market.html";
+  }
 }
