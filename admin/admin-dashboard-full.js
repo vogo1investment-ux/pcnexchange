@@ -37,53 +37,87 @@ onAuthStateChanged(auth, user => {
 });
 
 function attachButtonEvents() {
-  document.querySelectorAll(".admin-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const section = btn.dataset.section;
+document.querySelectorAll(".admin-btn").forEach(btn => {
+btn.addEventListener("click", async () => {
 
-      try {
-        // Unified transactions module
-        if (section === "transactions") {
-          const htmlRes = await fetch(`admin-transactions.html`);
-          const html = await htmlRes.text();
-          sectionContent.innerHTML = html;
+  const section = btn.dataset.section;
 
-          const script = document.createElement("script");
-          script.type = "module";
-          script.src = `admin-transactions.js`;
-          document.body.appendChild(script);
-          return;
-        }
+  try {
 
-        // Stake overview
-        if (section === "stake-overview") {
-          const htmlRes = await fetch(`stake-overview.html`);
-          const html = await htmlRes.text();
-          sectionContent.innerHTML = html;
+    // Coin Import
+    if (section === "coin-import") {
+      const htmlRes = await fetch("coin-import.html");
+      const html = await htmlRes.text();
+      sectionContent.innerHTML = html;
 
-          const script = document.createElement("script");
-          script.type = "module";
-          script.src = "stake-overview.js";
-          document.body.appendChild(script);
-          return;
-        }
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "coin-import.js";
+      document.body.appendChild(script);
+      return;
+    }
 
-        // Other sections
-        const htmlRes = await fetch(`${section}.html`);
-        const html = await htmlRes.text();
-        sectionContent.innerHTML = html;
+    // Send Notification
+    if (section === "send-notification") {
+      const htmlRes = await fetch("notification.html");
+      const html = await htmlRes.text();
+      sectionContent.innerHTML = html;
 
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = `${section}.js`;
-        document.body.appendChild(script);
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "notification.js";
+      document.body.appendChild(script);
+      return;
+    }
 
-      } catch (err) {
-        console.error(`Failed to load ${section}`, err);
-        sectionContent.innerHTML = `<p class="text-red-500">Failed to load ${section}</p>`;
-      }
-    });
-  });
+    // Unified Transactions
+    if (section === "transactions") {
+      const htmlRes = await fetch("admin-transactions.html");
+      const html = await htmlRes.text();
+      sectionContent.innerHTML = html;
+
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "admin-transactions.js";
+      document.body.appendChild(script);
+      return;
+    }
+
+    // Stake Overview
+    if (section === "stake-overview") {
+      const htmlRes = await fetch("stake-overview.html");
+      const html = await htmlRes.text();
+      sectionContent.innerHTML = html;
+
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "stake-overview.js";
+      document.body.appendChild(script);
+      return;
+    }
+
+    // Default Loader
+    const htmlRes = await fetch(`${section}.html`);
+    const html = await htmlRes.text();
+    sectionContent.innerHTML = html;
+
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = `${section}.js`;
+    document.body.appendChild(script);
+
+  } catch (err) {
+
+    console.error(`Failed to load ${section}`, err);
+
+    sectionContent.innerHTML =
+    `<p class="text-red-500">Failed to load ${section}</p>`;
+  }
+
+});
+
+});
+}
 }
 
 // Update summary cards
