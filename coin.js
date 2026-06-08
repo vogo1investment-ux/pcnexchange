@@ -21,62 +21,97 @@ const coinIconEl = document.getElementById("coinIcon");
 const coinDescEl = document.getElementById("coinDesc");
 const coinPriceEl = document.getElementById("coinPrice");
 const coinBalanceEl = document.getElementById("coinBalance");
+const sendBtn = document.getElementById("sendBtn");
+const receiveBtn = document.getElementById("receiveBtn");
+const buyBtn = document.getElementById("buyBtn");
+const backBtn = document.getElementById("backBtn");
+
+const buyModal = document.getElementById("buyModal");
+const closeBuyModal = document.getElementById("closeBuyModal");
+const buyCoinName = document.getElementById("buyCoinName");
+const buyAmount = document.getElementById("buyAmount");
+const buyPassword = document.getElementById("buyPassword");
+const confirmBuyBtn = document.getElementById("confirmBuyBtn");
 
 let coinId = new URLSearchParams(window.location.search).get("coin");
 let userId = null;
 let userCoinRef = null;
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return window.location.href = "index.html";
+onAuthStateChanged(auth, user => {
+  if(!user){
+    window.location.href = "index.html";
+    return;
+  }
   userId = user.uid;
+  loadCoinData();
 
-  await loadCoinData();
-});
+  sendBtn.addEventListener("click", ()=> window.location.href="transfer.html");
+  receiveBtn.addEventListener("click", ()=> window.location.href="receive.html");
+  backBtn.addEventListener("click", ()=> window.location.href="market.html");
 
-async function loadCoinData() {
-  try {
-    const coinRef = doc(db, "coins", coinId);
-    const coinSnap = await getDoc(coinRef);
+  buyBtn.addEventListener("click", ()=>{
+    buyCoinName.innerText = coinNameEl.innerText;
+    buyAmount.value = "";
+    buyPassword.value = "";
+    buyModal.classList.remove("hidden");
+  });
 
-    if (!coinSnap.exists()) {
-      coinNameEl.innerText = "Coin not found";
-      coinDescEl.innerText = "";
-      coinPriceEl.innerText = 0;
-      coinIconEl.src = "/public/coins/default-coin.png";
+  closeBuyModal.addEventListener("click", ()=> buyModal.classList.add("hidden"));
+
+  confirmBuyBtn.addEventListener("click", async ()=>{
+    const amount = parseFloat(buyAmount.value);
+    const password = buyPassword.value;
+    if(!amount || amount <=0 || !password){
+      alert("Enter amount and password!");
       return;
     }
 
-    const coinData = coinSnap.data();
-
-    coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
-    coinDescEl.innerText = coinData.description || "No description available";
-    coinPriceEl.innerText = coinData.price ?? 0;
-
-    // Load coin image from public folder automatically
-    const symbolLower = coinData.symbol.toLowerCase();
-    coinIconEl.src = `/public/coins/${symbolLower}.jpg`;
-
-    // Fallback if image doesn't exist
-    coinIconEl.onerror = () => {
-      coinIconEl.src = "/public/coins/default-coin.png";
-    };
-
-    // Load user balance
-    userCoinRef = doc(db, "users", userId, "coins", coinId);
-    const userCoinSnap = await getDoc(userCoinRef);
-
-    if (!userCoinSnap.exists()) {
-      await setDoc(userCoinRef, { balance: 0.00000001 });
+    try {
+      const pendingRef = doc(collection(db,"pendingTransactions"));
+      await setDoc(pendingRef,{
+        coinId: coinId,
+        userId: userId,
+        amount: parseFloat(amount.toFixed(8)),
+        price: parseFloat(coinPriceEl.innerText),
+        status: "pending",
+        createdAt: new Date()
+      });
+      alert("Purchase request submitted! Status: pending for admin approval.");
+      buyModal.classList.add("hidden");
+    } catch(e){
+      console.error("Failed to create pending transaction:", e);
+      alert("Failed to submit purchase. Check console.");
     }
+  });
+});
 
-    onSnapshot(userCoinRef, snap => {
-      coinBalanceEl.innerText = snap.exists()
-        ? parseFloat(snap.data().balance).toFixed(8)
-        : "0.00000001";
-    });
-  } catch (e) {
-    console.error("Error loading coin:", e);
-    coinNameEl.innerText = "Error loading coin";
-    coinIconEl.src = "/public/coins/default-coin.png";
+async function loadCoinData(){
+  const coinRef = doc(db,"coins",coinId);
+  const coinSnap = await getDoc(coinRef);
+  if(!coinSnap.exists()){
+    alert("Coin not found!");
+    return;
   }
+  const coinData = coinSnap.data();
+  coinNameEl.innerText = `${coinData.name} (${coinData.symbol})`;
+  coinIconEl.src = coinData.iconUrl || "default-coin.png";
+  coinDescEl.innerText = coinData.description || "No description available.";
+  coinPriceEl.innerText = coinData.price ?? 0;
+
+  userCoinRef = doc(db,"users",userId,"coins",coinId);
+
+  const userCoinSnap = await getDoc(userCoinRef);
+  if(!userCoinSnap.exists()){
+    await setDoc(userCoinRef,{
+      balance: 0.00000001
+    });
+  }
+
+  onSnapshot(userCoinRef, snap => {
+    if(snap.exists()){
+      coinBalanceEl.innerText = parseFloat(snap.data().balance).toFixed(8);
+    } else {
+      coinBalanceEl.innerText = "0.00000001";
+    }
+  });
 }
