@@ -150,5 +150,3 @@ document.getElementById("pendingKycCard").innerText = `KYC Pending: ${pendingKyc
 console.error("Failed to update summary cards:", err);
 }
 }
-
-Here is the J's code add the new one with out changing my old format and give me a good complete working code
