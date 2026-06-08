@@ -4,16 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Transactions</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.tailwindcss.com">
 </head>
-<body class="bg-black text-white p-5">
+<body class="bg-zinc-900 text-white p-4">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Transactions Management</h1>
+<h2 class="text-emerald-400 font-bold text-xl mb-4">Pending Transactions</h2>
 
-<div id="transactionsList" class="space-y-4 max-h-[600px] overflow-y-auto">
-  <!-- Admin transactions will populate here -->
-</div>
+<table class="min-w-full bg-zinc-800 rounded-lg overflow-hidden">
+  <thead class="bg-zinc-700">
+    <tr>
+      <th class="p-2">User ID</th>
+      <th class="p-2">Type</th>
+      <th class="p-2">Amount</th>
+      <th class="p-2">Status</th>
+      <th class="p-2">Action</th>
+    </tr>
+  </thead>
+  <tbody id="transactionsTable">
+    <tr><td colspan="5" class="p-2 text-center">Loading...</td></tr>
+  </tbody>
+</table>
 
-<script type="module" src="admin-transactions.js"></script>
 </body>
 </html>
