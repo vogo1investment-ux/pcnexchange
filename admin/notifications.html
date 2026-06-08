@@ -1,26 +1,34 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Send Notification</title><style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send Notification</title>
+
+<style>
 body{
   font-family: Arial;
+  background:#050505;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
 .box{
   background:#111;
-  padding:20px;
-  border-radius:15px;
-  max-width:500px;
-  margin:auto;
-  color:white;
+  padding:25px;
+  border-radius:12px;
+  width:400px;
 }
 
 h2{
-  color:#00ff88;
   text-align:center;
+  color:#00ff88;
 }
 
-input,textarea,select{
+select,input,textarea{
   width:100%;
   padding:12px;
   margin:10px 0;
@@ -32,6 +40,7 @@ input,textarea,select{
 
 textarea{
   height:120px;
+  resize:none;
 }
 
 button{
@@ -52,12 +61,33 @@ button:hover{
   text-align:center;
   margin-top:10px;
 }
-</style></head><body><div class="box"><h2>Send Notification</h2><input id="title" placeholder="Title"><textarea id="message" placeholder="Message"></textarea><select id="mode">
-<option value="all">Send To Everyone</option>
-<option value="uid">Send To UID</option>
-</select><input id="uid" placeholder="Enter UID" style="display:none;"><button id="sendBtn">Send Notification</button>
+</style>
 
-<p id="status"></p></div><script type="module">
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Send Notification</h2>
+
+<select id="mode">
+  <option value="">Select Mode</option>
+  <option value="all">Send To Everyone</option>
+  <option value="uid">Send To Specific User</option>
+</select>
+
+<input type="text" id="uid" placeholder="Enter User UID" style="display:none;">
+
+<textarea id="message" placeholder="Enter Message"></textarea>
+
+<button id="sendBtn">Send Notification</button>
+
+<p id="status"></p>
+
+</div>
+
+<script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
@@ -80,49 +110,54 @@ const btn = document.getElementById("sendBtn");
 const status = document.getElementById("status");
 
 mode.addEventListener("change", () => {
-uid.style.display = mode.value === "uid" ? "block" : "none";
+  uid.style.display = mode.value === "uid" ? "block" : "none";
 });
 
 btn.addEventListener("click", async () => {
 
-const title = document.getElementById("title").value.trim();
-const message = document.getElementById("message").value.trim();
+  const message = document.getElementById("message").value.trim();
 
-if(!title || !message){
-status.innerText = "Fill all fields";
-status.style.color = "red";
-return;
-}
+  if(!mode.value){
+    status.innerText = "Select mode";
+    status.style.color = "red";
+    return;
+  }
 
-if(mode.value === "uid" && !uid.value.trim()){
-status.innerText = "Enter UID";
-status.style.color = "red";
-return;
-}
+  if(!message){
+    status.innerText = "Enter message";
+    status.style.color = "red";
+    return;
+  }
 
-try {
+  if(mode.value === "uid" && !uid.value.trim()){
+    status.innerText = "Enter User UID";
+    status.style.color = "red";
+    return;
+  }
 
-await addDoc(collection(db,"notifications"),{
-title,
-message,
-type: mode.value,
-uid: mode.value === "uid" ? uid.value.trim() : null,
-createdAt: serverTimestamp()
+  try {
+
+    await addDoc(collection(db,"notifications"),{
+      type: mode.value,
+      message,
+      uid: mode.value === "uid" ? uid.value.trim() : null,
+      createdAt: serverTimestamp()
+    });
+
+    status.innerText = "Notification Sent Successfully";
+    status.style.color = "#00ff88";
+
+    document.getElementById("message").value = "";
+    uid.value = "";
+
+  } catch(err){
+    status.innerText = err.message;
+    status.style.color = "red";
+  }
+
 });
 
-status.innerText = "Notification Sent Successfully";
-status.style.color = "#00ff88";
+</script>
 
-document.getElementById("title").value = "";
-document.getElementById("message").value = "";
-uid.value = "";
-
-} catch(err){
-status.innerText = err.message;
-status.style.color = "red";
-}
-
-});
-
-</script></body>
+</body>
 </html>
