@@ -2,10 +2,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 
 import {
 getFirestore,
-doc,
-setDoc
-}
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+collection,
+addDoc,
+serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -19,60 +19,50 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-document.getElementById("uploadBtn")
+document.getElementById("sendNotifBtn")
 .addEventListener("click", async () => {
 
-const file =
-document.getElementById("jsonFile").files[0];
+const title =
+document.getElementById("notifTitle").value.trim();
 
-if(!file){
+const message =
+document.getElementById("notifMessage").value.trim();
 
-alert("Select JSON file");
+const status =
+document.getElementById("notifStatus");
+
+if(!title || !message){
+
+status.innerHTML =
+"<span style='color:red'>Fill all fields</span>";
 
 return;
-
 }
 
-const text = await file.text();
+try {
 
-const coins = JSON.parse(text);
-
-const total = coins.length;
-
-let uploaded = 0;
-
-for(const coin of coins){
-
-await setDoc(
-
-doc(db,"coins",coin.symbol),
-
+await addDoc(
+collection(db,"notifications"),
 {
-
-symbol: coin.symbol,
-name: coin.name,
-price: coin.price,
-prevPrice: coin.prevPrice,
-description: coin.description,
-balance: coin.balance,
-iconUrl: coin.iconUrl
-
+title,
+message,
+type:"broadcast",
+createdAt:serverTimestamp()
 }
-
 );
 
-uploaded++;
+status.innerHTML =
+"<span style='color:#00ff88'>Notification Sent Successfully</span>";
 
-const percent =
-Math.round((uploaded / total) * 100);
-
-document.getElementById("progress")
-.innerText = percent + "%";
+document.getElementById("notifTitle").value = "";
+document.getElementById("notifMessage").value = "";
 
 }
+catch(err){
 
-document.getElementById("status")
-.innerText =
-"All Coins Uploaded Successfully";
+status.innerHTML =
+"<span style='color:red'>" + err.message + "</span>";
+
+}
 
 });
