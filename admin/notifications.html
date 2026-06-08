@@ -1,40 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Upload Coins to Firestore</title>
+<title>Coin Upload Center</title>
 <link rel="stylesheet" href="notification.css">
-<style>
-  body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-  .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
-  h2 { margin-bottom: 15px; }
-  input, button { margin: 5px 0; padding: 10px; width: 100%; font-size: 16px; }
-  table { width: 100%; margin-top: 15px; border-collapse: collapse; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  th { background: #eee; }
-  .success { color: green; }
-  .fail { color: red; }
-</style>
 </head>
 <body>
-  <div class="container">
-    <h2>Upload Coins JSON</h2>
-    <input type="file" id="jsonFileInput" accept=".json">
-    <button id="uploadBtn">Upload to Firestore</button>
-    <div id="status"></div>
-    <table id="progressTable">
-      <thead>
-        <tr>
-          <th>Symbol</th>
-          <th>Name</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
 
-  <script type="module" src="notification.js"></script>
+<div class="container">
+
+<h2>Upload Coins JSON</h2>
+
+<input type="file" id="jsonFile" accept=".json">
+
+<button id="uploadBtn">
+Upload To Firestore
+</button>
+
+<div id="progress">0%</div>
+
+<div id="status"></div>
+
+</div>
+
+<script type="module" src="notification.js"></script>
+
 </body>
 </html>
