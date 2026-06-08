@@ -1,90 +1,129 @@
-/* Body and global */
-body, html {
+/* General page styles */
+body {
+  background-color: #000;
+  color: #0f0;
+  font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #000000;
-  color: white;
 }
 
-/* Summary cards */
-#totalUsersCard,
-#totalDepositsCard,
-#totalWithdrawalsCard,
-#pendingTradesCard,
-#pendingKycCard {
-  font-weight: bold;
-  font-size: 1.1rem;
-  text-align: center;
-  padding: 1rem;
-  border-radius: 12px;
-  transition: transform 0.2s;
-}
-#totalUsersCard:hover,
-#totalDepositsCard:hover,
-#totalWithdrawalsCard:hover,
-#pendingTradesCard:hover,
-#pendingKycCard:hover {
-  transform: scale(1.03);
+/* Admin dashboard summary cards */
+.bg-emerald-500 {
+  background-color: #10b981;
+  color: #000;
 }
 
-/* Admin Buttons */
+/* Admin buttons */
 .admin-btn {
-  background-color: #00ff88; /* bright green */
-  color: black;
+  background-color: #111;
+  color: #0f0;
+  border: 1px solid #0f0;
+  padding: 10px;
   font-weight: bold;
-  padding: 1.25rem;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  text-align: center;
-  font-size: 1rem;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: all 0.2s ease-in-out;
 }
 .admin-btn:hover {
-  background-color: #00cc66;
-  transform: translateY(-2px);
+  background-color: #0f0;
+  color: #000;
 }
 
-/* Section content */
+/* Section content wrapper */
 #section-content {
   min-height: 400px;
-  background-color: #1a1a1a;
-  padding: 1rem;
+  padding: 20px;
   border-radius: 12px;
-  margin-top: 1rem;
+  background-color: #111;
 }
 
-/* Inputs and buttons inside sections */
-input, textarea {
-  background-color: #222222;
-  color: white;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 0.5rem;
+/* Notify Users panel */
+.notify-panel {
+  background-color: #111;
+  border: 1px solid #0f0;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+.notify-panel h2 {
+  color: #10b981;
+  margin-bottom: 16px;
+}
+.notify-panel input,
+.notify-panel textarea,
+.notify-panel select {
   width: 100%;
-  margin-bottom: 0.5rem;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #0f0;
+  background-color: #000;
+  color: #0f0;
 }
-
-button {
-  cursor: pointer;
+.notify-panel button {
+  background-color: #0f0;
+  color: #000;
   font-weight: bold;
+  padding: 10px;
   border: none;
   border-radius: 8px;
-  transition: 0.2s;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.notify-panel button:hover {
+  background-color: #10b981;
 }
 
-/* Responsive grid for summary cards and buttons */
-@media (min-width: 768px) {
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-  .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-  .grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+/* User notification list */
+#notificationsList {
+  max-height: 500px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#notificationsList .notification-card {
+  border: 1px solid #0f0;
+  border-radius: 12px;
+  padding: 16px;
+  background-color: #111;
+}
+#notificationsList .notification-card h3 {
+  color: #10b981;
+  margin-bottom: 8px;
+}
+#notificationsList .notification-card p {
+  margin: 0 0 8px 0;
+}
+#notificationsList .notification-card img {
+  max-width: 100%;
+  margin-top: 8px;
+  border-radius: 8px;
+}
+#notificationsList .notification-card small {
+  color: #888;
 }
 
-/* Scroll for long lists */
-#section-content ul {
-  list-style-type: none;
-  padding: 0;
+/* Scrollbar styling for lists */
+#notificationsList::-webkit-scrollbar {
+  width: 8px;
 }
-#section-content div, #section-content li {
-  margin-bottom: 0.75rem;
+#notificationsList::-webkit-scrollbar-track {
+  background: #000;
+}
+#notificationsList::-webkit-scrollbar-thumb {
+  background: #0f0;
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .admin-btn {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .notify-panel {
+    padding: 16px;
+  }
 }
