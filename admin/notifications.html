@@ -1,23 +1,128 @@
-<div class="bg-zinc-900 p-6 rounded-xl"><h2 class="text-2xl font-bold text-emerald-400 mb-4">
-Send Notification
-</h2><input
-id="notifTitle"
-type="text"
-placeholder="Notification Title"
-class="w-full p-3 rounded bg-black border border-zinc-700 mb-4 text-white"
-/>
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Send Notification</title><style>
+body{
+  font-family: Arial;
+}
 
-<textarea
-id="notifMessage"
-placeholder="Type notification message..."
-class="w-full p-3 rounded bg-black border border-zinc-700 mb-4 h-40 text-white"
-></textarea><button
-id="sendNotifBtn"
-class="bg-emerald-500 text-black font-bold px-5 py-3 rounded"
+.box{
+  background:#111;
+  padding:20px;
+  border-radius:15px;
+  max-width:500px;
+  margin:auto;
+  color:white;
+}
 
-«»
+h2{
+  color:#00ff88;
+  text-align:center;
+}
 
-Send Notification
-</button>
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid #333;
+  background:black;
+  color:white;
+}
 
-<div id="notifStatus" class="mt-4 text-white"></div></div>
+textarea{
+  height:120px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  background:#00ff88;
+  border:none;
+  font-weight:bold;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:0.8;
+}
+
+#status{
+  text-align:center;
+  margin-top:10px;
+}
+</style></head><body><div class="box"><h2>Send Notification</h2><input id="title" placeholder="Title"><textarea id="message" placeholder="Message"></textarea><select id="mode">
+<option value="all">Send To Everyone</option>
+<option value="uid">Send To UID</option>
+</select><input id="uid" placeholder="Enter UID" style="display:none;"><button id="sendBtn">Send Notification</button>
+
+<p id="status"></p></div><script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const mode = document.getElementById("mode");
+const uid = document.getElementById("uid");
+const btn = document.getElementById("sendBtn");
+const status = document.getElementById("status");
+
+mode.addEventListener("change", () => {
+uid.style.display = mode.value === "uid" ? "block" : "none";
+});
+
+btn.addEventListener("click", async () => {
+
+const title = document.getElementById("title").value.trim();
+const message = document.getElementById("message").value.trim();
+
+if(!title || !message){
+status.innerText = "Fill all fields";
+status.style.color = "red";
+return;
+}
+
+if(mode.value === "uid" && !uid.value.trim()){
+status.innerText = "Enter UID";
+status.style.color = "red";
+return;
+}
+
+try {
+
+await addDoc(collection(db,"notifications"),{
+title,
+message,
+type: mode.value,
+uid: mode.value === "uid" ? uid.value.trim() : null,
+createdAt: serverTimestamp()
+});
+
+status.innerText = "Notification Sent Successfully";
+status.style.color = "#00ff88";
+
+document.getElementById("title").value = "";
+document.getElementById("message").value = "";
+uid.value = "";
+
+} catch(err){
+status.innerText = err.message;
+status.style.color = "red";
+}
+
+});
+
+</script></body>
+</html>
