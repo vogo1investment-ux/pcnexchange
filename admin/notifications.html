@@ -3,140 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Notifications</title>
+<title>Upload Coins History</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #0f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-.container {
-  background: #222;
-  padding: 20px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  border: 1px solid #333;
-}
-h2 {
-  margin-bottom: 15px;
-}
-input, textarea, button {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #111;
-  color: #0f0;
-  font-size: 1rem;
-}
-button {
-  background: #0f0;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-button:hover {
-  background: #0c0;
-}
-#status {
-  margin-top: 10px;
-  font-weight: bold;
-}
+body { font-family: Arial, sans-serif; background: #111; color: #0f0; text-align: center; padding: 50px; }
+button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+#status { margin-top: 20px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>Send Notification</h2>
-  <input type="text" id="userId" placeholder="User UID (leave empty = all)">
-  <textarea id="message" placeholder="Type notification message here..." rows="5"></textarea>
-  <button id="sendBtn">Send Notification</button>
-  <p id="status"></p>
-</div>
+<h1>Upload Coins to Firestore</h1>
+<input type="file" id="fileInput" accept=".json">
+<br>
+<button id="uploadBtn">Start Upload</button>
+<div id="status"></div>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.appspot.com",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-// Admin UID
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// Elements
-const userIdInput = document.getElementById("userId");
-const messageInput = document.getElementById("message");
-const sendBtn = document.getElementById("sendBtn");
-const statusEl = document.getElementById("status");
-
-// Check admin login
-onAuthStateChanged(auth, user => {
-  if (!user || user.uid !== ADMIN_UID) {
-    statusEl.textContent = "⚠️ You must be logged in as admin to send notifications.";
-    statusEl.style.color = "red";
-    sendBtn.disabled = true;
-  } else {
-    sendBtn.disabled = false;
-  }
-});
-
-// Send notification
-sendBtn.addEventListener("click", async () => {
-  const message = messageInput.value.trim();
-  const userId = userIdInput.value.trim() || "all";
-
-  if (!message) {
-    statusEl.textContent = "⚠️ Please enter a message before sending!";
-    statusEl.style.color = "red";
-    return;
-  }
-
-  sendBtn.disabled = true;
-  statusEl.textContent = "Sending...";
-  statusEl.style.color = "#0f0";
-
-  try {
-    await addDoc(collection(db, "notifications"), {
-      userId,
-      message,
-      createdAt: serverTimestamp()
-    });
-
-    statusEl.textContent = `✅ Notification sent to "${userId}"`;
-    statusEl.style.color = "#0f0";
-    messageInput.value = "";
-    userIdInput.value = "";
-  } catch (err) {
-    console.error("Error sending notification:", err);
-    statusEl.textContent = "❌ Failed to send notification!";
-    statusEl.style.color = "red";
-  } finally {
-    sendBtn.disabled = false;
-  }
-});
-</script>
+<script type="module" src="notification.js"></script>
 </body>
 </html>
