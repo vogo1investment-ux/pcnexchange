@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -29,26 +30,26 @@ onAuthStateChanged(auth, user => {
   loadWallets();
 });
 
-// Load all users' wallets
+// Load all users and their coins
 async function loadWallets() {
   const usersSnap = await getDocs(collection(db, "users"));
   walletsTableBody.innerHTML = "";
 
   usersSnap.forEach(docSnap => {
-    const u = docSnap.data();
+    const userData = docSnap.data();
     const uid = docSnap.id;
 
     const tr = document.createElement("tr");
     tr.className = "border-b border-zinc-700";
 
-    // Build editable inputs for coins
-    let cryptoHtml = "";
-    const coins = u.coins || {};
-    if (Object.keys(coins).length === 0) {
-      cryptoHtml = "<span class='text-zinc-400'>No coins</span>";
+    // Coins table inside cell
+    let coinsHtml = "";
+    const allCoins = userData.coins || {};
+    if (Object.keys(allCoins).length === 0) {
+      coinsHtml = "<span class='text-zinc-400'>No coins</span>";
     } else {
-      for (const [coin, amount] of Object.entries(coins)) {
-        cryptoHtml += `
+      for (const [coin, amount] of Object.entries(allCoins)) {
+        coinsHtml += `
           <div class="flex items-center mb-1">
             <span class="mr-2 font-bold">${coin}:</span>
             <input type="number" value="${amount}" class="crypto-input bg-zinc-900 text-white p-1 rounded w-20" data-coin="${coin}">
@@ -59,12 +60,12 @@ async function loadWallets() {
 
     tr.innerHTML = `
       <td class="p-2">${uid}</td>
-      <td class="p-2">${u.name || ''}</td>
-      <td class="p-2">${cryptoHtml}</td>
+      <td class="p-2">${userData.name || ''}</td>
+      <td class="p-2">${coinsHtml}</td>
       <td class="p-2"><button class="update-btn bg-emerald-400 text-black font-bold p-1 rounded">Update</button></td>
     `;
 
-    // Update handler
+    // Update coins
     tr.querySelector(".update-btn").addEventListener("click", async () => {
       try {
         const updatedCoins = {};
@@ -73,10 +74,10 @@ async function loadWallets() {
         });
 
         await updateDoc(doc(db, "users", uid), { coins: updatedCoins });
-        alert("Wallet updated successfully!");
+        alert("Coins updated successfully!");
       } catch (err) {
         console.error(err);
-        alert("Failed to update wallet.");
+        alert("Failed to update coins.");
       }
     });
 
@@ -84,7 +85,7 @@ async function loadWallets() {
   });
 }
 
-// Search/filter users
+// Search filter
 searchInput.addEventListener("input", () => {
   const filter = searchInput.value.toLowerCase();
   Array.from(walletsTableBody.children).forEach(tr => {
