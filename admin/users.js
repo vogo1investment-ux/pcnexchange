@@ -41,10 +41,18 @@ async function loadUsers() {
     const tr = document.createElement("tr");
     tr.className = "border-b border-zinc-700";
 
-    // Crypto assets inputs
-    const cryptoAssetsInputs = Object.entries(u.coins || {})
-      .map(([coin, amount]) => `<label>${coin}: <input type="number" value="${amount}" class="crypto-input bg-zinc-900 text-white p-1 rounded w-20 mr-2" data-coin="${coin}"></label>`)
-      .join("");
+    // Build editable inputs for crypto assets
+    let cryptoHtml = "";
+    if (u.coins) {
+      for (const [coin, amount] of Object.entries(u.coins)) {
+        cryptoHtml += `
+          <div class="flex items-center mb-1">
+            <span class="mr-2 font-bold">${coin}:</span>
+            <input type="number" class="crypto-input bg-zinc-900 text-white p-1 rounded w-20" value="${amount}" data-coin="${coin}">
+          </div>
+        `;
+      }
+    }
 
     tr.innerHTML = `
       <td class="p-2">${uid}</td>
@@ -52,17 +60,16 @@ async function loadUsers() {
       <td class="p-2"><input type="number" value="${u.availableBalance || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
       <td class="p-2"><input type="number" value="${u.withdrawableBalance || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
       <td class="p-2"><input type="number" value="${u.referralCommission || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
-      <td class="p-2">${cryptoAssetsInputs}</td>
+      <td class="p-2">${cryptoHtml}</td>
       <td class="p-2"><button class="update-btn bg-emerald-400 text-black font-bold p-1 rounded">Update</button></td>
     `;
 
-    // Update handler
     tr.querySelector(".update-btn").addEventListener("click", async () => {
       try {
-        // Gather updated coin balances
-        const coins = {};
+        // Collect updated crypto balances
+        const updatedCoins = {};
         tr.querySelectorAll(".crypto-input").forEach(input => {
-          coins[input.dataset.coin] = parseFloat(input.value);
+          updatedCoins[input.dataset.coin] = parseFloat(input.value);
         });
 
         await updateDoc(doc(db, "users", uid), {
@@ -70,7 +77,7 @@ async function loadUsers() {
           availableBalance: parseFloat(tr.children[2].querySelector("input").value),
           withdrawableBalance: parseFloat(tr.children[3].querySelector("input").value),
           referralCommission: parseFloat(tr.children[4].querySelector("input").value),
-          coins
+          coins: updatedCoins
         });
         alert("User updated successfully!");
       } catch (err) {
