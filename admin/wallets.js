@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -13,84 +12,89 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const walletsTableBody = document.getElementById("walletsTableBody");
+const usersTableBody = document.getElementById("usersTableBody");
 const searchInput = document.getElementById("searchInput");
 
-// Admin auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
     window.location.href = "admin-login.html";
-    return;
+  } else {
+    loadUsers();
   }
-  loadWallets();
 });
 
-// Load all users and their coins
-async function loadWallets() {
+async function loadUsers() {
+  usersTableBody.innerHTML = "<tr><td colspan='4' class='p-2'>Loading...</td></tr>";
+
   const usersSnap = await getDocs(collection(db, "users"));
-  walletsTableBody.innerHTML = "";
+  usersTableBody.innerHTML = "";
 
-  usersSnap.forEach(docSnap => {
-    const userData = docSnap.data();
-    const uid = docSnap.id;
+  for (let userDoc of usersSnap.docs) {
+    const userData = userDoc.data();
+    const uid = userDoc.id;
+    const name = userData.name || "-";
 
-    const tr = document.createElement("tr");
-    tr.className = "border-b border-zinc-700";
-
-    // Coins table inside cell
+    // Fetch coins subcollection
+    const coinsSnap = await getDocs(collection(db, `users/${uid}/coins`));
     let coinsHtml = "";
-    const allCoins = userData.coins || {};
-    if (Object.keys(allCoins).length === 0) {
-      coinsHtml = "<span class='text-zinc-400'>No coins</span>";
-    } else {
-      for (const [coin, amount] of Object.entries(allCoins)) {
-        coinsHtml += `
-          <div class="flex items-center mb-1">
-            <span class="mr-2 font-bold">${coin}:</span>
-            <input type="number" value="${amount}" class="crypto-input bg-zinc-900 text-white p-1 rounded w-20" data-coin="${coin}">
-          </div>
-        `;
-      }
-    }
-
-    tr.innerHTML = `
-      <td class="p-2">${uid}</td>
-      <td class="p-2">${userData.name || ''}</td>
-      <td class="p-2">${coinsHtml}</td>
-      <td class="p-2"><button class="update-btn bg-emerald-400 text-black font-bold p-1 rounded">Update</button></td>
-    `;
-
-    // Update coins
-    tr.querySelector(".update-btn").addEventListener("click", async () => {
-      try {
-        const updatedCoins = {};
-        tr.querySelectorAll(".crypto-input").forEach(input => {
-          updatedCoins[input.dataset.coin] = parseFloat(input.value);
-        });
-
-        await updateDoc(doc(db, "users", uid), { coins: updatedCoins });
-        alert("Coins updated successfully!");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to update coins.");
-      }
+    coinsSnap.forEach(coinDoc => {
+      const c = coinDoc.data();
+      coinsHtml += `
+        <div class="flex gap-2 items-center mb-1">
+          <span class="font-bold">${c.coin}</span>
+          <input type="number" step="0.0001" value="${c.amount}" data-user="${uid}" data-coin="${c.coin}"
+          class="w-24 p-1 rounded bg-zinc-800 text-white balanceInput">
+        </div>`;
     });
 
-    walletsTableBody.appendChild(tr);
+    if (!coinsHtml) coinsHtml = "<span>No coins</span>";
+
+    usersTableBody.innerHTML += `
+      <tr class="border-b border-zinc-700">
+        <td class="border p-2">${uid}</td>
+        <td class="border p-2">${name}</td>
+        <td class="border p-2">${coinsHtml}</td>
+        <td class="border p-2">
+          <button class="updateBtn bg-emerald-400 text-black px-2 py-1 rounded font-bold">Update</button>
+        </td>
+      </tr>`;
+  }
+
+  attachUpdateEvents();
+}
+
+// Attach update button events
+function attachUpdateEvents() {
+  document.querySelectorAll(".updateBtn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      const row = e.target.closest("tr");
+      const uid = row.children[0].textContent;
+      const inputs = row.querySelectorAll(".balanceInput");
+
+      for (let input of inputs) {
+        const coin = input.dataset.coin;
+        const amount = parseFloat(input.value) || 0;
+
+        const coinRef = doc(db, `users/${uid}/coins/${coin}`);
+        await updateDoc(coinRef, { amount });
+      }
+
+      alert("Balances updated!");
+    });
   });
 }
 
-// Search filter
+// Search functionality
 searchInput.addEventListener("input", () => {
   const filter = searchInput.value.toLowerCase();
-  Array.from(walletsTableBody.children).forEach(tr => {
-    const uid = tr.children[0].innerText.toLowerCase();
-    const name = tr.children[1].innerText.toLowerCase();
+  document.querySelectorAll("#usersTableBody tr").forEach(tr => {
+    const uid = tr.children[0].textContent.toLowerCase();
+    const name = tr.children[1].textContent.toLowerCase();
     tr.style.display = uid.includes(filter) || name.includes(filter) ? "" : "none";
   });
 });
