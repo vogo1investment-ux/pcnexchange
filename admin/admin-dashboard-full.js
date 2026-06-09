@@ -1,58 +1,68 @@
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
-const db = getFirestore();
-const tableBody = document.getElementById("transactionsTable");
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+};
 
-// Load pending transactions
-async function loadTransactions() {
-  tableBody.innerHTML = "<tr><td colspan='5' class='p-2 text-center'>Loading...</td></tr>";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Only your admin UID can send notifications
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
+onAuthStateChanged(auth, user => {
+  if (!user || user.uid !== ADMIN_UID) {
+    alert("Access Denied: Admin Only");
+    window.location.href = "admin-login.html";
+  }
+});
+
+// Handle Send Notification button
+document.getElementById("sendBtn").addEventListener("click", async () => {
+  const title = document.getElementById("titleInput").value.trim();
+  const message = document.getElementById("messageInput").value.trim();
+  const userId = document.getElementById("userIdInput").value.trim() || "all";
+  const imageFile = document.getElementById("imageInput").files[0];
+
+  if (!title || !message) {
+    alert("Please enter both title and message.");
+    return;
+  }
 
   try {
-    const snap = await getDocs(collection(db, "pendingTransactions"));
-
-    if (snap.empty) {
-      tableBody.innerHTML = "<tr><td colspan='5' class='p-2 text-center'>No pending transactions</td></tr>";
-      return;
+    let imageUrl = "";
+    if (imageFile) {
+      const storageRef = ref(storage, `notifications/${Date.now()}_${imageFile.name}`);
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(snapshot.ref);
     }
 
-    tableBody.innerHTML = "";
-
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      const tr = document.createElement("tr");
-      tr.className = "bg-zinc-800 border-b border-zinc-700";
-
-      tr.innerHTML = `
-        <td class="p-2">${data.userId}</td>
-        <td class="p-2">${data.type}</td>
-        <td class="p-2">${data.amount}</td>
-        <td class="p-2">${data.status}</td>
-        <td class="p-2">
-          ${data.status === "Pending" ? `<button class="approveBtn p-1 bg-emerald-500 rounded" data-id="${docSnap.id}">Approve</button>` : ""}
-        </td>
-      `;
-      tableBody.appendChild(tr);
+    await addDoc(collection(db, "notifications"), {
+      title,
+      message,
+      userId,
+      imageUrl,
+      createdAt: serverTimestamp()
     });
 
-    // Add approve button event
-    document.querySelectorAll(".approveBtn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const txnId = btn.dataset.id;
-        const txnRef = doc(db, "pendingTransactions", txnId);
-
-        // Update the transaction status to Approved
-        await updateDoc(txnRef, { status: "Approved" });
-
-        // Reload table
-        loadTransactions();
-      });
-    });
-
+    alert("Notification sent successfully!");
+    document.getElementById("titleInput").value = "";
+    document.getElementById("messageInput").value = "";
+    document.getElementById("userIdInput").value = "";
+    document.getElementById("imageInput").value = "";
   } catch (err) {
-    console.error("Error loading transactions:", err);
-    tableBody.innerHTML = "<tr><td colspan='5' class='p-2 text-center text-red-500'>Failed to load transactions</td></tr>";
+    console.error(err);
+    alert("Failed to send notification. Check network and Storage rules.");
   }
-}
-
-// Initialize
-loadTransactions();
+});

@@ -1,74 +1,55 @@
-import { getFirestore, collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+// admin-transactions.js
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const db = getFirestore();
-const transactionsTable = document.getElementById("transactionsTable");
+const tableBody = document.getElementById("transactionsTable");
 
-async function renderTransactions() {
-  const pendingRef = collection(db, "pendingTransactions");
+async function loadTransactions() {
+  tableBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center">Loading...</td></tr>`;
 
-  onSnapshot(pendingRef, snapshot => {
-    transactionsTable.innerHTML = "";
+  try {
+    const snap = await getDocs(collection(db, "pendingTransactions"));
 
-    if (snapshot.empty) {
-      transactionsTable.innerHTML = `<tr><td colspan="5" class="p-2 text-center">No pending transactions</td></tr>`;
+    if (snap.empty) {
+      tableBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center">No pending transactions</td></tr>`;
       return;
     }
 
-    snapshot.forEach(docSnap => {
-      const tx = docSnap.data();
-      const row = document.createElement("tr");
-      row.className = "border-b border-zinc-700";
+    tableBody.innerHTML = "";
 
-      row.innerHTML = `
-        <td class="p-2">${tx.userId}</td>
-        <td class="p-2">${tx.type}</td>
-        <td class="p-2">$${tx.amount}</td>
-        <td class="p-2">${tx.status}</td>
-        <td class="p-2 space-x-2">
-          ${tx.status === "Pending" ? `
-            <button class="approveBtn bg-green-600 p-1 rounded text-black">Approve</button>
-            <button class="rejectBtn bg-red-600 p-1 rounded text-black">Reject</button>
-          ` : '-'}
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const tr = document.createElement("tr");
+      tr.className = "bg-zinc-800 border-b border-zinc-700";
+      tr.innerHTML = `
+        <td class="p-2">${data.userId}</td>
+        <td class="p-2">${data.type}</td>
+        <td class="p-2">${data.amount}</td>
+        <td class="p-2">${data.status}</td>
+        <td class="p-2">
+          ${data.status === "Pending" ? `<button class="approveBtn p-1 bg-emerald-500 rounded" data-id="${docSnap.id}">Approve</button>` : ""}
         </td>
       `;
+      tableBody.appendChild(tr);
+    });
 
-      transactionsTable.appendChild(row);
+    // Approve button functionality
+    document.querySelectorAll(".approveBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const txnId = btn.dataset.id;
+        const txnRef = doc(db, "pendingTransactions", txnId);
 
-      // Approve handler
-      row.querySelector(".approveBtn")?.addEventListener("click", async () => {
-        try {
-          const userRef = doc(db, "users", tx.userId);
-          const userSnap = await getDoc(userRef);
-          if (!userSnap.exists()) return alert("User not found");
+        await updateDoc(txnRef, { status: "Approved" });
 
-          let newBalance = userSnap.data().availableBalance || 0;
-
-          if (tx.type.toLowerCase() === "deposit") {
-            newBalance += tx.amount;
-          } else if (tx.type.toLowerCase() === "withdrawal") {
-            newBalance -= tx.amount;
-          }
-
-          await updateDoc(userRef, { availableBalance: newBalance });
-          await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Approved" });
-
-        } catch (err) {
-          console.error(err);
-          alert("Error approving transaction");
-        }
-      });
-
-      // Reject handler
-      row.querySelector(".rejectBtn")?.addEventListener("click", async () => {
-        try {
-          await updateDoc(doc(db, "pendingTransactions", docSnap.id), { status: "Rejected" });
-        } catch (err) {
-          console.error(err);
-          alert("Error rejecting transaction");
-        }
+        // Reload table
+        loadTransactions();
       });
     });
-  });
+
+  } catch (err) {
+    console.error("Error loading transactions:", err);
+    tableBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-red-500">Failed to load transactions</td></tr>`;
+  }
 }
 
-renderTransactions();
+loadTransactions();
