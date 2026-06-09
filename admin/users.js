@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -42,7 +41,10 @@ async function loadUsers() {
     const tr = document.createElement("tr");
     tr.className = "border-b border-zinc-700";
 
-    const cryptoAssets = u.coins ? Object.entries(u.coins).map(([c, v]) => `${c}: ${v}`).join(", ") : "";
+    // Crypto assets inputs
+    const cryptoAssetsInputs = Object.entries(u.coins || {})
+      .map(([coin, amount]) => `<label>${coin}: <input type="number" value="${amount}" class="crypto-input bg-zinc-900 text-white p-1 rounded w-20 mr-2" data-coin="${coin}"></label>`)
+      .join("");
 
     tr.innerHTML = `
       <td class="p-2">${uid}</td>
@@ -50,20 +52,27 @@ async function loadUsers() {
       <td class="p-2"><input type="number" value="${u.availableBalance || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
       <td class="p-2"><input type="number" value="${u.withdrawableBalance || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
       <td class="p-2"><input type="number" value="${u.referralCommission || 0}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
-      <td class="p-2"><input type="text" value="${cryptoAssets}" class="bg-zinc-900 text-white p-1 rounded w-full"></td>
+      <td class="p-2">${cryptoAssetsInputs}</td>
       <td class="p-2"><button class="update-btn bg-emerald-400 text-black font-bold p-1 rounded">Update</button></td>
     `;
 
     // Update handler
     tr.querySelector(".update-btn").addEventListener("click", async () => {
       try {
+        // Gather updated coin balances
+        const coins = {};
+        tr.querySelectorAll(".crypto-input").forEach(input => {
+          coins[input.dataset.coin] = parseFloat(input.value);
+        });
+
         await updateDoc(doc(db, "users", uid), {
           name: tr.children[1].querySelector("input").value,
           availableBalance: parseFloat(tr.children[2].querySelector("input").value),
           withdrawableBalance: parseFloat(tr.children[3].querySelector("input").value),
-          referralCommission: parseFloat(tr.children[4].querySelector("input").value)
+          referralCommission: parseFloat(tr.children[4].querySelector("input").value),
+          coins
         });
-        alert("User updated!");
+        alert("User updated successfully!");
       } catch (err) {
         console.error(err);
         alert("Failed to update user.");
