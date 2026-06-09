@@ -1,7 +1,7 @@
-// deposit.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -13,93 +13,107 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
 
-const submitDepositBtn = document.getElementById("submitDeposit");
-const requestWalletBtn = document.getElementById("requestWalletBtn");
-const cryptoCoinSelect = document.getElementById("cryptoCoinSelect");
-const walletHistoryDiv = document.getElementById("walletHistory");
-
-// --- Deposit Submission ---
-submitDepositBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return alert("You must be logged in to submit deposits.");
-
+// Deposit submission
+document.getElementById("submitDeposit").addEventListener("click", async () => {
   const amount = parseFloat(document.getElementById("amount").value);
   const proof = document.getElementById("proof").files[0];
 
-  if (!amount || !proof) return alert("Enter amount and select proof.");
+  if (!amount || !proof) return alert("Enter amount and select proof file.");
 
   try {
-    // Optional: you can upload proof to Firebase Storage and save URL
-    const depositData = {
-      userId: user.uid,
+    const proofRef = ref(storage, `depositProofs/${Date.now()}_${proof.name}`);
+    const snap = await uploadBytes(proofRef, proof);
+    const proofUrl = await getDownloadURL(snap.ref);
+
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in.");
+
+    await addDoc(collection(db, "pendingTransactions"), {
       type: "deposit",
-      amount: amount,
+      amount,
+      userId: user.uid,
       proofName: proof.name,
+      proofUrl,
       status: "Pending",
       createdAt: serverTimestamp()
-    };
+    });
 
-    await addDoc(collection(db, "pendingTransactions"), depositData);
-    alert("Deposit submitted successfully!");
+    alert("Deposit submitted!");
     document.getElementById("amount").value = "";
     document.getElementById("proof").value = "";
+    loadWalletHistory();
   } catch (err) {
     console.error(err);
-    alert("Failed to submit deposit: " + err.message);
+    alert("Failed to submit deposit.");
   }
 });
 
-// --- Generate Wallet Request ---
-requestWalletBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return alert("You must be logged in to request a wallet.");
+// Wallet request
+document.getElementById("requestWalletBtn").addEventListener("click", async () => {
+  const coin = document.getElementById("cryptoCoinSelect").value;
+  if (!coin) return alert("Select a coin");
 
-  const coin = cryptoCoinSelect.value;
-  if (!coin) return alert("Select a coin to request a wallet.");
+  const user = auth.currentUser;
+  if (!user) return alert("You must be logged in.");
 
   try {
     await addDoc(collection(db, "pendingTransactions"), {
-      userId: user.uid,
       type: "generateWallet",
-      coin: coin,
+      coin,
+      userId: user.uid,
       status: "Pending",
-      adminReply: "",
       createdAt: serverTimestamp()
     });
     alert("Wallet request submitted!");
-    cryptoCoinSelect.value = "";
+    document.getElementById("cryptoCoinSelect").value = "";
+    loadWalletHistory();
   } catch (err) {
     console.error(err);
-    alert("Failed to request wallet: " + err.message);
+    alert("Failed to request wallet.");
   }
 });
 
-// --- Real-time Wallet / Deposit History ---
-onAuthStateChanged(auth, user => {
-  if (!user) return walletHistoryDiv.innerHTML = "Login required";
+// Load wallet/deposit history
+async function loadWalletHistory() {
+  const user = auth.currentUser;
+  if (!user) return;
 
-  const q = query(
-    collection(db, "pendingTransactions"),
-    where("userId", "==", user.uid),
-    orderBy("createdAt", "desc")
-  );
+  const walletHistoryDiv = document.getElementById("walletHistory");
+  walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>Loading...</p>";
 
-  onSnapshot(q, snapshot => {
-    let html = "";
+  try {
+    const q = query(collection(db, "pendingTransactions"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>No history found</p>";
+      return;
+    }
+
+    walletHistoryDiv.innerHTML = "";
     snapshot.forEach(docSnap => {
       const d = docSnap.data();
-      let display = "";
-      if (d.type === "deposit") {
-        display = `<span class="font-bold">Deposit:</span> $${d.amount} - Status: ${d.status}`;
-      } else if (d.type === "generateWallet") {
-        display = `<span class="font-bold">Wallet Request:</span> ${d.coin} - Status: ${d.status}` +
-                  (d.adminReply ? `<br><span class="text-green-400">Wallet Address: ${d.adminReply}</span>` : "");
-      }
-      html += `<div class="p-2 border-b border-zinc-700">${display}</div>`;
+      const div = document.createElement("div");
+      div.className = "mb-3 p-2 bg-zinc-900 rounded-xl";
+      div.innerHTML = `
+        <p><strong>Type:</strong> ${d.type}</p>
+        ${d.amount ? `<p><strong>Amount:</strong> $${d.amount}</p>` : ""}
+        ${d.coin ? `<p><strong>Coin:</strong> ${d.coin}</p>` : ""}
+        ${d.proofUrl ? `<a href="${d.proofUrl}" target="_blank" class="text-emerald-400 underline">View Proof</a>` : ""}
+        <p><strong>Status:</strong> ${d.status}</p>
+        ${d.adminReply ? `<p><strong>Admin Reply:</strong> ${d.adminReply}</p>` : ""}
+      `;
+      walletHistoryDiv.appendChild(div);
     });
-    walletHistoryDiv.innerHTML = html || "No transactions or wallet requests yet";
-  });
+  } catch (err) {
+    console.error(err);
+    walletHistoryDiv.innerHTML = "<p class='text-red-500'>Failed to load history.</p>";
+  }
+}
+
+onAuthStateChanged(auth, user => {
+  if (user) loadWalletHistory();
 });
