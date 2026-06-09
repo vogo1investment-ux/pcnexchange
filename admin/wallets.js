@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -13,7 +12,6 @@ const firebaseConfig = {
 };
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -41,9 +39,11 @@ async function loadWallets() {
     const userId = userDoc.id;
     const userData = userDoc.data();
 
+    // Get coins subcollection
     const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
 
     if (coinsSnap.empty) {
+      // Show placeholder row if no coins
       walletTableBody.innerHTML += `
         <tr class="border-b border-zinc-700">
           <td class="p-2">${userId}</td>
@@ -91,7 +91,7 @@ window.updateCoin = async function(userId, coinId) {
   }
 }
 
-// Optional: Filter users by UID or username
+// Filter users by UID or username
 searchInput.addEventListener("input", () => {
   const filter = searchInput.value.toLowerCase();
   document.querySelectorAll("#walletTableBody tr").forEach(row => {
