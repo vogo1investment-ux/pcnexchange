@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -41,7 +42,7 @@ async function loadUsers() {
     const tr = document.createElement("tr");
     tr.className = "border-b border-zinc-700";
 
-    // Build editable inputs for crypto assets
+    // Editable inputs for crypto assets
     let cryptoHtml = "";
     if (u.coins) {
       for (const [coin, amount] of Object.entries(u.coins)) {
@@ -66,7 +67,6 @@ async function loadUsers() {
 
     tr.querySelector(".update-btn").addEventListener("click", async () => {
       try {
-        // Collect updated crypto balances
         const updatedCoins = {};
         tr.querySelectorAll(".crypto-input").forEach(input => {
           updatedCoins[input.dataset.coin] = parseFloat(input.value);
