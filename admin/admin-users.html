@@ -3,34 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Users</title>
+<title>Admin Users Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="admin-dashboard.css">
 </head>
-<body class="bg-zinc-800 text-white p-4 min-h-screen">
+<body class="bg-black text-white min-h-screen p-5">
 
-<h2 class="text-emerald-400 font-bold text-xl mb-4">Users Management</h2>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Users Management</h1>
 
-<div id="users-summary" class="grid md:grid-cols-2 gap-4 mb-4">
-  <!-- Summary cards per user -->
-</div>
+<!-- Search -->
+<input id="searchInput" type="text" placeholder="Search by Name or UID"
+class="w-full p-3 mb-4 rounded-2xl bg-black border border-zinc-700">
 
-<table class="w-full text-left border-collapse border border-zinc-700">
-  <thead>
-    <tr class="bg-zinc-900">
-      <th class="p-2 border border-zinc-700">Username</th>
-      <th class="p-2 border border-zinc-700">Email</th>
-      <th class="p-2 border border-zinc-700">Available Balance</th>
-      <th class="p-2 border border-zinc-700">Withdrawable Balance</th>
-      <th class="p-2 border border-zinc-700">Referral Users</th>
-      <th class="p-2 border border-zinc-700">Referral Commission</th>
-      <th class="p-2 border border-zinc-700">Actions</th>
-    </tr>
-  </thead>
-  <tbody id="users-table">
-    <!-- Users data populated via JS -->
-  </tbody>
+<!-- Users Table -->
+<div class="overflow-x-auto">
+<table class="w-full table-auto border border-zinc-700 rounded-xl">
+<thead class="bg-zinc-900">
+<tr>
+<th class="p-2 border-b border-zinc-700">UID</th>
+<th class="p-2 border-b border-zinc-700">Name</th>
+<th class="p-2 border-b border-zinc-700">Available Balance</th>
+<th class="p-2 border-b border-zinc-700">Withdrawable Balance</th>
+<th class="p-2 border-b border-zinc-700">Referral Commission</th>
+<th class="p-2 border-b border-zinc-700">Crypto Assets</th>
+<th class="p-2 border-b border-zinc-700">Actions</th>
+</tr>
+</thead>
+<tbody id="usersTableBody" class="bg-zinc-800">
+<!-- Users will be populated here -->
+</tbody>
 </table>
+</div>
 
 <script type="module" src="admin-users.js"></script>
 </body>
