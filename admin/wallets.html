@@ -10,8 +10,8 @@
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Users Wallets</h1>
 
-<input type="text" id="searchInput" placeholder="Search by UID or Name" 
-class="w-full p-3 mb-4 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
+<input id="searchUser" type="text" placeholder="Search by UID or Name" 
+class="w-full p-3 mb-4 rounded-xl bg-zinc-800 text-white">
 
 <table class="w-full text-left border-collapse">
   <thead>
@@ -23,7 +23,9 @@ class="w-full p-3 mb-4 rounded-xl bg-zinc-800 border border-zinc-700 text-white"
       <th class="p-2">Action</th>
     </tr>
   </thead>
-  <tbody id="walletsTableBody"></tbody>
+  <tbody id="walletTableBody">
+    <!-- Users and coins will appear here -->
+  </tbody>
 </table>
 
 <script type="module" src="wallets.js"></script>
