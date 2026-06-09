@@ -19,7 +19,6 @@ const db = getFirestore(app);
 const walletTableBody = document.getElementById("walletTableBody");
 const searchInput = document.getElementById("searchUser");
 
-// Admin-only access
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied: Admin Only");
@@ -29,7 +28,6 @@ onAuthStateChanged(auth, user => {
   loadWallets();
 });
 
-// Load all users and their coins
 async function loadWallets() {
   walletTableBody.innerHTML = "Loading...";
   const usersSnap = await getDocs(collection(db, "users"));
@@ -39,11 +37,10 @@ async function loadWallets() {
     const userId = userDoc.id;
     const userData = userDoc.data();
 
-    // Get coins subcollection
+    // ✅ Fetch coins subcollection
     const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
 
     if (coinsSnap.empty) {
-      // Show placeholder row if no coins
       walletTableBody.innerHTML += `
         <tr class="border-b border-zinc-700">
           <td class="p-2">${userId}</td>
@@ -76,7 +73,6 @@ async function loadWallets() {
   }
 }
 
-// Update coin amount
 window.updateCoin = async function(userId, coinId) {
   const input = document.getElementById(`coin_${userId}_${coinId}`);
   const newAmount = parseFloat(input.value) || 0;
@@ -91,7 +87,6 @@ window.updateCoin = async function(userId, coinId) {
   }
 }
 
-// Filter users by UID or username
 searchInput.addEventListener("input", () => {
   const filter = searchInput.value.toLowerCase();
   document.querySelectorAll("#walletTableBody tr").forEach(row => {
