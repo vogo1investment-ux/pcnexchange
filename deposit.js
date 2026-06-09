@@ -24,13 +24,13 @@ document.getElementById("submitDeposit").addEventListener("click", async () => {
 
   if (!amount || !proof) return alert("Enter amount and select proof file.");
 
+  const user = auth.currentUser;
+  if (!user) return alert("You must be logged in.");
+
   try {
     const proofRef = ref(storage, `depositProofs/${Date.now()}_${proof.name}`);
     const snap = await uploadBytes(proofRef, proof);
     const proofUrl = await getDownloadURL(snap.ref);
-
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in.");
 
     await addDoc(collection(db, "pendingTransactions"), {
       type: "deposit",
@@ -62,19 +62,19 @@ document.getElementById("requestWalletBtn").addEventListener("click", async () =
 
   try {
     await addDoc(collection(db, "pendingTransactions"), {
-      type: "generateWallet",
+      type: "walletRequest",
       coinOrPayment: selected,
       userId: user.uid,
       status: "Pending",
       createdAt: serverTimestamp()
     });
 
-    alert("Request submitted!");
+    alert(`Request for ${selected} submitted!`);
     document.getElementById("cryptoCoinSelect").value = "";
     loadWalletHistory();
   } catch (err) {
     console.error(err);
-    alert("Failed to submit request.");
+    alert("Failed to submit wallet/payment request.");
   }
 });
 
@@ -82,11 +82,16 @@ document.getElementById("requestWalletBtn").addEventListener("click", async () =
 async function loadWalletHistory() {
   const user = auth.currentUser;
   if (!user) return;
+
   const walletHistoryDiv = document.getElementById("walletHistory");
   walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>Loading...</p>";
 
   try {
-    const q = query(collection(db, "pendingTransactions"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+    const q = query(
+      collection(db, "pendingTransactions"),
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -100,7 +105,7 @@ async function loadWalletHistory() {
       const div = document.createElement("div");
       div.className = "mb-3 p-2 bg-zinc-900 rounded-xl";
       div.innerHTML = `
-        <p><strong>Type:</strong> ${d.type}</p>
+        <p><strong>Type:</strong> ${d.type === "walletRequest" ? "Wallet/Payment Request" : "Deposit"}</p>
         ${d.amount ? `<p><strong>Amount:</strong> $${d.amount}</p>` : ""}
         ${d.coinOrPayment ? `<p><strong>Coin / Payment:</strong> ${d.coinOrPayment}</p>` : ""}
         ${d.proofUrl ? `<a href="${d.proofUrl}" target="_blank" class="text-emerald-400 underline">View Proof</a>` : ""}
