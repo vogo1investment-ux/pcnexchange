@@ -28,20 +28,6 @@
 class="block w-full text-center bg-emerald-400 text-black font-bold p-4 rounded-2xl">Pay With Flutterwave</a>
 </div>
 
-<!-- NEW PAYMENT OPTIONS -->
-<div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-<h2 class="text-2xl font-bold mb-4 text-emerald-400">Other Payment Options</h2>
-<ul class="list-disc pl-6 text-zinc-400 mb-4">
-  <li>PayPal: paypal@pcnexchange.com</li>
-  <li>CashApp: $PCNExchange</li>
-  <li>Payoneer: PCNExchange</li>
-  <li>USA Bank 1: Lead Bank - 215588607453</li>
-  <li>USA Bank 2: Wells Fargo - 4561237890</li>
-  <li>USA Bank 3: Chase Bank - 7894561230</li>
-  <li>USA Bank 4: Bank of America - 3216549870</li>
-</ul>
-</div>
-
 <!-- SUBMIT PAYMENT -->
 <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
 <h2 class="text-2xl font-bold mb-5 text-emerald-400">Submit Payment Proof</h2>
@@ -51,15 +37,18 @@ class="w-full p-4 rounded-2xl bg-black border border-zinc-700 mb-4">
 <button id="submitDeposit" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Submit Deposit</button>
 </div>
 
-<!-- GENERATE CRYPTO WALLET SECTION -->
+<!-- GENERATE WALLET / PAYMENT REQUEST -->
 <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-6">
-<h2 class="text-2xl font-bold mb-4 text-emerald-400">Generate Crypto Wallet</h2>
+<h2 class="text-2xl font-bold mb-4 text-emerald-400">Wallet / Payment Request</h2>
 <p class="mb-4 text-zinc-400">
-If you want to receive coins from another platform, select a coin below and request a wallet. The admin will reply with the wallet address which will appear in your deposit history.
+Select a coin or payment method. The admin will respond with your wallet or confirm payment.
 </p>
-<label class="block mb-2 font-bold">Select Coin</label>
+
+<label class="block mb-2 font-bold">Select Coin / Payment</label>
 <select id="cryptoCoinSelect" class="w-full p-3 rounded-2xl bg-black border border-zinc-700 mb-4">
-  <option value="" disabled selected>Select a coin</option>
+  <option value="" disabled selected>Select a coin or payment</option>
+
+  <!-- Crypto Coins -->
   <option value="BTC">BTC</option>
   <option value="ETH">ETH</option>
   <option value="SOL">SOL</option>
@@ -80,8 +69,21 @@ If you want to receive coins from another platform, select a coin below and requ
   <option value="ALGO">ALGO</option>
   <option value="VET">VET</option>
   <option value="EOS">EOS</option>
+
+  <!-- Payment Methods -->
+  <option value="paypal">PayPal</option>
+  <option value="cashapp">CashApp</option>
+  <option value="payoneer">Payoneer</option>
+
+  <!-- USA Banks -->
+  <option value="lead-bank-usa">Lead Bank USA</option>
+  <option value="wells-fargo-usa">Wells Fargo USA</option>
+  <option value="chase-bank-usa">Chase Bank USA</option>
+  <option value="boa-usa">Bank of America USA</option>
 </select>
-<button id="requestWalletBtn" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Request Wallet</button>
+
+<button id="requestWalletBtn" class="w-full bg-emerald-400 text-black font-bold p-4 rounded-2xl">Request</button>
+
 <h3 class="mt-4 text-lg font-bold">Wallet / Deposit History</h3>
 <div id="walletHistory" class="mt-2 p-2 bg-zinc-800 rounded-xl max-h-60 overflow-y-auto">
 <!-- Wallet requests and admin replies will appear here -->

@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -52,10 +52,10 @@ document.getElementById("submitDeposit").addEventListener("click", async () => {
   }
 });
 
-// Wallet request
+// Wallet/payment request submission
 document.getElementById("requestWalletBtn").addEventListener("click", async () => {
-  const coin = document.getElementById("cryptoCoinSelect").value;
-  if (!coin) return alert("Select a coin");
+  const selected = document.getElementById("cryptoCoinSelect").value;
+  if (!selected) return alert("Select a coin or payment option");
 
   const user = auth.currentUser;
   if (!user) return alert("You must be logged in.");
@@ -63,17 +63,18 @@ document.getElementById("requestWalletBtn").addEventListener("click", async () =
   try {
     await addDoc(collection(db, "pendingTransactions"), {
       type: "generateWallet",
-      coin,
+      coinOrPayment: selected,
       userId: user.uid,
       status: "Pending",
       createdAt: serverTimestamp()
     });
-    alert("Wallet request submitted!");
+
+    alert("Request submitted!");
     document.getElementById("cryptoCoinSelect").value = "";
     loadWalletHistory();
   } catch (err) {
     console.error(err);
-    alert("Failed to request wallet.");
+    alert("Failed to submit request.");
   }
 });
 
@@ -81,13 +82,13 @@ document.getElementById("requestWalletBtn").addEventListener("click", async () =
 async function loadWalletHistory() {
   const user = auth.currentUser;
   if (!user) return;
-
   const walletHistoryDiv = document.getElementById("walletHistory");
   walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>Loading...</p>";
 
   try {
     const q = query(collection(db, "pendingTransactions"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
+
     if (snapshot.empty) {
       walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>No history found</p>";
       return;
@@ -101,7 +102,7 @@ async function loadWalletHistory() {
       div.innerHTML = `
         <p><strong>Type:</strong> ${d.type}</p>
         ${d.amount ? `<p><strong>Amount:</strong> $${d.amount}</p>` : ""}
-        ${d.coin ? `<p><strong>Coin:</strong> ${d.coin}</p>` : ""}
+        ${d.coinOrPayment ? `<p><strong>Coin / Payment:</strong> ${d.coinOrPayment}</p>` : ""}
         ${d.proofUrl ? `<a href="${d.proofUrl}" target="_blank" class="text-emerald-400 underline">View Proof</a>` : ""}
         <p><strong>Status:</strong> ${d.status}</p>
         ${d.adminReply ? `<p><strong>Admin Reply:</strong> ${d.adminReply}</p>` : ""}
