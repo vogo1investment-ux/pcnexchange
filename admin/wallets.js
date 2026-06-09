@@ -3,12 +3,12 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 const app = initializeApp(firebaseConfig);
@@ -17,7 +17,6 @@ const db = getFirestore(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 const usersTableBody = document.getElementById("usersTableBody");
-const searchInput = document.getElementById("searchInput");
 
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
@@ -29,72 +28,56 @@ onAuthStateChanged(auth, user => {
 });
 
 async function loadUsers() {
-  usersTableBody.innerHTML = "<tr><td colspan='4' class='p-2'>Loading...</td></tr>";
-
+  usersTableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
   const usersSnap = await getDocs(collection(db, "users"));
   usersTableBody.innerHTML = "";
 
-  for (let userDoc of usersSnap.docs) {
-    const userData = userDoc.data();
+  for (const userDoc of usersSnap.docs) {
     const uid = userDoc.id;
+    const userData = userDoc.data();
     const name = userData.name || "-";
 
-    // Fetch coins subcollection
+    // Query coins subcollection dynamically
     const coinsSnap = await getDocs(collection(db, `users/${uid}/coins`));
     let coinsHtml = "";
-    coinsSnap.forEach(coinDoc => {
-      const c = coinDoc.data();
-      coinsHtml += `
-        <div class="flex gap-2 items-center mb-1">
-          <span class="font-bold">${c.coin}</span>
-          <input type="number" step="0.0001" value="${c.amount}" data-user="${uid}" data-coin="${c.coin}"
-          class="w-24 p-1 rounded bg-zinc-800 text-white balanceInput">
-        </div>`;
-    });
-
-    if (!coinsHtml) coinsHtml = "<span>No coins</span>";
+    if (!coinsSnap.empty) {
+      coinsSnap.forEach(coinDoc => {
+        const c = coinDoc.data();
+        coinsHtml += `
+          <div class="flex gap-2 mb-1">
+            <span class="font-bold">${c.coin}</span>
+            <input type="number" step="0.0001" value="${c.amount}" data-user="${uid}" data-coin="${c.coin}" class="balanceInput w-24 p-1 rounded bg-zinc-800 text-white">
+          </div>
+        `;
+      });
+    } else {
+      coinsHtml = "No coins";
+    }
 
     usersTableBody.innerHTML += `
       <tr class="border-b border-zinc-700">
-        <td class="border p-2">${uid}</td>
-        <td class="border p-2">${name}</td>
-        <td class="border p-2">${coinsHtml}</td>
-        <td class="border p-2">
-          <button class="updateBtn bg-emerald-400 text-black px-2 py-1 rounded font-bold">Update</button>
-        </td>
+        <td>${uid}</td>
+        <td>${name}</td>
+        <td>${coinsHtml}</td>
+        <td><button class="updateBtn bg-emerald-400 text-black px-2 py-1 rounded">Update</button></td>
       </tr>`;
   }
 
   attachUpdateEvents();
 }
 
-// Attach update button events
 function attachUpdateEvents() {
   document.querySelectorAll(".updateBtn").forEach(btn => {
-    btn.addEventListener("click", async (e) => {
+    btn.addEventListener("click", async e => {
       const row = e.target.closest("tr");
-      const uid = row.children[0].textContent;
       const inputs = row.querySelectorAll(".balanceInput");
-
-      for (let input of inputs) {
+      for (const input of inputs) {
+        const uid = input.dataset.user;
         const coin = input.dataset.coin;
         const amount = parseFloat(input.value) || 0;
-
-        const coinRef = doc(db, `users/${uid}/coins/${coin}`);
-        await updateDoc(coinRef, { amount });
+        await updateDoc(doc(db, `users/${uid}/coins/${coin}`), { amount });
       }
-
       alert("Balances updated!");
     });
   });
 }
-
-// Search functionality
-searchInput.addEventListener("input", () => {
-  const filter = searchInput.value.toLowerCase();
-  document.querySelectorAll("#usersTableBody tr").forEach(tr => {
-    const uid = tr.children[0].textContent.toLowerCase();
-    const name = tr.children[1].textContent.toLowerCase();
-    tr.style.display = uid.includes(filter) || name.includes(filter) ? "" : "none";
-  });
-});
