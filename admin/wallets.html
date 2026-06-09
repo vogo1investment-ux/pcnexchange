@@ -6,25 +6,27 @@
 <title>Admin Wallets</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white p-5 min-h-screen">
+<body class="bg-black text-white min-h-screen p-6">
 
-<h1 class="text-2xl font-bold text-emerald-400 mb-4">Users Wallets</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Users Wallets</h1>
 
-<input type="text" id="searchInput" placeholder="Search by UID or Name"
-class="w-full p-2 mb-4 rounded bg-zinc-800 text-white">
+<input id="searchInput" type="text" placeholder="Search by UID or Name" class="w-full mb-4 p-3 rounded-xl bg-zinc-800 text-white">
 
-<table class="min-w-full border border-zinc-700">
-  <thead>
-    <tr class="bg-zinc-900">
-      <th class="border p-2">UID</th>
-      <th class="border p-2">Name</th>
-      <th class="border p-2">Coins</th>
-      <th class="border p-2">Actions</th>
+<table class="w-full text-left border border-zinc-700">
+  <thead class="bg-zinc-900">
+    <tr>
+      <th class="p-2 border-b border-zinc-700">UID</th>
+      <th class="p-2 border-b border-zinc-700">Name</th>
+      <th class="p-2 border-b border-zinc-700">Coin</th>
+      <th class="p-2 border-b border-zinc-700">Amount</th>
+      <th class="p-2 border-b border-zinc-700">Action</th>
     </tr>
   </thead>
-  <tbody id="usersTableBody"></tbody>
+  <tbody id="usersTableBody">
+    <!-- Dynamic users + coins rows will appear here -->
+  </tbody>
 </table>
 
-<script type="module" src="admin-wallets.js"></script>
+<script type="module" src="wallets.js"></script>
 </body>
 </html>
