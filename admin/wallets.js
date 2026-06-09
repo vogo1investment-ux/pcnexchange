@@ -29,31 +29,28 @@ onAuthStateChanged(auth, user => {
 });
 
 async function loadWallets() {
-  walletTableBody.innerHTML = "Loading...";
+  walletTableBody.innerHTML = "<tr><td colspan='5' class='p-2'>Loading wallets...</td></tr>";
   const usersSnap = await getDocs(collection(db, "users"));
   walletTableBody.innerHTML = "";
 
   for (const userDoc of usersSnap.docs) {
     const userId = userDoc.id;
     const userData = userDoc.data();
-
-    // ✅ Fetch coins subcollection
     const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
 
     if (coinsSnap.empty) {
       walletTableBody.innerHTML += `
-        <tr class="border-b border-zinc-700">
-          <td class="p-2">${userId}</td>
-          <td class="p-2">${userData.username || "N/A"}</td>
-          <td class="p-2">No coins</td>
-          <td class="p-2">0.00</td>
-          <td class="p-2"></td>
-        </tr>`;
+      <tr class="border-b border-zinc-700">
+        <td class="p-2">${userId}</td>
+        <td class="p-2">${userData.username || "N/A"}</td>
+        <td class="p-2">No coins</td>
+        <td class="p-2">0.00</td>
+        <td class="p-2"></td>
+      </tr>`;
     } else {
       coinsSnap.forEach(coinDoc => {
         const coinId = coinDoc.id;
         const coinData = coinDoc.data();
-
         walletTableBody.innerHTML += `
         <tr class="border-b border-zinc-700">
           <td class="p-2">${userId}</td>
@@ -61,11 +58,11 @@ async function loadWallets() {
           <td class="p-2">${coinId}</td>
           <td class="p-2">
             <input type="number" step="0.000001" min="0" value="${coinData.amount || 0}" 
-            class="w-24 p-1 rounded bg-zinc-800 text-white" id="coin_${userId}_${coinId}">
+              class="w-24 p-1 rounded bg-zinc-800 text-white" id="coin_${userId}_${coinId}">
           </td>
           <td class="p-2">
-            <button onclick="updateCoin('${userId}', '${coinId}')" 
-            class="bg-emerald-400 text-black font-bold p-2 rounded">Update</button>
+            <button onclick="updateCoin('${userId}','${coinId}')" 
+              class="bg-emerald-400 text-black font-bold p-2 rounded">Update</button>
           </td>
         </tr>`;
       });
@@ -73,7 +70,8 @@ async function loadWallets() {
   }
 }
 
-window.updateCoin = async function(userId, coinId) {
+// Update function
+window.updateCoin = async (userId, coinId) => {
   const input = document.getElementById(`coin_${userId}_${coinId}`);
   const newAmount = parseFloat(input.value) || 0;
 
@@ -85,8 +83,9 @@ window.updateCoin = async function(userId, coinId) {
     console.error(err);
     alert("Failed to update coin amount.");
   }
-}
+};
 
+// Search functionality
 searchInput.addEventListener("input", () => {
   const filter = searchInput.value.toLowerCase();
   document.querySelectorAll("#walletTableBody tr").forEach(row => {

@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Wallets</title>
+<title>Admin - Users Wallets</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Users Wallets</h1>
 
-<input id="searchUser" type="text" placeholder="Search by UID or Name" 
-class="w-full p-3 mb-4 rounded-xl bg-zinc-800 text-white">
+<input type="text" id="searchUser" placeholder="Search by UID or Name" 
+class="w-full p-2 mb-4 rounded bg-zinc-900 text-white border border-zinc-700">
 
-<table class="w-full text-left border-collapse">
+<table class="w-full border-collapse text-left">
   <thead>
     <tr class="border-b border-zinc-700">
       <th class="p-2">UID</th>
@@ -24,7 +24,7 @@ class="w-full p-3 mb-4 rounded-xl bg-zinc-800 text-white">
     </tr>
   </thead>
   <tbody id="walletTableBody">
-    <!-- Wallet rows will appear here -->
+    <tr><td colspan="5" class="p-2">Loading wallets...</td></tr>
   </tbody>
 </table>
 
