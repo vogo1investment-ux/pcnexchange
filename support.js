@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -22,7 +23,7 @@ const messagesContainer = document.getElementById("messagesContainer");
 
 let currentUser;
 
-// Wait for user authentication
+// Wait for user login
 onAuthStateChanged(auth, user => {
   if (!user) {
     alert("Please log in to access support.");
@@ -30,10 +31,10 @@ onAuthStateChanged(auth, user => {
     return;
   }
   currentUser = user;
-  loadMessages(); // Load their messages
+  loadMessages();
 });
 
-// Send a new message
+// Send new message
 sendBtn.addEventListener("click", async () => {
   const subject = subjectInput.value.trim();
   const message = messageInput.value.trim();
@@ -49,18 +50,20 @@ sendBtn.addEventListener("click", async () => {
       status: "pending",
       timestamp: serverTimestamp()
     });
+
     subjectInput.value = "";
     messageInput.value = "";
-    loadMessages(); // Refresh the list
+    loadMessages(); // Refresh messages
   } catch (err) {
     console.error("Error sending message:", err);
-    alert("Failed to send message. Check your network or Firestore rules.");
+    alert("Failed to send message. Check network or Firestore rules.");
   }
 });
 
-// Load all messages for this user
+// Load user messages
 async function loadMessages() {
   messagesContainer.innerHTML = "<p class='text-center text-zinc-400'>Loading your messages...</p>";
+
   try {
     const q = query(
       collection(db, "supportMessages"),
@@ -79,6 +82,7 @@ async function loadMessages() {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const ts = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "-";
+
       const div = document.createElement("div");
       div.className = "mb-4 p-3 bg-zinc-800 rounded-xl";
       div.innerHTML = `
@@ -90,7 +94,6 @@ async function loadMessages() {
       `;
       messagesContainer.appendChild(div);
     });
-
   } catch (err) {
     console.error("Failed to load messages:", err);
     messagesContainer.innerHTML = "<p class='text-center text-red-500'>Failed to load messages. Check console.</p>";
