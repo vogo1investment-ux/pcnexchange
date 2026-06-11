@@ -24,7 +24,7 @@ const sendReplyBtn = document.getElementById("sendReplyBtn");
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied: Admin Only");
     window.location.href = "login.html";
@@ -33,7 +33,6 @@ onAuthStateChanged(auth, (user) => {
   listenAllMessages();
 });
 
-// Listen all user messages
 function listenAllMessages() {
   const q = query(collection(db, "supportMessages"), orderBy("timestamp", "desc"));
 
@@ -54,7 +53,7 @@ function listenAllMessages() {
       msgDiv.innerHTML = `
         <p><strong>ID:</strong> ${docSnap.id}</p>
         <p><strong>User UID:</strong> ${data.userId}</p>
-        <p><strong>Email:</strong> ${data.userEmail}</p>
+        <p><strong>Email:</strong> ${data.userEmail || "-"}</p>
         <p><strong>Title:</strong> ${data.title}</p>
         <p><strong>Message:</strong> ${data.message}</p>
         <p><strong>Status:</strong> ${data.status}</p>
@@ -64,12 +63,12 @@ function listenAllMessages() {
       messagesContainer.appendChild(msgDiv);
     });
   }, err => {
-    messagesContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load messages.</p>`;
     console.error(err);
+    messagesContainer.innerHTML = `<p class="text-center text-red-500">Failed to load messages.</p>`;
   });
 }
 
-// Send reply / update status
+// Admin reply & status update
 sendReplyBtn.addEventListener("click", async () => {
   const msgId = replyMessageId.value.trim();
   const reply = replyText.value.trim();
@@ -85,6 +84,6 @@ sendReplyBtn.addEventListener("click", async () => {
     alert("Reply/status updated successfully.");
   } catch (err) {
     console.error(err);
-    alert("Failed to update message. Check console and Firestore rules.");
+    alert("Failed to update message. Check Firestore rules and console.");
   }
 });
