@@ -3,13 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support</title>
+<title>Admin Support Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white p-4">
+<body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">Support Tickets</h1>
-<div id="support-list"></div>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Admin Support Panel</h1>
+
+<div id="supportMessagesContainer" class="space-y-4">
+  <p class="text-zinc-400">Loading messages...</p>
+</div>
 
 <script type="module" src="support.js"></script>
 </body>
