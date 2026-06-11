@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -17,6 +17,8 @@ const db = getFirestore(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 const container = document.getElementById("supportMessagesContainer");
+const loadBtn = document.getElementById("loadMessagesBtn");
+const userIdInput = document.getElementById("userIdInput");
 
 // Admin Auth Check
 onAuthStateChanged(auth, user => {
@@ -25,18 +27,27 @@ onAuthStateChanged(auth, user => {
     window.location.href = "admin-login.html";
     return;
   }
-  loadSupportMessages();
 });
 
-// Load all support messages
-async function loadSupportMessages() {
-  container.innerHTML = `<p class="text-zinc-400">Loading messages...</p>`;
-  try {
-    const messagesSnap = await getDocs(collection(db, "supportMessages"));
-    container.innerHTML = "";
+// Load messages for specific UID
+loadBtn.addEventListener("click", async () => {
+  const uid = userIdInput.value.trim();
+  if (!uid) {
+    alert("Please enter a UID");
+    return;
+  }
+  await loadSupportMessages(uid);
+});
 
+async function loadSupportMessages(uid) {
+  container.innerHTML = `<p class="text-zinc-400">Loading messages for UID: ${uid}...</p>`;
+  try {
+    const q = query(collection(db, "supportMessages"), where("userId", "==", uid));
+    const messagesSnap = await getDocs(q);
+
+    container.innerHTML = "";
     if (messagesSnap.empty) {
-      container.innerHTML = `<p class="text-zinc-400">No support messages found.</p>`;
+      container.innerHTML = `<p class="text-zinc-400">No support messages found for UID: ${uid}</p>`;
       return;
     }
 
@@ -82,7 +93,6 @@ async function loadSupportMessages() {
         }
       });
     });
-
   } catch (err) {
     console.error("Failed to load support messages:", err);
     container.innerHTML = `<p class="text-red-500">Failed to load support messages. Check console.</p>`;
