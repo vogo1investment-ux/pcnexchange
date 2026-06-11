@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase configuration
+// --- Firebase config ---
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -18,25 +18,25 @@ const db = getFirestore(app);
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// DOM elements
+// DOM Elements
 const messagesContainer = document.getElementById("messagesContainer");
 const replyUid = document.getElementById("replyUid");
 const replyTitle = document.getElementById("replyTitle");
 const replyMessage = document.getElementById("replyMessage");
 const sendReplyBtn = document.getElementById("sendReplyBtn");
 
-// Admin authentication
+// Ensure admin is logged in
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access denied: Admin only");
     window.location.href = "login.html";
     return;
   }
-  loadUserMessages();
+  loadMessages();
 });
 
-// Load messages from Firestore in real-time
-function loadUserMessages() {
+// Load all support messages in real-time
+function loadMessages() {
   const q = query(collection(db, "supportMessages"), orderBy("timestamp", "desc"));
   onSnapshot(q, snapshot => {
     messagesContainer.innerHTML = "";
@@ -47,7 +47,6 @@ function loadUserMessages() {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
-
       const div = document.createElement("div");
       div.className = "p-4 bg-gray-700 rounded-xl border border-gray-600";
 
@@ -61,6 +60,9 @@ function loadUserMessages() {
       `;
       messagesContainer.appendChild(div);
     });
+  }, error => {
+    messagesContainer.innerHTML = `<p class="text-center text-red-400">Failed to load messages: ${error.message}</p>`;
+    console.error(error);
   });
 }
 
