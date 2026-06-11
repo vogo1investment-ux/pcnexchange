@@ -3,25 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User Support</title>
+<title>Support Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="support.css">
 </head>
-<body class="bg-black text-white min-h-screen p-5">
+<body class="bg-gray-900 text-white min-h-screen p-6">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Support Center</h1>
+<h1 class="text-4xl font-bold text-emerald-400 mb-6 text-center">Support Center</h1>
 
 <!-- Send Message Section -->
-<div class="mb-4 p-4 bg-zinc-900 rounded-xl">
-  <input id="titleInput" type="text" placeholder="Message Title"
-  class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-2" />
-  <textarea id="messageInput" rows="4" placeholder="Write your message here..."
-  class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-2"></textarea>
-  <button id="sendBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Send Message</button>
+<div class="max-w-2xl mx-auto mb-8 p-6 bg-zinc-800 rounded-2xl shadow-md">
+  <input id="titleInput" type="text" placeholder="Message Title" 
+    class="w-full p-3 rounded-xl mb-4 bg-zinc-700 border border-zinc-600 text-white" />
+  <textarea id="messageInput" placeholder="Write your message here..." rows="4"
+    class="w-full p-3 rounded-xl mb-4 bg-zinc-700 border border-zinc-600 text-white resize-none"></textarea>
+  <button id="sendMessageBtn"
+    class="w-full bg-emerald-400 text-black font-bold p-3 rounded-xl hover:bg-emerald-500 transition">
+    Send Message
+  </button>
 </div>
 
-<h2 class="text-2xl font-bold text-emerald-400 mb-2">Your Messages</h2>
-<div id="messagesContainer" class="p-4 bg-zinc-900 rounded-xl max-h-[400px] overflow-y-auto">
-  <p class="text-center text-zinc-500">Loading messages...</p>
+<!-- User Messages Section -->
+<div class="max-w-2xl mx-auto p-6 bg-zinc-800 rounded-2xl shadow-md">
+  <h2 class="text-2xl font-semibold text-emerald-400 mb-4">Your Messages</h2>
+  <div id="messagesList" class="space-y-4 max-h-96 overflow-y-auto">
+    <p class="text-zinc-400">Loading messages...</p>
+  </div>
 </div>
 
 <script type="module" src="support.js"></script>
