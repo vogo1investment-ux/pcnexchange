@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, query, orderBy, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -13,117 +12,100 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-const historyList = document.getElementById("historyList");
-let activeType = "all";
-let userUid = null;
-let allTransactions = [];
+const historyContainer = document.getElementById("historyContainer");
 
-// Auth listener
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    window.location.href = "index.html";
+    alert("Please log in to view your history");
+    window.location.href = "login.html";
     return;
   }
-  userUid = user.uid;
-  loadAllTransactions();
+  await loadUserHistory(user.uid);
 });
 
-// Tabs click
-document.querySelectorAll(".history-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".history-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    activeType = tab.dataset.type;
-    renderHistory();
-  });
-});
+async function loadUserHistory(userId) {
+  historyContainer.innerHTML = "<p class='text-center'>Loading...</p>";
 
-// Load all types of transactions
-async function loadAllTransactions() {
-  allTransactions = [];
+  try {
+    const txnQuery = query(
+      collection(db, "pendingTransactions"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
 
-  // 1. User subcollection transactions
-  const userTransRef = collection(db, "users", userUid, "transactions");
-  onSnapshot(query(userTransRef, orderBy("timestamp", "desc")), snap => {
-    snap.forEach(docSnap => {
-      allTransactions.push({ id: docSnap.id, ...docSnap.data() });
+    const txnSnap = await getDocs(txnQuery);
+
+    if (txnSnap.empty) {
+      historyContainer.innerHTML = "<p class='text-center text-zinc-400'>No transactions found</p>";
+      return;
+    }
+
+    // Separate by type
+    const deposits = [];
+    const withdrawals = [];
+    const stakes = [];
+    const transfers = [];
+    const received = [];
+
+    txnSnap.forEach(doc => {
+      const data = doc.data();
+      const item = {
+        date: data.createdAt?.toDate?.() || new Date(),
+        type: data.type || "Unknown",
+        coin: data.coin || "-",
+        amount: data.amount || 0,
+        status: data.status || "-",
+        detail: data.detail || "-"
+      };
+
+      switch(item.type.toLowerCase()){
+        case "deposit": deposits.push(item); break;
+        case "withdrawal": withdrawals.push(item); break;
+        case "stake": stakes.push(item); break;
+        case "transfer": transfers.push(item); break;
+        case "received": received.push(item); break;
+        default: break;
+      }
     });
-    renderHistory();
-  });
 
-  // 2. Pending transactions (Deposit/Withdrawal/Receive)
-  const pendingRef = collection(db, "pendingTransactions");
-  onSnapshot(query(pendingRef, orderBy("createdAt", "desc"), where("userId", "==", userUid)), snap => {
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      const typeMap = { "deposit": "deposit", "withdraw": "withdrawal", "received": "received" };
-      const type = typeMap[data.type] || data.type || "pending";
-      allTransactions.push({ id: docSnap.id, ...data, type });
-    });
-    renderHistory();
-  });
+    function renderSection(title, arr){
+      if(arr.length === 0) return "";
+      return `<h2 class="text-xl font-bold text-emerald-400 mt-4">${title}</h2>
+      <table class="min-w-full text-left border-collapse mb-4">
+        <thead>
+          <tr>
+            <th class="p-2 border-b border-zinc-700">Date</th>
+            <th class="p-2 border-b border-zinc-700">Coin</th>
+            <th class="p-2 border-b border-zinc-700">Amount</th>
+            <th class="p-2 border-b border-zinc-700">Status</th>
+            <th class="p-2 border-b border-zinc-700">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${arr.map(i => `
+            <tr class="border-b border-zinc-700">
+              <td class="p-2">${i.date.toLocaleString()}</td>
+              <td class="p-2">${i.coin}</td>
+              <td class="p-2">${i.amount}</td>
+              <td class="p-2">${i.status}</td>
+              <td class="p-2">${i.detail}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+    }
 
-  // 3. Stakes
-  const stakesRef = collection(db, "stakes");
-  onSnapshot(query(stakesRef, where("userId", "==", userUid), orderBy("createdAt", "desc")), snap => {
-    snap.forEach(docSnap => {
-      allTransactions.push({ id: docSnap.id, type: "stake", ...docSnap.data() });
-    });
-    renderHistory();
-  });
-}
+    historyContainer.innerHTML =
+      renderSection("Deposits", deposits) +
+      renderSection("Withdrawals", withdrawals) +
+      renderSection("Stakes", stakes) +
+      renderSection("Transfers", transfers) +
+      renderSection("Received", received);
 
-// Render function
-function renderHistory() {
-  historyList.innerHTML = "";
-
-  let txs = allTransactions.slice(); // copy
-
-  if (activeType !== "all") {
-    txs = txs.filter(tx => (tx.type || "").toLowerCase() === activeType);
+  } catch(err){
+    console.error(err);
+    historyContainer.innerHTML = "<p class='text-center text-red-500'>Failed to load history</p>";
   }
-
-  if (!txs.length) {
-    historyList.innerHTML = `<div class="history-card"><p>No transactions found</p></div>`;
-    return;
-  }
-
-  txs.sort((a,b) => {
-    const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt?.seconds ? a.createdAt.seconds*1000 : 0);
-    const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt?.seconds ? b.createdAt.seconds*1000 : 0);
-    return bTime - aTime;
-  });
-
-  txs.forEach(tx => {
-    let amountColor = "#00ff66"; // green default
-    if (tx.type === "withdrawal") amountColor = "#ff4444";
-    if (tx.type === "transfer") amountColor = "#1E90FF";
-    if (tx.type === "stake") amountColor = "#FFD700";
-    if (tx.status?.toLowerCase() === "pending") amountColor = "#FFA500";
-
-    let dateText = "No Date";
-    try {
-      if (tx.createdAt?.toDate) dateText = tx.createdAt.toDate().toLocaleString();
-      else if (tx.createdAt?.seconds) dateText = new Date(tx.createdAt.seconds*1000).toLocaleString();
-    } catch(e) {}
-
-    const card = document.createElement("div");
-    card.className = "history-card";
-    card.innerHTML = `
-      <div class="history-info">
-        <strong>${(tx.type || "Transaction").toUpperCase()}</strong>
-        <small>${dateText}</small>
-        ${tx.method ? `<p>Method: ${tx.method}</p>` : ""}
-        ${tx.region ? `<p>Region: ${tx.region}</p>` : ""}
-        ${tx.recipient ? `<p>Recipient: ${tx.recipient}</p>` : ""}
-        ${tx.amount !== undefined ? `<p>Amount: $${tx.amount}</p>` : ""}
-        ${tx.status ? `<p>Status: ${tx.status}</p>` : ""}
-      </div>
-      <div class="history-amount" style="color:${amountColor}">$${Number(tx.amount || 0).toLocaleString()}</div>
-    `;
-    historyList.appendChild(card);
-  });
 }
