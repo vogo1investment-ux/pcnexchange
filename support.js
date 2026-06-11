@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -15,16 +16,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const sendBtn = document.getElementById("sendMessageBtn");
-const titleInput = document.getElementById("messageTitle");
-const bodyInput = document.getElementById("messageBody");
-const messagesContainer = document.getElementById("messagesContainer");
-
 let currentUser = null;
 
-onAuthStateChanged(auth, user => {
+// Elements
+const titleInput = document.getElementById("titleInput");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const messagesContainer = document.getElementById("messagesContainer");
+
+// Wait for auth
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    alert("Please login first.");
+    alert("You must be logged in!");
     window.location.href = "login.html";
     return;
   }
@@ -32,69 +35,63 @@ onAuthStateChanged(auth, user => {
   loadMessages();
 });
 
+// Send message
 sendBtn.addEventListener("click", async () => {
-  if (!titleInput.value.trim() || !bodyInput.value.trim()) {
-    alert("Please enter title and message");
-    return;
-  }
+  const title = titleInput.value.trim();
+  const message = messageInput.value.trim();
+  if (!title || !message) return alert("Please enter a title and message.");
 
   try {
-    await addDoc(collection(db, "supportMessages"), {
-      userId: currentUser.uid,
-      userEmail: currentUser.email,
-      title: titleInput.value.trim(),
-      message: bodyInput.value.trim(),
+    await addDoc(collection(db, "users", currentUser.uid, "supportMessages"), {
+      title,
+      message,
       reply: "",
       status: "pending",
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
+      userEmail: currentUser.email,
+      userId: currentUser.uid
     });
 
     titleInput.value = "";
-    bodyInput.value = "";
+    messageInput.value = "";
+    messageInput.value = "";
   } catch (err) {
-    console.error(err);
+    console.error("Error sending message:", err);
     alert("Error sending message. Check network or Firestore rules.");
   }
 });
 
+// Load user messages in real-time
 function loadMessages() {
   const q = query(
-    collection(db, "supportMessages"),
-    where("userId", "==", currentUser.uid),
+    collection(db, "users", currentUser.uid, "supportMessages"),
     orderBy("timestamp", "desc")
   );
 
-  onSnapshot(q, snapshot => {
+  onSnapshot(q, (snapshot) => {
     messagesContainer.innerHTML = "";
     if (snapshot.empty) {
-      messagesContainer.innerHTML = `<p class="text-center text-zinc-400">No messages yet.</p>`;
+      messagesContainer.innerHTML = `<p class="text-center text-zinc-500">No messages yet.</p>`;
       return;
     }
 
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc) => {
       const data = doc.data();
-      const time = data.timestamp?.toDate?.() || new Date();
+      const time = data.timestamp?.toDate?.()?.toLocaleString() || "Unknown Time";
 
-      const messageEl = document.createElement("div");
-      messageEl.className = "mb-4 p-3 bg-zinc-900 rounded-xl border border-zinc-700";
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "mb-3 p-3 bg-zinc-800 rounded-xl";
 
-      messageEl.innerHTML = `
+      msgDiv.innerHTML = `
         <p class="font-bold text-emerald-400">${data.title || "No Title"}</p>
-        <div class="mb-2">
-          <p class="text-zinc-300 font-medium">You:</p>
-          <p class="text-zinc-200">${data.message}</p>
-        </div>
-        <div class="mb-2">
-          <p class="text-zinc-300 font-medium">Admin:</p>
-          <p class="text-zinc-200">${data.reply || "No reply yet"}</p>
-        </div>
-        <p class="text-xs text-zinc-500">Status: ${data.status} | Sent: ${time.toLocaleString()}</p>
+        <p>${data.message}</p>
+        <p class="mt-1 text-sm text-zinc-400">Admin Reply: ${data.reply || "No reply yet"}</p>
+        <p class="mt-1 text-xs text-zinc-500">Status: ${data.status || "pending"} | ${time}</p>
       `;
-
-      messagesContainer.appendChild(messageEl);
+      messagesContainer.appendChild(msgDiv);
     });
-  }, err => {
-    console.error(err);
+  }, (err) => {
+    console.error("Failed to load messages:", err);
     messagesContainer.innerHTML = `<p class="text-center text-red-500">Failed to load messages. Check console.</p>`;
   });
 }
