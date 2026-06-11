@@ -3,28 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Transaction History</title>
+<title>User Transaction History</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">My Account History</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Your Transaction History</h1>
 
-<div id="historyContainer" class="bg-zinc-900 p-4 rounded-xl max-h-[600px] overflow-y-auto">
-<table class="w-full text-left">
-<thead>
-<tr>
-<th class="px-2 py-1">Date</th>
-<th class="px-2 py-1">Type</th>
-<th class="px-2 py-1">Coin</th>
-<th class="px-2 py-1">Amount</th>
-<th class="px-2 py-1">Status</th>
-</tr>
-</thead>
-<tbody id="historyTableBody">
-<tr><td colspan="5" class="text-center">Loading...</td></tr>
-</tbody>
-</table>
+<!-- Tabs -->
+<div class="mb-4 flex gap-4">
+  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="deposit">Deposits</button>
+  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="withdrawal">Withdrawals</button>
+  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="stake">Stakes</button>
+  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="transfer">Transfers</button>
+  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="received">Received</button>
+</div>
+
+<!-- Table -->
+<div id="historyContent" class="overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="bg-zinc-800">
+        <th class="p-2 border border-zinc-700">Type</th>
+        <th class="p-2 border border-zinc-700">Amount</th>
+        <th class="p-2 border border-zinc-700">Method</th>
+        <th class="p-2 border border-zinc-700">Status</th>
+        <th class="p-2 border border-zinc-700">Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="historyTableBody">
+      <tr><td colspan="5" class="p-4 text-center">Loading your transactions...</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <script type="module" src="history.js"></script>
