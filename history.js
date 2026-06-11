@@ -20,73 +20,136 @@ const historyContainer = document.getElementById("historyContainer");
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
+    alert("Please log in to view your history.");
     window.location.href = "login.html";
     return;
   }
 
+  const userId = user.uid;
+  await loadUserHistory(userId);
+});
+
+async function loadUserHistory(userId) {
+  historyContainer.innerHTML = "<p class='text-center'>Loading...</p>";
+
   try {
-    const txnRef = collection(db, `users/${user.uid}/transactions`);
-    const transferRef = collection(db, `users/${user.uid}/transfers`);
-    const qTxn = query(txnRef, orderBy("createdAt", "desc"));
-    const qTransfer = query(transferRef, orderBy("createdAt", "desc"));
+    let allTransactions = [];
 
-    const [txnSnap, transferSnap] = await Promise.all([getDocs(qTxn), getDocs(qTransfer)]);
-
-    const allItems = [];
-
-    txnSnap.forEach(doc => {
-      const d = doc.data();
-      allItems.push({
-        type: d.type,
-        amount: d.amount,
-        coin: d.coin || "-",
-        date: d.createdAt ? d.createdAt.toDate().toLocaleString() : "-",
-        detail: d.detail || "-"
+    // 1. Pending Transactions (deposit/withdrawal/wallet requests)
+    const pendingSnap = await getDocs(
+      query(
+        collection(db, "pendingTransactions"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
+      )
+    );
+    pendingSnap.forEach(doc => {
+      const data = doc.data();
+      allTransactions.push({
+        date: data.createdAt?.toDate?.() || new Date(),
+        type: data.type || "Pending",
+        coin: data.coin || "-",
+        amount: data.amount || 0,
+        status: data.status || "Pending",
+        detail: data.detail || "-"
       });
     });
 
-    transferSnap.forEach(doc => {
-      const d = doc.data();
-      allItems.push({
-        type: d.type,
-        amount: d.amount,
-        coin: d.coin || "-",
-        date: d.createdAt ? d.createdAt.toDate().toLocaleString() : "-",
-        detail: `From: ${d.from || "-"} / To: ${d.to || "-"}`
+    // 2. Stakes
+    const stakesSnap = await getDocs(
+      query(
+        collection(db, "stakes"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
+      )
+    );
+    stakesSnap.forEach(doc => {
+      const data = doc.data();
+      allTransactions.push({
+        date: data.createdAt?.toDate?.() || new Date(),
+        type: "Stake",
+        coin: data.coin || "-",
+        amount: data.amount || 0,
+        status: data.status || "-",
+        detail: data.detail || "-"
       });
     });
 
-    // Sort by date descending
-    allItems.sort((a,b) => new Date(b.date) - new Date(a.date));
+    // 3. Transfers (sent or received)
+    const transfersSnap = await getDocs(
+      query(
+        collection(db, "users", userId, "transfers"),
+        orderBy("createdAt", "desc")
+      )
+    );
+    transfersSnap.forEach(doc => {
+      const data = doc.data();
+      const tType = data.from === userId ? "Transfer Sent" : "Transfer Received";
+      allTransactions.push({
+        date: data.createdAt?.toDate?.() || new Date(),
+        type: tType,
+        coin: data.coin || "-",
+        amount: data.amount || 0,
+        status: data.status || "-",
+        detail: `From: ${data.from || "-"} / To: ${data.to || "-"}`
+      });
+    });
 
-    // Render
-    if(allItems.length === 0){
-      historyContainer.innerHTML = "<p class='text-zinc-400'>No transactions yet</p>";
-    } else {
-      historyContainer.innerHTML = `<table class="min-w-full text-left">
-        <thead>
-          <tr>
-            <th class="p-2">Type</th>
-            <th class="p-2">Coin</th>
-            <th class="p-2">Amount</th>
-            <th class="p-2">Details</th>
-            <th class="p-2">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${allItems.map(i => `<tr>
-            <td class="p-2">${i.type}</td>
-            <td class="p-2">${i.coin}</td>
-            <td class="p-2">${i.amount}</td>
-            <td class="p-2">${i.detail}</td>
-            <td class="p-2">${i.date}</td>
-          </tr>`).join("")}
-        </tbody>
-      </table>`;
+    // 4. Received (airdrops/referrals)
+    try {
+      const receivedSnap = await getDocs(
+        query(collection(db, "users", userId, "received"), orderBy("createdAt", "desc"))
+      );
+      receivedSnap.forEach(doc => {
+        const data = doc.data();
+        allTransactions.push({
+          date: data.createdAt?.toDate?.() || new Date(),
+          type: "Received",
+          coin: data.coin || "-",
+          amount: data.amount || 0,
+          status: "-",
+          detail: data.detail || "-"
+        });
+      });
+    } catch(e) {
+      console.log("No received collection yet for user.");
     }
 
-  } catch (err) {
-    console.error(err);
-    historyContainer.innerHTML = "<p class='text-red-500'>Failed to load history</p>";
+    // Sort all transactions by date descending
+    allTransactions.sort((a, b) => b.date - a.date);
+
+    // Render
+    if (allTransactions.length === 0) {
+      historyContainer.innerHTML = "<p class='text-center text-zinc-400'>No transactions yet</p>";
+    } else {
+      historyContainer.innerHTML = `
+        <table class="min-w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th class="p-2 border-b border-zinc-700">Date</th>
+              <th class="p-2 border-b border-zinc-700">Type</th>
+              <th class="p-2 border-b border-zinc-700">Coin</th>
+              <th class="p-2 border-b border-zinc-700">Amount</th>
+              <th class="p-2 border-b border-zinc-700">Status</th>
+              <th class="p-2 border-b border-zinc-700">Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allTransactions.map(txn => `
+              <tr class="border-b border-zinc-700">
+                <td class="p-2">${txn.date.toLocaleString()}</td>
+                <td class="p-2">${txn.type}</td>
+                <td class="p-2">${txn.coin}</td>
+                <td class="p-2">${txn.amount}</td>
+                <td class="p-2">${txn.status}</td>
+                <td class="p-2">${txn.detail}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+  } catch(err) {
+    console.error("Error loading history:", err);
+    historyContainer.innerHTML = "<p class='text-center text-red-500'>Failed to load history</p>";
   }
-});
+}
