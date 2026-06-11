@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase Config
+// --- Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -19,9 +19,9 @@ const db = getFirestore(app);
 const historyTableBody = document.getElementById("historyTableBody");
 const tabButtons = document.querySelectorAll(".tab-btn");
 
-let currentType = "deposit"; // default
+let currentType = "deposit"; // default tab
 
-// --- Handle tab clicks ---
+// Handle tab clicks
 tabButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     currentType = btn.dataset.type;
@@ -31,44 +31,62 @@ tabButtons.forEach(btn => {
   });
 });
 
-// --- Load transactions ---
+// Fetch transactions for logged-in user
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    alert("Please login to view your transactions.");
+    alert("Please login to see your transactions.");
     window.location.href = "login.html";
     return;
   }
-
-  await loadTransactions();
-
-  async function loadTransactions() {
-    try {
-      const txnCol = collection(db, "users", user.uid, "transactions");
-      const txnQuery = query(txnCol, where("type", "==", currentType), orderBy("timestamp", "desc"));
-      const txnSnapshot = await getDocs(txnQuery);
-
-      if (txnSnapshot.empty) {
-        historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No ${currentType} transactions found.</td></tr>`;
-        return;
-      }
-
-      historyTableBody.innerHTML = "";
-      txnSnapshot.forEach(docSnap => {
-        const txn = docSnap.data();
-        const date = txn.timestamp ? new Date(txn.timestamp.seconds * 1000).toLocaleString() : "-";
-        historyTableBody.innerHTML += `
-          <tr class="bg-zinc-900 hover:bg-zinc-800">
-            <td class="p-2 border border-zinc-700">${txn.type || "-"}</td>
-            <td class="p-2 border border-zinc-700">${txn.amount || 0}</td>
-            <td class="p-2 border border-zinc-700">${txn.method || "-"}</td>
-            <td class="p-2 border border-zinc-700">${txn.status || "-"}</td>
-            <td class="p-2 border border-zinc-700">${date}</td>
-          </tr>
-        `;
-      });
-    } catch (err) {
-      console.error("Failed to load transactions:", err);
-      historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Failed to load transactions.</td></tr>`;
-    }
-  }
+  loadTransactions(user.uid);
 });
+
+async function loadTransactions(uid) {
+  historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>`;
+
+  try {
+    // Query the user's transactions subcollection
+    const txnCol = collection(db, "users", uid, "transactions");
+    const txnQuery = query(txnCol, orderBy("timestamp", "desc"));
+    const txnSnap = await getDocs(txnQuery);
+
+    if (txnSnap.empty) {
+      historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No transactions found.</td></tr>`;
+      return;
+    }
+
+    // Filter by current type (deposit/withdrawal/stake/transfer/received)
+    const txns = [];
+    txnSnap.forEach(docSnap => {
+      const t = docSnap.data();
+      if (!t.type) return; // skip if type missing
+      if (t.type.toLowerCase() === currentType.toLowerCase()) {
+        txns.push(t);
+      }
+    });
+
+    if (txns.length === 0) {
+      historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No ${currentType} transactions found.</td></tr>`;
+      return;
+    }
+
+    // Render table rows
+    historyTableBody.innerHTML = "";
+    txns.forEach(t => {
+      const date = t.timestamp?.toDate?.() || new Date();
+      historyTableBody.innerHTML += `
+        <tr class="bg-zinc-900 hover:bg-zinc-800">
+          <td class="p-2 border border-zinc-700">${t.type || "-"}</td>
+          <td class="p-2 border border-zinc-700">${t.amount || 0}</td>
+          <td class="p-2 border border-zinc-700">${t.method || "-"}</td>
+          <td class="p-2 border border-zinc-700">${t.status || "-"}</td>
+          <td class="p-2 border border-zinc-700">${date.toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+  } catch (err) {
+    console.error("Failed to load transactions:", err);
+    historyTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Failed to load transactions. Check console.</td></tr>`;
+  }
+}
