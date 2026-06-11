@@ -3,20 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User History</title>
+<title>Admin User Trades</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">User Transaction History</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Admin - User Transaction History</h1>
 
-<div class="mb-4">
+<!-- Enter User UID -->
+<div class="mb-6">
   <input id="userIdInput" type="text" placeholder="Enter User UID" 
   class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2" />
-  <button id="loadHistoryBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Load History</button>
+  <button id="loadHistoryBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Load User History</button>
 </div>
 
-<div id="historyContent" class="overflow-x-auto">
+<!-- Add New Transaction -->
+<div class="mb-6 bg-zinc-900 p-4 rounded-xl border border-zinc-700">
+  <h2 class="text-xl font-bold text-emerald-400 mb-3">Add Transaction</h2>
+  <select id="typeInput" class="w-full p-2 rounded-xl bg-black border border-zinc-700 mb-2">
+    <option value="Deposit">Deposit</option>
+    <option value="Withdrawal">Withdrawal</option>
+    <option value="Stake">Stake</option>
+    <option value="Transfer">Transfer</option>
+    <option value="Received">Received</option>
+  </select>
+  <input id="amountInput" type="number" placeholder="Amount" class="w-full p-2 rounded-xl bg-black border border-zinc-700 mb-2">
+  <input id="methodInput" type="text" placeholder="Method (e.g., Bank, PayPal)" class="w-full p-2 rounded-xl bg-black border border-zinc-700 mb-2">
+  <select id="statusInput" class="w-full p-2 rounded-xl bg-black border border-zinc-700 mb-2">
+    <option value="Approved">Approved</option>
+    <option value="Rejected">Rejected</option>
+    <option value="Pending">Pending</option>
+  </select>
+  <input id="timestampInput" type="datetime-local" class="w-full p-2 rounded-xl bg-black border border-zinc-700 mb-2">
+  <button id="addTxnBtn" class="w-full bg-emerald-400 text-black font-bold p-2 rounded-xl">Add Transaction</button>
+</div>
+
+<!-- Transaction Table -->
+<div class="overflow-x-auto">
   <table class="w-full text-left border-collapse">
     <thead>
       <tr class="bg-zinc-800">
@@ -25,14 +48,15 @@
         <th class="p-2 border border-zinc-700">Method</th>
         <th class="p-2 border border-zinc-700">Status</th>
         <th class="p-2 border border-zinc-700">Timestamp</th>
+        <th class="p-2 border border-zinc-700">Actions</th>
       </tr>
     </thead>
     <tbody id="historyTableBody">
-      <tr><td colspan="5" class="p-4 text-center">Enter UID and click Load History</td></tr>
+      <tr><td colspan="6" class="p-4 text-center">Enter UID and click Load User History</td></tr>
     </tbody>
   </table>
 </div>
 
-<script type="module" src="history.js"></script>
+<script type="module" src="trade.js"></script>
 </body>
 </html>
