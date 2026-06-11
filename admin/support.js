@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, doc, updateDoc, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -16,85 +16,91 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const container = document.getElementById("supportMessagesContainer");
-const loadBtn = document.getElementById("loadMessagesBtn");
-const userIdInput = document.getElementById("userIdInput");
+const container = document.getElementById("allMessagesContainer");
+const replyUserIdInput = document.getElementById("replyUserIdInput");
+const replyMessageInput = document.getElementById("replyMessageInput");
+const sendReplyBtn = document.getElementById("sendReplyBtn");
 
-// Admin Auth Check
+// Admin Auth
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied. Admin only.");
     window.location.href = "admin-login.html";
     return;
+  } else {
+    loadAllMessages();
   }
 });
 
-// Load messages for specific UID
-loadBtn.addEventListener("click", async () => {
-  const uid = userIdInput.value.trim();
-  if (!uid) {
-    alert("Please enter a UID");
-    return;
-  }
-  await loadSupportMessages(uid);
-});
-
-async function loadSupportMessages(uid) {
-  container.innerHTML = `<p class="text-zinc-400">Loading messages for UID: ${uid}...</p>`;
+// Load all user messages
+async function loadAllMessages() {
+  container.innerHTML = `<p class="text-zinc-400">Loading all user messages...</p>`;
   try {
-    const q = query(collection(db, "supportMessages"), where("userId", "==", uid));
-    const messagesSnap = await getDocs(q);
+    const q = query(collection(db, "supportMessages"));
+    const snap = await getDocs(q);
 
     container.innerHTML = "";
-    if (messagesSnap.empty) {
-      container.innerHTML = `<p class="text-zinc-400">No support messages found for UID: ${uid}</p>`;
+    if (snap.empty) {
+      container.innerHTML = `<p class="text-zinc-400">No support messages found.</p>`;
       return;
     }
 
-    messagesSnap.forEach(msgDoc => {
-      const msg = msgDoc.data();
+    snap.forEach(docSnap => {
+      const msg = docSnap.data();
       const div = document.createElement("div");
       div.className = "bg-zinc-900 p-4 rounded-xl border border-zinc-700";
 
       div.innerHTML = `
-        <p><strong>User Email:</strong> ${msg.userEmail || "Unknown"}</p>
+        <p><strong>UID:</strong> ${msg.userId || "Unknown"}</p>
+        <p><strong>Email:</strong> ${msg.userEmail || "Unknown"}</p>
         <p><strong>Subject:</strong> ${msg.subject || "No subject"}</p>
         <p><strong>Message:</strong> ${msg.message || ""}</p>
-        <p><strong>Status:</strong> <span id="status-${msgDoc.id}">${msg.status || "pending"}</span></p>
-        <p><strong>Reply:</strong> <span id="reply-${msgDoc.id}">${msg.reply || ""}</span></p>
-        <textarea id="replyInput-${msgDoc.id}" placeholder="Type reply..." class="w-full p-2 mt-2 mb-2 rounded bg-black border border-zinc-700"></textarea>
-        <button id="replyBtn-${msgDoc.id}" class="bg-emerald-400 text-black font-bold p-2 rounded">Send Reply</button>
+        <p><strong>Status:</strong> ${msg.status || "pending"}</p>
+        <p><strong>Reply:</strong> ${msg.reply || ""}</p>
       `;
 
       container.appendChild(div);
-
-      const replyBtn = document.getElementById(`replyBtn-${msgDoc.id}`);
-      replyBtn.addEventListener("click", async () => {
-        const replyText = document.getElementById(`replyInput-${msgDoc.id}`).value.trim();
-        if (!replyText) {
-          alert("Reply cannot be empty.");
-          return;
-        }
-
-        try {
-          await updateDoc(doc(db, "supportMessages", msgDoc.id), {
-            reply: replyText,
-            status: "replied"
-          });
-
-          document.getElementById(`reply-${msgDoc.id}`).innerText = replyText;
-          document.getElementById(`status-${msgDoc.id}`).innerText = "replied";
-          document.getElementById(`replyInput-${msgDoc.id}`).value = "";
-
-          alert("Reply sent successfully!");
-        } catch (err) {
-          console.error("Failed to send reply:", err);
-          alert("Failed to send reply. Check console for details.");
-        }
-      });
     });
+
   } catch (err) {
-    console.error("Failed to load support messages:", err);
-    container.innerHTML = `<p class="text-red-500">Failed to load support messages. Check console.</p>`;
+    console.error("Failed to load messages:", err);
+    container.innerHTML = `<p class="text-red-500">Failed to load messages. Check console.</p>`;
   }
 }
+
+// Send reply to specific user message
+sendReplyBtn.addEventListener("click", async () => {
+  const uid = replyUserIdInput.value.trim();
+  const message = replyMessageInput.value.trim();
+
+  if (!uid || !message) {
+    alert("Both User UID and message are required.");
+    return;
+  }
+
+  try {
+    const q = query(collection(db, "supportMessages"), where("userId", "==", uid));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("No message found for this UID.");
+      return;
+    }
+
+    snap.forEach(async docSnap => {
+      await updateDoc(doc(db, "supportMessages", docSnap.id), {
+        reply: message,
+        status: "replied"
+      });
+    });
+
+    alert("Reply sent successfully!");
+    replyUserIdInput.value = "";
+    replyMessageInput.value = "";
+    loadAllMessages();
+
+  } catch (err) {
+    console.error("Failed to send reply:", err);
+    alert("Failed to send reply. Check console for details.");
+  }
+});

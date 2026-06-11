@@ -10,15 +10,20 @@
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Admin Support Panel</h1>
 
-<div class="mb-4">
-  <input id="userIdInput" type="text" placeholder="Enter User UID"
-  class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2" />
-  <button id="loadMessagesBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Load Messages</button>
+<!-- All Messages -->
+<div id="allMessagesContainer" class="space-y-4 mb-6">
+  <p class="text-zinc-400">Loading all user messages...</p>
 </div>
 
-<div id="supportMessagesContainer" class="space-y-4">
-  <p class="text-zinc-400">Enter a UID and click Load Messages</p>
-</div>
+<hr class="my-6 border-zinc-700">
+
+<!-- Admin Reply Section -->
+<h2 class="text-2xl font-bold text-emerald-400 mb-2">Send Reply</h2>
+<input id="replyUserIdInput" type="text" placeholder="Enter User UID"
+class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2" />
+<textarea id="replyMessageInput" placeholder="Type your reply..."
+class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2"></textarea>
+<button id="sendReplyBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Send Reply</button>
 
 <script type="module" src="support.js"></script>
 </body>
