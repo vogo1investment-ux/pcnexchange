@@ -10,33 +10,18 @@
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Support Center</h1>
 
-<!-- New Message Form -->
+<!-- Submit new message -->
 <div class="mb-6 bg-zinc-900 p-4 rounded-xl">
-  <input id="subjectInput" type="text" placeholder="Title / Subject" 
-  class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2">
-  <textarea id="messageInput" placeholder="Type your message" 
-  class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2"></textarea>
-  <button id="sendMessageBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">Send Message</button>
+  <input id="titleInput" type="text" placeholder="Message Subject"
+    class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2">
+  <textarea id="messageInput" placeholder="Write your message..."
+    class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2"></textarea>
+  <button id="sendBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-xl">Send Message</button>
 </div>
 
-<h2 class="text-2xl font-bold text-emerald-400 mb-3">Your Messages</h2>
-
-<!-- Messages List -->
-<div id="messagesContainer" class="overflow-y-auto max-h-[400px] bg-zinc-900 p-4 rounded-xl">
-  <table class="w-full text-left border-collapse">
-    <thead>
-      <tr class="bg-zinc-800">
-        <th class="p-2 border border-zinc-700">Subject</th>
-        <th class="p-2 border border-zinc-700">Message</th>
-        <th class="p-2 border border-zinc-700">Admin Reply</th>
-        <th class="p-2 border border-zinc-700">Status</th>
-        <th class="p-2 border border-zinc-700">Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="messagesTableBody">
-      <tr><td colspan="5" class="p-4 text-center">No messages yet</td></tr>
-    </tbody>
-  </table>
+<!-- Message history -->
+<div id="messagesContainer" class="bg-zinc-900 p-4 rounded-xl max-h-[400px] overflow-y-auto">
+  <p class="text-center text-zinc-400">Loading your messages...</p>
 </div>
 
 <script type="module" src="support.js"></script>

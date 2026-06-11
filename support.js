@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -16,83 +15,87 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const sendBtn = document.getElementById("sendMessageBtn");
-const subjectInput = document.getElementById("subjectInput");
+const titleInput = document.getElementById("titleInput");
 const messageInput = document.getElementById("messageInput");
-const tableBody = document.getElementById("messagesTableBody");
+const sendBtn = document.getElementById("sendBtn");
+const messagesContainer = document.getElementById("messagesContainer");
 
-// Auth check
+let currentUser;
+
+// Check user login
 onAuthStateChanged(auth, user => {
   if (!user) {
     alert("Please login to access support.");
-    window.location.href = "login.html";
+    window.location.href = "login.html"; 
+    return;
+  }
+  currentUser = user;
+  loadMessages();
+});
+
+// Send message
+sendBtn.addEventListener("click", async () => {
+  const title = titleInput.value.trim();
+  const message = messageInput.value.trim();
+  if (!title || !message) {
+    alert("Please enter both subject and message.");
     return;
   }
 
-  const uid = user.uid;
-  loadMessages(uid);
+  try {
+    await addDoc(collection(db, "supportMessages"), {
+      userId: currentUser.uid,
+      userEmail: currentUser.email || "",
+      subject: title,
+      message: message,
+      reply: "",
+      status: "pending",
+      timestamp: serverTimestamp()
+    });
 
-  // Send new message
-  sendBtn.addEventListener("click", async () => {
-    const subject = subjectInput.value.trim();
-    const message = messageInput.value.trim();
-    if (!subject || !message) return alert("Please enter subject and message");
-
-    try {
-      await addDoc(collection(db, "supportMessages"), {
-        userId: uid,
-        userEmail: user.email || "",
-        subject,
-        message,
-        reply: "",
-        status: "pending",
-        timestamp: serverTimestamp()
-      });
-      alert("Message sent successfully!");
-      subjectInput.value = "";
-      messageInput.value = "";
-      loadMessages(uid); // refresh messages
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send message");
-    }
-  });
+    titleInput.value = "";
+    messageInput.value = "";
+    messageInput.value = "";
+    loadMessages();
+  } catch (err) {
+    console.error("Failed to send message:", err);
+    alert("Error sending message. Check network or rules.");
+  }
 });
 
 // Load user messages
-async function loadMessages(uid) {
-  tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>`;
+async function loadMessages() {
+  messagesContainer.innerHTML = "<p class='text-center text-zinc-400'>Loading your messages...</p>";
   try {
     const q = query(
       collection(db, "supportMessages"),
-      where("userId", "==", uid),
+      where("userId", "==", currentUser.uid),
       orderBy("timestamp", "desc")
     );
-    const snapshot = await getDocs(q);
+    const snap = await getDocs(q);
 
-    if (snapshot.empty) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">No messages found</td></tr>`;
+    if (snap.empty) {
+      messagesContainer.innerHTML = "<p class='text-center text-zinc-400'>No messages yet.</p>";
       return;
     }
 
-    tableBody.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const ts = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : "-";
-      const row = document.createElement("tr");
-      row.classList.add("bg-zinc-800", "hover:bg-zinc-700");
-
-      row.innerHTML = `
-        <td class="p-2 border border-zinc-700">${data.subject || "-"}</td>
-        <td class="p-2 border border-zinc-700">${data.message || "-"}</td>
-        <td class="p-2 border border-zinc-700">${data.reply || "-"}</td>
-        <td class="p-2 border border-zinc-700">${data.status || "pending"}</td>
-        <td class="p-2 border border-zinc-700">${ts}</td>
+    messagesContainer.innerHTML = "";
+    snap.forEach(doc => {
+      const data = doc.data();
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("mb-4", "p-3", "bg-zinc-800", "rounded-xl");
+      msgDiv.innerHTML = `
+        <p><strong>Subject:</strong> ${data.subject}</p>
+        <p><strong>Message:</strong> ${data.message}</p>
+        <p><strong>Status:</strong> ${data.status}</p>
+        <p><strong>Admin Reply:</strong> ${data.reply || "<em>No reply yet</em>"}</p>
+        <p class="text-xs text-zinc-500">${data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : ""}</p>
       `;
-      tableBody.appendChild(row);
+      messagesContainer.appendChild(msgDiv);
     });
+
   } catch (err) {
-    console.error(err);
-    tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center">Failed to load messages</td></tr>`;
+    console.error("Failed to load messages:", err);
+    messagesContainer.innerHTML = "<p class='text-center text-red-500'>Failed to load messages. Check console.</p>";
   }
 }
