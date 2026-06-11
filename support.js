@@ -1,12 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
@@ -14,60 +12,101 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-const subjectInput = document.getElementById("subject");
-const messageInput = document.getElementById("message");
-const sendBtn = document.getElementById("sendBtn");
 const messagesContainer = document.getElementById("messagesContainer");
+const messageTitleInput = document.getElementById("messageTitleInput");
+const messageContentInput = document.getElementById("messageContentInput");
+const sendMessageBtn = document.getElementById("sendMessageBtn");
 
 let currentUser = null;
 
+// User authentication
 onAuthStateChanged(auth, user => {
-  if(!user) {
-    alert("Please login first!");
-    window.location.href = "index.html";
+  if (!user) {
+    alert("Please log in to access support.");
+    window.location.href = "login.html"; // redirect to login
     return;
   }
   currentUser = user;
-  loadMessages();
+  loadUserMessages();
 });
 
-sendBtn.addEventListener("click", async () => {
-  const subject = subjectInput.value.trim();
-  const message = messageInput.value.trim();
-  if(!subject || !message) return alert("Subject and message cannot be empty.");
+// Load all user messages
+async function loadUserMessages() {
+  messagesContainer.innerHTML = `<p class="text-zinc-400">Loading your messages...</p>`;
+  try {
+    const q = query(
+      collection(db, "supportMessages"),
+      where("userId", "==", currentUser.uid),
+      orderBy("timestamp", "desc")
+    );
+    const snap = await getDocs(q);
 
-  await addDoc(collection(db, "supportMessages"), {
-    userId: currentUser.uid,
-    userEmail: currentUser.email,
-    subject,
-    message,
-    reply: "",
-    status: "pending",
-    timestamp: Date.now()
-  });
-
-  subjectInput.value = "";
-  messageInput.value = "";
-  alert("Message sent. We'll reply soon.");
-});
-
-function loadMessages() {
-  const q = query(collection(db, "supportMessages"), where("userId", "==", currentUser.uid));
-  onSnapshot(q, snapshot => {
     messagesContainer.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const card = document.createElement("div");
-      card.className = "message-card";
-      card.innerHTML = `
-        <p><strong>Subject:</strong> ${data.subject}</p>
-        <p>${data.message}</p>
-        ${data.reply ? `<p class="reply"><strong>Reply:</strong> ${data.reply}</p>` : `<p class="reply">No reply yet</p>`}
+    if (snap.empty) {
+      messagesContainer.innerHTML = `<p class="text-zinc-400">You have no messages yet.</p>`;
+      return;
+    }
+
+    snap.forEach(docSnap => {
+      const msg = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "bg-zinc-900 p-4 rounded-xl border border-zinc-700";
+
+      const date = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleString() : "Unknown";
+
+      // Highlight if admin replied and user hasn't read yet
+      const replyClass = msg.status === "replied" && !msg.readByUser ? "bg-emerald-900" : "";
+
+      div.classList.add(replyClass);
+
+      div.innerHTML = `
+        <p><strong>Title:</strong> ${msg.subject || "No title"}</p>
+        <p><strong>Message:</strong> ${msg.message}</p>
+        <p><strong>Status:</strong> ${msg.status || "pending"}</p>
+        <p><strong>Admin Reply:</strong> ${msg.reply || "No reply yet"}</p>
+        <p class="text-sm text-zinc-400"><strong>Sent:</strong> ${date}</p>
       `;
-      messagesContainer.appendChild(card);
+      messagesContainer.appendChild(div);
     });
-  });
+
+  } catch (err) {
+    console.error("Failed to load messages:", err);
+    messagesContainer.innerHTML = `<p class="text-red-500">Failed to load messages. Check console.</p>`;
+  }
 }
+
+// Send new message
+sendMessageBtn.addEventListener("click", async () => {
+  const title = messageTitleInput.value.trim();
+  const content = messageContentInput.value.trim();
+
+  if (!title || !content) {
+    alert("Please fill in both title and message.");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "supportMessages"), {
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      subject: title,
+      message: content,
+      reply: "",
+      status: "pending",
+      readByUser: true,
+      timestamp: serverTimestamp()
+    });
+
+    alert("Message sent successfully!");
+    messageTitleInput.value = "";
+    messageContentInput.value = "";
+    loadUserMessages();
+
+  } catch (err) {
+    console.error("Failed to send message:", err);
+    alert("Failed to send message. Check console.");
+  }
+});

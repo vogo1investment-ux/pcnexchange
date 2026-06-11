@@ -3,111 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support</title>
-<style>
-body { background:#000; color:#fff; font-family:sans-serif; padding:20px; }
-input, textarea { width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #0f0; background:#111; color:#fff; }
-button { width:100%; padding:10px; border:none; border-radius:8px; background:#0f0; color:#000; font-weight:bold; cursor:pointer; }
-.message-card { background:#111; padding:10px; border-radius:8px; margin-bottom:10px; }
-.message-card p { margin:0; }
-.reply { color:#0f0; font-size:0.85rem; margin-top:5px; }
-</style>
+<title>User Support Center</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-black text-white min-h-screen p-5">
 
-<h1>Support</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">Support Center</h1>
 
-<div>
-  <input type="text" id="subject" placeholder="Subject">
-  <textarea id="message" rows="4" placeholder="Your message"></textarea>
-  <button id="sendBtn">Send Message</button>
+<!-- Send New Message -->
+<div class="mb-6 bg-zinc-900 p-4 rounded-xl border border-zinc-700">
+  <h2 class="text-xl font-bold mb-2">Send New Message</h2>
+  <input id="messageTitleInput" type="text" placeholder="Title / Subject"
+         class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2" />
+  <textarea id="messageContentInput" placeholder="Type your message"
+            class="w-full p-3 rounded-xl bg-black border border-zinc-700 mb-2"></textarea>
+  <button id="sendMessageBtn" class="bg-emerald-400 text-black font-bold p-3 rounded-xl w-full">
+    Send Message
+  </button>
 </div>
 
-<h2>Previous Messages</h2>
-<div id="messagesContainer"></div>
+<!-- Messages Display -->
+<h2 class="text-2xl font-bold text-emerald-400 mb-3">Your Messages</h2>
+<div id="messagesContainer" class="space-y-4">
+  <p class="text-zinc-400">Loading your messages...</p>
+</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-const subjectInput = document.getElementById("subject");
-const messageInput = document.getElementById("message");
-const sendBtn = document.getElementById("sendBtn");
-const messagesContainer = document.getElementById("messagesContainer");
-
-let currentUser = null;
-
-// Make sure the user is logged in
-onAuthStateChanged(auth, user => {
-  if(!user){
-    alert("You must be logged in to send support messages!");
-    window.location.href = "index.html";
-    return;
-  }
-  currentUser = user;
-  loadMessages();
-});
-
-sendBtn.addEventListener("click", async () => {
-  if(!currentUser) return alert("User not logged in");
-
-  const subject = subjectInput.value.trim();
-  const message = messageInput.value.trim();
-  if(!subject || !message) return alert("Subject and message cannot be empty");
-
-  try {
-    await addDoc(collection(db, "supportMessages"), {
-      userId: currentUser.uid,
-      userEmail: currentUser.email,
-      subject,
-      message,
-      reply: "",
-      status: "pending",
-      timestamp: Date.now()
-    });
-    subjectInput.value = "";
-    messageInput.value = "";
-    alert("Message sent. We'll reply soon.");
-  } catch(e) {
-    console.error("Error sending message:", e);
-    alert("Failed to send message. Check console.");
-  }
-});
-
-// Load user messages
-function loadMessages() {
-  const q = query(collection(db, "supportMessages"), where("userId", "==", currentUser.uid));
-  onSnapshot(q, snapshot => {
-    messagesContainer.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const card = document.createElement("div");
-      card.className = "message-card";
-      card.innerHTML = `
-        <p><strong>Subject:</strong> ${data.subject}</p>
-        <p>${data.message}</p>
-        ${data.reply ? `<p class="reply"><strong>Reply:</strong> ${data.reply}</p>` : `<p class="reply">No reply yet</p>`}
-      `;
-      messagesContainer.appendChild(card);
-    });
-  });
-}
-</script>
+<script type="module" src="support.js"></script>
 </body>
 </html>
