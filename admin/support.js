@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// --- Firebase config ---
+// Firebase config
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -18,51 +18,56 @@ const db = getFirestore(app);
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// DOM Elements
+// DOM
 const messagesContainer = document.getElementById("messagesContainer");
 const replyUid = document.getElementById("replyUid");
 const replyTitle = document.getElementById("replyTitle");
 const replyMessage = document.getElementById("replyMessage");
 const sendReplyBtn = document.getElementById("sendReplyBtn");
 
-// Ensure admin is logged in
+// Admin login check
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access denied: Admin only");
+    alert("Access Denied: Admin Only");
     window.location.href = "login.html";
     return;
   }
-  loadMessages();
+  loadAllMessages();
 });
 
-// Load all support messages in real-time
-function loadMessages() {
-  const q = query(collection(db, "supportMessages"), orderBy("timestamp", "desc"));
-  onSnapshot(q, snapshot => {
+// Load all user messages from `users/{uid}/supportMessages`
+function loadAllMessages() {
+  const usersCollection = collection(db, "users");
+  onSnapshot(usersCollection, snapshot => {
     messagesContainer.innerHTML = "";
     if (snapshot.empty) {
-      messagesContainer.innerHTML = `<p class="text-center text-gray-400">No messages found.</p>`;
+      messagesContainer.innerHTML = `<p class="text-center text-gray-400">No users found.</p>`;
       return;
     }
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
-      const div = document.createElement("div");
-      div.className = "p-4 bg-gray-700 rounded-xl border border-gray-600";
+    snapshot.forEach(userDoc => {
+      const uid = userDoc.id;
+      const supportCol = collection(db, `users/${uid}/supportMessages`);
+      const q = query(supportCol, orderBy("timestamp", "desc"));
+      onSnapshot(q, snap => {
+        snap.forEach(msgDoc => {
+          const data = msgDoc.data();
+          const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
 
-      div.innerHTML = `
-        <p><strong>UID:</strong> ${data.userId}</p>
-        <p><strong>Email:</strong> ${data.userEmail || "-"}</p>
-        <p><strong>Title:</strong> ${data.title}</p>
-        <p><strong>Message:</strong> ${data.message}</p>
-        <p><strong>Admin Reply:</strong> ${data.reply || "-"}</p>
-        <p class="text-xs text-gray-400">Sent: ${ts}</p>
-      `;
-      messagesContainer.appendChild(div);
+          const div = document.createElement("div");
+          div.className = "p-4 bg-gray-700 rounded-xl border border-gray-600";
+
+          div.innerHTML = `
+            <p><strong>UID:</strong> ${uid}</p>
+            <p><strong>Email:</strong> ${data.userEmail || "-"}</p>
+            <p><strong>Title:</strong> ${data.title}</p>
+            <p><strong>Message:</strong> ${data.message}</p>
+            <p><strong>Admin Reply:</strong> ${data.reply || "-"}</p>
+            <p class="text-xs text-gray-400">Sent: ${ts}</p>
+          `;
+          messagesContainer.appendChild(div);
+        });
+      });
     });
-  }, error => {
-    messagesContainer.innerHTML = `<p class="text-center text-red-400">Failed to load messages: ${error.message}</p>`;
-    console.error(error);
   });
 }
 
@@ -74,8 +79,8 @@ sendReplyBtn.addEventListener("click", async () => {
   if (!uid || !title || !msg) return alert("Fill UID, title, and message.");
 
   try {
-    const id = `${uid}_${Date.now()}`;
-    await setDoc(doc(db, "supportMessages", id), {
+    const docRef = doc(db, `users/${uid}/supportMessages`, `admin_${Date.now()}`);
+    await setDoc(docRef, {
       userId: uid,
       userEmail: "",
       title,
@@ -87,9 +92,9 @@ sendReplyBtn.addEventListener("click", async () => {
     replyUid.value = "";
     replyTitle.value = "";
     replyMessage.value = "";
-    alert("Reply sent successfully!");
+    alert("Message sent to user successfully!");
   } catch (err) {
     console.error(err);
-    alert("Failed to send reply. Check console.");
+    alert("Failed to send message. Check console.");
   }
 });

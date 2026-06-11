@@ -6,29 +6,29 @@
 <title>Admin Support Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-6 font-sans">
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen p-6">
 
 <h1 class="text-4xl font-bold text-green-400 mb-6 text-center">Admin Support Panel</h1>
 
 <div class="max-w-7xl mx-auto space-y-6">
 
-  <!-- Users Messages List -->
+  <!-- Messages List -->
   <h2 class="text-2xl font-semibold text-green-400">All User Messages</h2>
   <div id="messagesContainer" class="space-y-4 max-h-[500px] overflow-y-auto p-4 bg-gray-800 rounded-2xl shadow-lg">
     <p class="text-center text-gray-400">Loading messages...</p>
   </div>
 
   <!-- Reply Section -->
-  <h2 class="text-xl font-semibold text-green-400">Reply to User</h2>
+  <h2 class="text-xl font-semibold text-green-400">Reply / Send Message</h2>
   <div class="p-4 bg-gray-800 rounded-2xl shadow-lg space-y-3">
     <input id="replyUid" type="text" placeholder="User UID" 
       class="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 placeholder-gray-300" />
-    <input id="replyTitle" type="text" placeholder="Reply Subject/Title" 
+    <input id="replyTitle" type="text" placeholder="Subject / Title" 
       class="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 placeholder-gray-300" />
-    <textarea id="replyMessage" rows="3" placeholder="Write your reply..." 
+    <textarea id="replyMessage" rows="3" placeholder="Write your message..." 
       class="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 placeholder-gray-300"></textarea>
     <button id="sendReplyBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold p-3 rounded-xl transition-all">
-      Send Reply
+      Send Message
     </button>
   </div>
 
