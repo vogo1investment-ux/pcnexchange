@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -33,7 +32,6 @@ onAuthStateChanged(auth, user => {
   loadMessages();
 });
 
-// Send new message
 sendBtn.addEventListener("click", async () => {
   if (!titleInput.value.trim() || !bodyInput.value.trim()) {
     alert("Please enter title and message");
@@ -53,14 +51,12 @@ sendBtn.addEventListener("click", async () => {
 
     titleInput.value = "";
     bodyInput.value = "";
-    alert("Message sent successfully!");
   } catch (err) {
     console.error(err);
     alert("Error sending message. Check network or Firestore rules.");
   }
 });
 
-// Load messages
 function loadMessages() {
   const q = query(
     collection(db, "supportMessages"),
@@ -78,16 +74,23 @@ function loadMessages() {
     snapshot.forEach(doc => {
       const data = doc.data();
       const time = data.timestamp?.toDate?.() || new Date();
+
       const messageEl = document.createElement("div");
       messageEl.className = "mb-4 p-3 bg-zinc-900 rounded-xl border border-zinc-700";
 
       messageEl.innerHTML = `
-        <p class="font-bold">${data.title || "No Title"}</p>
-        <p class="text-zinc-300 mb-1">${data.message}</p>
-        <p class="text-sm text-zinc-500">Status: ${data.status}</p>
-        <p class="text-sm text-zinc-500">Reply: ${data.reply || "No reply yet"}</p>
-        <p class="text-xs text-zinc-500">Sent at: ${time.toLocaleString()}</p>
+        <p class="font-bold text-emerald-400">${data.title || "No Title"}</p>
+        <div class="mb-2">
+          <p class="text-zinc-300 font-medium">You:</p>
+          <p class="text-zinc-200">${data.message}</p>
+        </div>
+        <div class="mb-2">
+          <p class="text-zinc-300 font-medium">Admin:</p>
+          <p class="text-zinc-200">${data.reply || "No reply yet"}</p>
+        </div>
+        <p class="text-xs text-zinc-500">Status: ${data.status} | Sent: ${time.toLocaleString()}</p>
       `;
+
       messagesContainer.appendChild(messageEl);
     });
   }, err => {
