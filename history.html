@@ -3,31 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User History</title>
+<title>My Transaction History</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="history.css">
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Your Account History</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">My Account History</h1>
 
-<input id="searchInput" type="text" placeholder="Search by type or amount"
-class="w-full p-3 mb-4 rounded-xl bg-zinc-800 text-white border border-zinc-700">
-
-<table class="w-full text-left border-collapse">
-  <thead>
-    <tr class="border-b border-zinc-700">
-      <th class="p-2">Date</th>
-      <th class="p-2">Type</th>
-      <th class="p-2">Coin</th>
-      <th class="p-2">Amount</th>
-      <th class="p-2">Status</th>
-    </tr>
-  </thead>
-  <tbody id="historyTableBody">
-    <tr><td colspan="5" class="p-2 text-center">Loading history...</td></tr>
-  </tbody>
+<div id="historyContainer" class="bg-zinc-900 p-4 rounded-xl max-h-[600px] overflow-y-auto">
+<table class="w-full text-left">
+<thead>
+<tr>
+<th class="px-2 py-1">Date</th>
+<th class="px-2 py-1">Type</th>
+<th class="px-2 py-1">Coin</th>
+<th class="px-2 py-1">Amount</th>
+<th class="px-2 py-1">Status</th>
+</tr>
+</thead>
+<tbody id="historyTableBody">
+<tr><td colspan="5" class="text-center">Loading...</td></tr>
+</tbody>
 </table>
+</div>
 
 <script type="module" src="history.js"></script>
 </body>
