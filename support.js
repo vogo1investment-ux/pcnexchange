@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -15,81 +16,84 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// DOM elements
 const sendBtn = document.getElementById("sendMessageBtn");
-const titleInput = document.getElementById("titleInput");
-const messageInput = document.getElementById("messageInput");
+const titleInput = document.getElementById("messageTitle");
+const bodyInput = document.getElementById("messageBody");
 const messagesContainer = document.getElementById("messagesContainer");
+const loadingText = document.getElementById("loadingText");
 
-let currentUserUid = null;
-
-onAuthStateChanged(auth, async (user) => {
+// Ensure user is logged in
+onAuthStateChanged(auth, user => {
   if (!user) {
-    alert("You must be logged in to access support.");
-    window.location.href = "login.html";
-    return;
-  }
-  currentUserUid = user.uid;
-  loadUserMessages();
-});
-
-sendBtn.addEventListener("click", async () => {
-  const title = titleInput.value.trim();
-  const message = messageInput.value.trim();
-
-  if (!title || !message) {
-    alert("Please enter both title and message.");
+    alert("Please log in to access support.");
+    window.location.href = "login.html"; // redirect if not logged in
     return;
   }
 
-  try {
-    await addDoc(collection(db, "supportMessages"), {
-      userId: currentUserUid,
-      title,
-      message,
-      reply: "",
-      status: "pending",
-      createdAt: serverTimestamp()
-    });
+  const userId = user.uid;
 
-    titleInput.value = "";
-    messageInput.value = "";
-  } catch (err) {
-    console.error("Error sending message:", err);
-    alert("Error sending message. Check network or Firestore rules.");
-  }
-});
+  // Send message
+  sendBtn.addEventListener("click", async () => {
+    const title = titleInput.value.trim();
+    const message = bodyInput.value.trim();
 
-function loadUserMessages() {
+    if (!title || !message) {
+      alert("Please enter both title and message.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "supportMessages"), {
+        userId,
+        userEmail: user.email || "",
+        title,
+        message,
+        reply: "",
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+      titleInput.value = "";
+      bodyInput.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Error sending message. Check network or Firestore rules.");
+    }
+  });
+
+  // Load user's messages in real-time
   const q = query(
     collection(db, "supportMessages"),
-    where("userId", "==", currentUserUid),
+    where("userId", "==", userId),
     orderBy("createdAt", "desc")
   );
 
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(q, snapshot => {
     messagesContainer.innerHTML = "";
     if (snapshot.empty) {
-      messagesContainer.innerHTML = "<p>No messages yet.</p>";
+      messagesContainer.innerHTML = `<p class="text-zinc-400 text-center">No messages yet.</p>`;
       return;
     }
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : "Unknown date";
+      const createdAt = data.createdAt?.toDate?.() || new Date();
+      const timeStr = createdAt.toLocaleString();
 
       const msgDiv = document.createElement("div");
-      msgDiv.className = "mb-4 p-3 rounded-xl bg-zinc-700";
+      msgDiv.className = "p-3 rounded-xl bg-zinc-800 border border-zinc-700";
 
       msgDiv.innerHTML = `
-        <p class="font-bold text-emerald-400">${data.title} <span class="text-xs text-zinc-400">(${createdAt})</span></p>
-        <p class="mb-2">${data.message}</p>
-        <p class="italic text-sm text-pink-400">Admin reply: ${data.reply || "No reply yet"}</p>
-        <p class="text-xs text-zinc-400">Status: ${data.status}</p>
+        <p><span class="font-bold text-emerald-400">${data.title}</span> <span class="text-zinc-400 text-sm">(${timeStr})</span></p>
+        <p class="mt-1">${data.message}</p>
+        <p class="mt-2 text-sm text-yellow-400">Admin reply: ${data.reply || "No reply yet"}</p>
+        <p class="mt-1 text-sm text-zinc-400">Status: ${data.status || "pending"}</p>
       `;
+
       messagesContainer.appendChild(msgDiv);
     });
-  }, (err) => {
-    messagesContainer.innerHTML = "<p class='text-red-500'>Failed to load messages. Check console.</p>";
-    console.error("Error loading messages:", err);
+  }, err => {
+    console.error(err);
+    messagesContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load messages. Check console.</p>`;
   });
-}
+});

@@ -3,23 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support Center</title>
+<title>User Support</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
 <h1 class="text-3xl font-bold text-emerald-400 mb-6">Support Center</h1>
 
-<!-- Message Form -->
-<div class="mb-6">
-  <input id="titleInput" type="text" placeholder="Title" class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2" />
-  <textarea id="messageInput" rows="3" placeholder="Type your message" class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-700 mb-2"></textarea>
-  <button id="sendMessageBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-xl">Send Message</button>
+<!-- Send Message Form -->
+<div class="mb-6 p-4 bg-zinc-900 rounded-xl">
+  <input id="messageTitle" type="text" placeholder="Message Title" 
+    class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3"/>
+  <textarea id="messageBody" placeholder="Write your message here..." 
+    class="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700 mb-3"></textarea>
+  <button id="sendMessageBtn" class="w-full bg-emerald-400 text-black font-bold p-3 rounded-xl">
+    Send Message
+  </button>
 </div>
 
-<h2 class="text-xl font-bold text-emerald-400 mb-2">Your Messages</h2>
-<div id="messagesContainer" class="p-4 bg-zinc-800 rounded-xl max-h-[400px] overflow-y-auto">
-  Loading messages...
+<h2 class="text-2xl font-bold text-emerald-400 mb-3">Your Messages</h2>
+<div id="messagesContainer" class="space-y-4 max-h-[400px] overflow-y-auto p-2 bg-zinc-900 rounded-xl">
+  <p class="text-zinc-500 text-center" id="loadingText">Loading messages...</p>
 </div>
 
 <script type="module" src="support.js"></script>
