@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -11,86 +11,91 @@ const firebaseConfig = {
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const walletTableBody = document.getElementById("walletTableBody");
-const searchInput = document.getElementById("searchUser");
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+const container = document.getElementById("walletRequestsContainer");
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access Denied: Admin Only");
+    alert("Access denied: Admin only");
     window.location.href = "admin-login.html";
     return;
   }
-  loadWallets();
+  await loadWalletRequests();
 });
 
-async function loadWallets() {
-  walletTableBody.innerHTML = "<tr><td colspan='5' class='p-2'>Loading wallets...</td></tr>";
-  const usersSnap = await getDocs(collection(db, "users"));
-  walletTableBody.innerHTML = "";
+async function loadWalletRequests() {
+  container.innerHTML = "<p class='text-center'>Loading...</p>";
 
-  for (const userDoc of usersSnap.docs) {
-    const userId = userDoc.id;
-    const userData = userDoc.data();
-    const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
+  try {
+    // All pending transactions where type is "buyCoin"
+    const q = query(collection(db, "pendingTransactions"), where("type", "==", "buyCoin"));
+    const snap = await getDocs(q);
 
-    if (coinsSnap.empty) {
-      walletTableBody.innerHTML += `
-      <tr class="border-b border-zinc-700">
-        <td class="p-2">${userId}</td>
-        <td class="p-2">${userData.username || "N/A"}</td>
-        <td class="p-2">No coins</td>
-        <td class="p-2">0.00</td>
-        <td class="p-2"></td>
-      </tr>`;
-    } else {
-      coinsSnap.forEach(coinDoc => {
-        const coinId = coinDoc.id;
-        const coinData = coinDoc.data();
-        walletTableBody.innerHTML += `
-        <tr class="border-b border-zinc-700">
-          <td class="p-2">${userId}</td>
-          <td class="p-2">${userData.username || "N/A"}</td>
-          <td class="p-2">${coinId}</td>
-          <td class="p-2">
-            <input type="number" step="0.000001" min="0" value="${coinData.amount || 0}" 
-              class="w-24 p-1 rounded bg-zinc-800 text-white" id="coin_${userId}_${coinId}">
-          </td>
-          <td class="p-2">
-            <button onclick="updateCoin('${userId}','${coinId}')" 
-              class="bg-emerald-400 text-black font-bold p-2 rounded">Update</button>
-          </td>
-        </tr>`;
-      });
+    if (snap.empty) {
+      container.innerHTML = "<p class='text-center text-zinc-400'>No pending wallet requests</p>";
+      return;
     }
+
+    container.innerHTML = "";
+
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const date = data.createdAt?.toDate?.() || new Date();
+
+      const row = document.createElement("div");
+      row.className = "p-4 bg-zinc-900 rounded-xl mb-4 border border-zinc-700";
+
+      row.innerHTML = `
+        <p><strong>User:</strong> ${data.userId}</p>
+        <p><strong>Coin:</strong> ${data.coin}</p>
+        <p><strong>Requested Amount:</strong> ${data.amount}</p>
+        <p><strong>Status:</strong> ${data.status || 'Pending'}</p>
+        <p><strong>Date:</strong> ${date.toLocaleString()}</p>
+        <button data-id="${id}" class="approveBtn mt-2 bg-emerald-400 text-black p-2 rounded font-bold">Approve</button>
+      `;
+
+      container.appendChild(row);
+    });
+
+    // Attach approve buttons
+    document.querySelectorAll(".approveBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const docId = btn.dataset.id;
+        await approveWalletRequest(docId);
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p class='text-center text-red-500'>Failed to load wallet requests</p>";
   }
 }
 
-// Update function
-window.updateCoin = async (userId, coinId) => {
-  const input = document.getElementById(`coin_${userId}_${coinId}`);
-  const newAmount = parseFloat(input.value) || 0;
+async function approveWalletRequest(docId) {
+  const txnRef = doc(db, "pendingTransactions", docId);
+  const txnSnap = await getDocs(query(collection(db, "pendingTransactions"), where("__name__", "==", docId)));
+  const data = (await txnRef.get()).data?.() || {};
 
+  if (!data) return alert("Transaction not found");
+
+  const userCoinRef = doc(db, `users/${data.userId}/coins/${data.coin}`);
   try {
-    const coinRef = doc(db, `users/${userId}/coins/${coinId}`);
-    await updateDoc(coinRef, { amount: newAmount });
-    alert(`Updated ${coinId} for user ${userId} to ${newAmount}`);
+    // Set the coin if it doesn't exist or increment
+    await setDoc(userCoinRef, { amount: Number(data.amount) }, { merge: true });
+
+    // Update pending transaction status
+    await updateDoc(txnRef, { status: "Approved" });
+
+    alert(`Approved ${data.coin} for user ${data.userId}`);
+    loadWalletRequests(); // reload list
+
   } catch (err) {
     console.error(err);
-    alert("Failed to update coin amount.");
+    alert("Failed to approve request");
   }
-};
-
-// Search functionality
-searchInput.addEventListener("input", () => {
-  const filter = searchInput.value.toLowerCase();
-  document.querySelectorAll("#walletTableBody tr").forEach(row => {
-    const uid = row.cells[0].innerText.toLowerCase();
-    const username = row.cells[1].innerText.toLowerCase();
-    row.style.display = uid.includes(filter) || username.includes(filter) ? "" : "none";
-  });
-});
+}

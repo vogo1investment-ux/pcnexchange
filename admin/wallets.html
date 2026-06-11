@@ -3,30 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Users Wallets</title>
+<title>Admin Wallet Requests</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Users Wallets</h1>
+<h1 class="text-3xl font-bold text-emerald-400 mb-6">User Wallet Requests</h1>
 
-<input type="text" id="searchUser" placeholder="Search by UID or Name" 
-class="w-full p-2 mb-4 rounded bg-zinc-900 text-white border border-zinc-700">
-
-<table class="w-full border-collapse text-left">
-  <thead>
-    <tr class="border-b border-zinc-700">
-      <th class="p-2">UID</th>
-      <th class="p-2">Name</th>
-      <th class="p-2">Coin</th>
-      <th class="p-2">Amount</th>
-      <th class="p-2">Action</th>
-    </tr>
-  </thead>
-  <tbody id="walletTableBody">
-    <tr><td colspan="5" class="p-2">Loading wallets...</td></tr>
-  </tbody>
-</table>
+<div id="walletRequestsContainer" class="max-h-[600px] overflow-y-auto"></div>
 
 <script type="module" src="wallets.js"></script>
 </body>
