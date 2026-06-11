@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userIdInput = document.getElementById("userIdInput");
   const historyTableBody = document.getElementById("historyTableBody");
 
-  const addTxnBtn = document.getElementById("addTxnBtn");
+  const addEntryBtn = document.getElementById("addEntryBtn");
   const typeInput = document.getElementById("typeInput");
   const amountInput = document.getElementById("amountInput");
   const methodInput = document.getElementById("methodInput");
@@ -37,37 +37,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Load Transactions
-  async function loadTransactions() {
+  async function loadHistory() {
     const userId = userIdInput.value.trim();
     if (!userId) return alert("Enter user UID");
 
     historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">Loading...</td></tr>`;
 
     try {
-      const txnCol = collection(db, "users", userId, "transactions");
-      const txnSnap = await getDocs(query(txnCol, orderBy("timestamp", "desc")));
+      const historyCol = collection(db, "users", userId, "history");
+      const historySnap = await getDocs(query(historyCol, orderBy("timestamp", "desc")));
 
-      if (txnSnap.empty) {
-        historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No transactions found.</td></tr>`;
+      if (historySnap.empty) {
+        historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No history found.</td></tr>`;
         return;
       }
 
       historyTableBody.innerHTML = "";
-      txnSnap.forEach(docSnap => {
-        const txn = docSnap.data();
-        const txnId = docSnap.id;
+      historySnap.forEach(docSnap => {
+        const entry = docSnap.data();
+        const entryId = docSnap.id;
         let date;
-        if (txn.timestamp?.toDate) date = txn.timestamp.toDate();
-        else if (txn.timestamp && typeof txn.timestamp === "number") date = new Date(txn.timestamp);
+        if (entry.timestamp?.toDate) date = entry.timestamp.toDate();
+        else if (entry.timestamp && typeof entry.timestamp === "number") date = new Date(entry.timestamp);
         else date = new Date();
 
         historyTableBody.innerHTML += `
-          <tr data-id="${txnId}" class="bg-zinc-900 hover:bg-zinc-800">
-            <td class="p-2 border border-zinc-700">${txn.type || "-"}</td>
-            <td class="p-2 border border-zinc-700">${txn.amount || 0}</td>
-            <td class="p-2 border border-zinc-700">${txn.method || "-"}</td>
-            <td class="p-2 border border-zinc-700">${txn.status || "-"}</td>
+          <tr data-id="${entryId}" class="bg-zinc-900 hover:bg-zinc-800">
+            <td class="p-2 border border-zinc-700">${entry.type || "-"}</td>
+            <td class="p-2 border border-zinc-700">${entry.amount || 0}</td>
+            <td class="p-2 border border-zinc-700">${entry.method || "-"}</td>
+            <td class="p-2 border border-zinc-700">${entry.status || "-"}</td>
             <td class="p-2 border border-zinc-700">${date.toLocaleString()}</td>
             <td class="p-2 border border-zinc-700">
               <button class="editBtn bg-blue-500 text-black px-2 py-1 rounded">Edit</button>
@@ -77,11 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       });
 
-      // Attach edit/delete listeners
+      // Edit/Delete Buttons
       document.querySelectorAll(".editBtn").forEach(btn => {
         btn.onclick = async e => {
           const row = e.target.closest("tr");
-          const txnId = row.dataset.id;
+          const entryId = row.dataset.id;
+
           const type = prompt("Type", row.cells[0].innerText);
           const amount = parseFloat(prompt("Amount", row.cells[1].innerText));
           const method = prompt("Method", row.cells[2].innerText);
@@ -89,31 +89,31 @@ document.addEventListener("DOMContentLoaded", () => {
           const timestamp = new Date(prompt("DateTime (YYYY-MM-DD HH:MM)", row.cells[4].innerText));
 
           if (!type || !amount || !method || !status || !timestamp) return alert("All fields required");
-          await updateDoc(doc(db, "users", userId, "transactions", txnId), { type, amount, method, status, timestamp });
-          loadTransactions();
+          await updateDoc(doc(db, "users", userId, "history", entryId), { type, amount, method, status, timestamp });
+          loadHistory();
         };
       });
 
       document.querySelectorAll(".deleteBtn").forEach(btn => {
         btn.onclick = async e => {
           const row = e.target.closest("tr");
-          const txnId = row.dataset.id;
-          if (!confirm("Delete this transaction?")) return;
-          await deleteDoc(doc(db, "users", userId, "transactions", txnId));
-          loadTransactions();
+          const entryId = row.dataset.id;
+          if (!confirm("Delete this history entry?")) return;
+          await deleteDoc(doc(db, "users", userId, "history", entryId));
+          loadHistory();
         };
       });
 
     } catch (err) {
       console.error(err);
-      historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Failed to load transactions. Check console.</td></tr>`;
+      historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Failed to load history. Check console.</td></tr>`;
     }
   }
 
-  loadHistoryBtn.addEventListener("click", loadTransactions);
+  loadHistoryBtn.addEventListener("click", loadHistory);
 
-  // Add Transaction
-  addTxnBtn.addEventListener("click", async () => {
+  // Add new history entry
+  addEntryBtn.addEventListener("click", async () => {
     const userId = userIdInput.value.trim();
     if (!userId) return alert("Enter user UID");
 
@@ -126,17 +126,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!type || !amount || !method) return alert("Enter type, amount, method");
 
     try {
-      await addDoc(collection(db, "users", userId, "transactions"), { type, amount, method, status, timestamp });
+      await addDoc(collection(db, "users", userId, "history"), { type, amount, method, status, timestamp });
       typeInput.value = "Deposit";
       amountInput.value = "";
       methodInput.value = "";
       statusInput.value = "Approved";
       timestampInput.value = "";
-      loadTransactions();
+      loadHistory();
     } catch (err) {
       console.error(err);
-      alert("Failed to add transaction.");
+      alert("Failed to add history entry.");
     }
   });
-
 });
