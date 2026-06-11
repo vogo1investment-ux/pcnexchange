@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// --- Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -17,7 +16,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
-
   const loadHistoryBtn = document.getElementById("loadHistoryBtn");
   const userIdInput = document.getElementById("userIdInput");
   const historyTableBody = document.getElementById("historyTableBody");
@@ -31,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-  // Admin auth
   onAuthStateChanged(auth, user => {
     if (!user || user.uid !== ADMIN_UID) {
       alert("Access Denied: Admin Only");
@@ -40,20 +37,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Load User Transactions ---
-  loadHistoryBtn.addEventListener("click", async () => {
+  // Load Transactions
+  async function loadTransactions() {
     const userId = userIdInput.value.trim();
     if (!userId) return alert("Enter user UID");
 
-    historyTableBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center">Loading...</td></tr>`;
+    historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">Loading...</td></tr>`;
 
     try {
       const txnCol = collection(db, "users", userId, "transactions");
-      const txnQuery = query(txnCol, orderBy("timestamp", "desc"));
-      const txnSnap = await getDocs(txnQuery);
+      const txnSnap = await getDocs(query(txnCol, orderBy("timestamp", "desc")));
 
       if (txnSnap.empty) {
-        historyTableBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center">No transactions found.</td></tr>`;
+        historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No transactions found.</td></tr>`;
         return;
       }
 
@@ -67,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else date = new Date();
 
         historyTableBody.innerHTML += `
-          <tr class="bg-zinc-900 hover:bg-zinc-800" data-id="${txnId}">
+          <tr data-id="${txnId}" class="bg-zinc-900 hover:bg-zinc-800">
             <td class="p-2 border border-zinc-700">${txn.type || "-"}</td>
             <td class="p-2 border border-zinc-700">${txn.amount || 0}</td>
             <td class="p-2 border border-zinc-700">${txn.method || "-"}</td>
@@ -81,55 +77,42 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
       });
 
-      // --- Add event listeners for Edit/Delete ---
+      // Attach edit/delete listeners
       document.querySelectorAll(".editBtn").forEach(btn => {
-        btn.addEventListener("click", async e => {
+        btn.onclick = async e => {
           const row = e.target.closest("tr");
           const txnId = row.dataset.id;
-          const type = prompt("Enter Type", row.cells[0].innerText);
-          const amount = parseFloat(prompt("Enter Amount", row.cells[1].innerText));
-          const method = prompt("Enter Method", row.cells[2].innerText);
-          const status = prompt("Enter Status", row.cells[3].innerText);
-          const timestamp = new Date(prompt("Enter DateTime (YYYY-MM-DD HH:MM)", row.cells[4].innerText));
+          const type = prompt("Type", row.cells[0].innerText);
+          const amount = parseFloat(prompt("Amount", row.cells[1].innerText));
+          const method = prompt("Method", row.cells[2].innerText);
+          const status = prompt("Status", row.cells[3].innerText);
+          const timestamp = new Date(prompt("DateTime (YYYY-MM-DD HH:MM)", row.cells[4].innerText));
 
           if (!type || !amount || !method || !status || !timestamp) return alert("All fields required");
-
-          try {
-            const txnRef = doc(db, "users", userId, "transactions", txnId);
-            await updateDoc(txnRef, { type, amount, method, status, timestamp });
-            alert("Transaction updated!");
-            loadHistoryBtn.click();
-          } catch (err) {
-            console.error(err);
-            alert("Failed to update transaction.");
-          }
-        });
+          await updateDoc(doc(db, "users", userId, "transactions", txnId), { type, amount, method, status, timestamp });
+          loadTransactions();
+        };
       });
 
       document.querySelectorAll(".deleteBtn").forEach(btn => {
-        btn.addEventListener("click", async e => {
+        btn.onclick = async e => {
           const row = e.target.closest("tr");
           const txnId = row.dataset.id;
           if (!confirm("Delete this transaction?")) return;
-          try {
-            const txnRef = doc(db, "users", userId, "transactions", txnId);
-            await deleteDoc(txnRef);
-            alert("Transaction deleted!");
-            loadHistoryBtn.click();
-          } catch (err) {
-            console.error(err);
-            alert("Failed to delete transaction.");
-          }
-        });
+          await deleteDoc(doc(db, "users", userId, "transactions", txnId));
+          loadTransactions();
+        };
       });
 
     } catch (err) {
       console.error(err);
-      historyTableBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Failed to load transactions. Check console.</td></tr>`;
+      historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Failed to load transactions. Check console.</td></tr>`;
     }
-  });
+  }
 
-  // --- Add New Transaction ---
+  loadHistoryBtn.addEventListener("click", loadTransactions);
+
+  // Add Transaction
   addTxnBtn.addEventListener("click", async () => {
     const userId = userIdInput.value.trim();
     if (!userId) return alert("Enter user UID");
@@ -138,25 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = parseFloat(amountInput.value);
     const method = methodInput.value.trim();
     const status = statusInput.value;
-    let timestamp = timestampInput.value ? new Date(timestampInput.value) : new Date();
+    const timestamp = timestampInput.value ? new Date(timestampInput.value) : new Date();
 
     if (!type || !amount || !method) return alert("Enter type, amount, method");
 
     try {
-      await addDoc(collection(db, "users", userId, "transactions"), {
-        type,
-        amount,
-        method,
-        status,
-        timestamp
-      });
-      alert("Transaction added successfully!");
+      await addDoc(collection(db, "users", userId, "transactions"), { type, amount, method, status, timestamp });
       typeInput.value = "Deposit";
       amountInput.value = "";
       methodInput.value = "";
       statusInput.value = "Approved";
       timestampInput.value = "";
-      loadHistoryBtn.click();
+      loadTransactions();
     } catch (err) {
       console.error(err);
       alert("Failed to add transaction.");
