@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -16,82 +16,76 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUser = null;
-
 // Elements
 const titleInput = document.getElementById("titleInput");
 const messageInput = document.getElementById("messageInput");
-const sendBtn = document.getElementById("sendBtn");
-const messagesContainer = document.getElementById("messagesContainer");
+const sendBtn = document.getElementById("sendMessageBtn");
+const messagesDiv = document.getElementById("messagesList");
 
-// Wait for auth
-onAuthStateChanged(auth, (user) => {
+// Current user UID
+let currentUserUID = "";
+
+// Auth check
+onAuthStateChanged(auth, user => {
   if (!user) {
-    alert("You must be logged in!");
+    alert("Please login first");
     window.location.href = "login.html";
     return;
   }
-  currentUser = user;
-  loadMessages();
+  currentUserUID = user.uid;
+  listenMessages();
 });
 
 // Send message
 sendBtn.addEventListener("click", async () => {
   const title = titleInput.value.trim();
   const message = messageInput.value.trim();
-  if (!title || !message) return alert("Please enter a title and message.");
-
+  if (!title || !message) {
+    alert("Enter title and message");
+    return;
+  }
   try {
-    await addDoc(collection(db, "users", currentUser.uid, "supportMessages"), {
+    await addDoc(collection(db, "users", currentUserUID, "supportMessages"), {
       title,
       message,
-      reply: "",
       status: "pending",
-      timestamp: serverTimestamp(),
-      userEmail: currentUser.email,
-      userId: currentUser.uid
+      reply: "",
+      timestamp: serverTimestamp()
     });
-
     titleInput.value = "";
     messageInput.value = "";
-    messageInput.value = "";
   } catch (err) {
-    console.error("Error sending message:", err);
+    console.error(err);
     alert("Error sending message. Check network or Firestore rules.");
   }
 });
 
-// Load user messages in real-time
-function loadMessages() {
+// Listen messages
+function listenMessages() {
   const q = query(
-    collection(db, "users", currentUser.uid, "supportMessages"),
+    collection(db, "users", currentUserUID, "supportMessages"),
     orderBy("timestamp", "desc")
   );
-
-  onSnapshot(q, (snapshot) => {
-    messagesContainer.innerHTML = "";
+  onSnapshot(q, snapshot => {
+    messagesDiv.innerHTML = "";
     if (snapshot.empty) {
-      messagesContainer.innerHTML = `<p class="text-center text-zinc-500">No messages yet.</p>`;
+      messagesDiv.innerHTML = `<p class="text-red-500">No messages yet.</p>`;
       return;
     }
-
-    snapshot.forEach((doc) => {
+    snapshot.forEach(doc => {
       const data = doc.data();
-      const time = data.timestamp?.toDate?.()?.toLocaleString() || "Unknown Time";
-
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "mb-3 p-3 bg-zinc-800 rounded-xl";
-
-      msgDiv.innerHTML = `
-        <p class="font-bold text-emerald-400">${data.title || "No Title"}</p>
-        <p>${data.message}</p>
-        <p class="mt-1 text-sm text-zinc-400">Admin Reply: ${data.reply || "No reply yet"}</p>
-        <p class="mt-1 text-xs text-zinc-500">Status: ${data.status || "pending"} | ${time}</p>
+      const ts = data.timestamp ? data.timestamp.toDate().toLocaleString() : "";
+      messagesDiv.innerHTML += `
+        <div class="mb-4 p-3 bg-zinc-800 rounded-xl">
+          <p><strong>${data.title}</strong></p>
+          <p>${data.message}</p>
+          <p class="text-sm text-zinc-400">Admin Reply: ${data.reply || "-"}</p>
+          <p class="text-xs text-zinc-500">${ts}</p>
+        </div>
       `;
-      messagesContainer.appendChild(msgDiv);
     });
-  }, (err) => {
-    console.error("Failed to load messages:", err);
-    messagesContainer.innerHTML = `<p class="text-center text-red-500">Failed to load messages. Check console.</p>`;
+  }, error => {
+    console.error("Failed to load messages:", error);
+    messagesDiv.innerHTML = `<p class="text-red-500">Failed to load messages. Check console.</p>`;
   });
 }
