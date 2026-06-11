@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -23,7 +22,7 @@ const messagesContainer = document.getElementById("messagesContainer");
 
 let currentUser;
 
-// Wait for user login
+// Wait for authentication
 onAuthStateChanged(auth, user => {
   if (!user) {
     alert("Please log in to access support.");
@@ -34,7 +33,7 @@ onAuthStateChanged(auth, user => {
   loadMessages();
 });
 
-// Send new message
+// Send a new support message
 sendBtn.addEventListener("click", async () => {
   const subject = subjectInput.value.trim();
   const message = messageInput.value.trim();
@@ -53,24 +52,22 @@ sendBtn.addEventListener("click", async () => {
 
     subjectInput.value = "";
     messageInput.value = "";
-    loadMessages(); // Refresh messages
+    loadMessages();
   } catch (err) {
-    console.error("Error sending message:", err);
-    alert("Failed to send message. Check network or Firestore rules.");
+    console.error("Failed to send message:", err);
+    alert("Error sending message. Check network or Firestore rules.");
   }
 });
 
-// Load user messages
+// Load messages for the logged-in user
 async function loadMessages() {
   messagesContainer.innerHTML = "<p class='text-center text-zinc-400'>Loading your messages...</p>";
-
   try {
     const q = query(
       collection(db, "supportMessages"),
       where("userId", "==", currentUser.uid),
       orderBy("timestamp", "desc")
     );
-
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -94,6 +91,7 @@ async function loadMessages() {
       `;
       messagesContainer.appendChild(div);
     });
+
   } catch (err) {
     console.error("Failed to load messages:", err);
     messagesContainer.innerHTML = "<p class='text-center text-red-500'>Failed to load messages. Check console.</p>";
