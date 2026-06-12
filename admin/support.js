@@ -16,88 +16,115 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DOM Elements
-const chatContainer = document.getElementById("chatContainer");
-const chatTitle = document.getElementById("chatTitle");
-const chatMessage = document.getElementById("chatMessage");
-const sendChatBtn = document.getElementById("sendChatBtn");
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+const messagesContainer = document.getElementById("messagesContainer");
 
-let currentUser = null;
+// Inputs for sending personal messages
+const personalUid = document.getElementById("personalUid");
+const personalTitle = document.getElementById("personalTitle");
+const personalMessage = document.getElementById("personalMessage");
+const sendPersonalBtn = document.getElementById("sendPersonalBtn");
 
-// Check if user is logged in
+// Ensure only admin can access
 onAuthStateChanged(auth, user => {
-  if (!user) {
-    alert("Please login first.");
+  if (!user || user.uid !== ADMIN_UID) {
+    alert("Access Denied: Admin Only");
     window.location.href = "login.html";
     return;
   }
-  currentUser = user;
-  loadChatMessages();
+  loadAllMessages();
 });
 
-// Load all messages for the current user
-function loadChatMessages() {
-  const supportCol = collection(db, `users/${currentUser.uid}/supportMessages`);
-  const q = query(supportCol, orderBy("timestamp", "asc"));
-
-  onSnapshot(q, snapshot => {
-    chatContainer.innerHTML = "";
-
+// Load all messages from all users
+function loadAllMessages() {
+  const usersCollection = collection(db, "users");
+  onSnapshot(usersCollection, snapshot => {
+    messagesContainer.innerHTML = "";
     if (snapshot.empty) {
-      chatContainer.innerHTML = `<p class="text-center text-green-300">No messages yet.</p>`;
+      messagesContainer.innerHTML = `<p class="text-center text-green-300">No users found.</p>`;
       return;
     }
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
+    snapshot.forEach(userDoc => {
+      const uid = userDoc.id;
+      const supportCol = collection(db, `users/${uid}/supportMessages`);
+      const q = query(supportCol, orderBy("timestamp", "desc"));
 
-      const div = document.createElement("div");
+      onSnapshot(q, supportSnapshot => {
+        supportSnapshot.forEach(msgDoc => {
+          const data = msgDoc.data();
+          const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
 
-      if (data.isAdmin) {
-        // Admin message → left
-        div.className = "bg-green-600 text-left p-3 rounded-xl max-w-[80%]";
-      } else {
-        // User message → right
-        div.className = "bg-green-700 text-right p-3 rounded-xl max-w-[80%] ml-auto";
-      }
+          const div = document.createElement("div");
+          div.className = "p-4 bg-green-700 rounded-xl border border-green-600 shadow-lg space-y-2";
 
-      div.innerHTML = `
-        <p class="font-bold">${data.isAdmin ? "Admin" : "You"}${data.title ? ` - ${data.title}` : ""}</p>
-        <p>${data.message}</p>
-        <p class="text-xs text-green-300 mt-1">${ts}</p>
-      `;
+          div.innerHTML = `
+            <p><strong>UID:</strong> ${uid}</p>
+            <p><strong>Email:</strong> ${data.userEmail || "-"}</p>
+            <p><strong>Title:</strong> ${data.title}</p>
+            <p><strong>Message:</strong> ${data.message}</p>
+            <p><strong>Admin Reply:</strong> ${data.isAdmin ? "Sent by Admin" : (data.reply || "-")}</p>
+            <p class="text-xs text-green-300">Sent: ${ts}</p>
+            <div class="mt-2 space-y-1">
+              <input type="text" placeholder="Reply here..." class="replyInput w-full p-2 rounded-xl bg-green-600 border border-green-500"/>
+              <button class="replyBtn bg-green-400 text-black p-2 rounded-xl w-full font-bold">Send Reply</button>
+            </div>
+          `;
 
-      chatContainer.appendChild(div);
+          // Reply handler (creates new admin message with isAdmin: true)
+          const replyBtn = div.querySelector(".replyBtn");
+          const replyInput = div.querySelector(".replyInput");
+          replyBtn.addEventListener("click", async () => {
+            const replyText = replyInput.value.trim();
+            if (!replyText) return alert("Enter a reply.");
+            try {
+              const docId = `${uid}_${Date.now()}`;
+              await setDoc(doc(db, `users/${uid}/supportMessages`, docId), {
+                userId: uid,
+                userEmail: "", // optional
+                title: "Admin Reply",
+                message: replyText,
+                isAdmin: true,
+                timestamp: serverTimestamp()
+              });
+              replyInput.value = "";
+              alert("Reply sent successfully!");
+            } catch (err) {
+              console.error(err);
+              alert("Failed to send reply.");
+            }
+          });
+
+          messagesContainer.appendChild(div);
+        });
+      });
     });
-
-    // Auto-scroll to bottom
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }, error => {
-    chatContainer.innerHTML = `<p class="text-center text-red-400">Failed to load messages: ${error.message}</p>`;
-    console.error(error);
   });
 }
 
-// Send a new message to admin
-sendChatBtn.addEventListener("click", async () => {
-  const title = chatTitle.value.trim();
-  const message = chatMessage.value.trim();
-  if (!title || !message) return alert("Enter title and message.");
+// Send new personal message to user (admin-created message)
+sendPersonalBtn.addEventListener("click", async () => {
+  const uid = personalUid.value.trim();
+  const title = personalTitle.value.trim();
+  const message = personalMessage.value.trim();
+
+  if (!uid || !title || !message) return alert("Enter UID, title, and message.");
 
   try {
-    const docId = `${currentUser.uid}_${Date.now()}`;
-    await setDoc(doc(db, `users/${currentUser.uid}/supportMessages`, docId), {
-      userId: currentUser.uid,
-      userEmail: currentUser.email || "",
+    const docId = `${uid}_${Date.now()}`;
+    await setDoc(doc(db, `users/${uid}/supportMessages`, docId), {
+      userId: uid,
+      userEmail: "",
       title,
       message,
-      isAdmin: false,
+      isAdmin: true,
       timestamp: serverTimestamp()
     });
 
-    chatTitle.value = "";
-    chatMessage.value = "";
+    personalUid.value = "";
+    personalTitle.value = "";
+    personalMessage.value = "";
+    alert("Message sent to user!");
   } catch (err) {
     console.error(err);
     alert("Failed to send message.");
