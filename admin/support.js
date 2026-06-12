@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// Firebase config (your existing config)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -16,77 +16,90 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
-const messagesContainer = document.getElementById("messagesContainer");
+// DOM Elements
+const chatContainer = document.getElementById("chatContainer");
+const chatTitle = document.getElementById("chatTitle");
+const chatMessage = document.getElementById("chatMessage");
+const sendChatBtn = document.getElementById("sendChatBtn");
 
-// Ensure only admin can access
+let currentUser = null;
+
+// Check if user is logged in
 onAuthStateChanged(auth, user => {
-  if (!user || user.uid !== ADMIN_UID) {
-    alert("Access Denied: Admin Only");
+  if (!user) {
+    alert("Please login first.");
     window.location.href = "login.html";
     return;
   }
-  loadAllMessages();
+  currentUser = user;
+  loadChatMessages();
 });
 
-// Load all messages from all users
-function loadAllMessages() {
-  const usersCollection = collection(db, "users");
-  onSnapshot(usersCollection, snapshot => {
-    messagesContainer.innerHTML = "";
+// Load all messages for the current user
+function loadChatMessages() {
+  const supportCol = collection(db, `users/${currentUser.uid}/supportMessages`);
+  const q = query(supportCol, orderBy("timestamp", "asc"));
+
+  onSnapshot(q, snapshot => {
+    chatContainer.innerHTML = "";
+
     if (snapshot.empty) {
-      messagesContainer.innerHTML = `<p class="text-center text-green-300">No users found.</p>`;
+      chatContainer.innerHTML = `<p class="text-center text-green-300">No messages yet.</p>`;
       return;
     }
 
-    snapshot.forEach(userDoc => {
-      const uid = userDoc.id;
-      const supportCol = collection(db, `users/${uid}/supportMessages`);
-      const q = query(supportCol, orderBy("timestamp", "desc"));
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
 
-      onSnapshot(q, supportSnapshot => {
-        supportSnapshot.forEach(msgDoc => {
-          const data = msgDoc.data();
-          const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
+      const div = document.createElement("div");
 
-          const div = document.createElement("div");
-          div.className = "p-4 bg-green-700 rounded-xl border border-green-600 shadow-lg space-y-2";
+      if (data.isAdmin) {
+        // Admin message → left
+        div.className = "bg-green-600 text-left p-3 rounded-xl max-w-[80%]";
+      } else {
+        // User message → right
+        div.className = "bg-green-700 text-right p-3 rounded-xl max-w-[80%] ml-auto";
+      }
 
-          div.innerHTML = `
-            <p><strong>UID:</strong> ${uid}</p>
-            <p><strong>Email:</strong> ${data.userEmail || "-"}</p>
-            <p><strong>Title:</strong> ${data.title}</p>
-            <p><strong>Message:</strong> ${data.message}</p>
-            <p><strong>Admin Reply:</strong> ${data.reply || "-"}</p>
-            <p class="text-xs text-green-300">Sent: ${ts}</p>
-            <div class="mt-2">
-              <input type="text" placeholder="Reply here..." class="replyInput w-full p-2 rounded-xl bg-green-600 border border-green-500"/>
-              <button class="replyBtn bg-green-400 text-black p-2 rounded-xl w-full font-bold mt-1">Send Reply</button>
-            </div>
-          `;
+      div.innerHTML = `
+        <p class="font-bold">${data.isAdmin ? "Admin" : "You"}${data.title ? ` - ${data.title}` : ""}</p>
+        <p>${data.message}</p>
+        <p class="text-xs text-green-300 mt-1">${ts}</p>
+      `;
 
-          // Reply handler
-          const replyBtn = div.querySelector(".replyBtn");
-          const replyInput = div.querySelector(".replyInput");
-          replyBtn.addEventListener("click", async () => {
-            const replyText = replyInput.value.trim();
-            if (!replyText) return alert("Enter a reply.");
-            try {
-              await updateDoc(doc(db, `users/${uid}/supportMessages`, msgDoc.id), {
-                reply: replyText,
-                adminTimestamp: serverTimestamp()
-              });
-              replyInput.value = "";
-              alert("Reply sent successfully!");
-            } catch (err) {
-              console.error(err);
-              alert("Failed to send reply.");
-            }
-          });
-
-          messagesContainer.appendChild(div);
-        });
-      });
+      chatContainer.appendChild(div);
     });
+
+    // Auto-scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }, error => {
+    chatContainer.innerHTML = `<p class="text-center text-red-400">Failed to load messages: ${error.message}</p>`;
+    console.error(error);
   });
 }
+
+// Send a new message to admin
+sendChatBtn.addEventListener("click", async () => {
+  const title = chatTitle.value.trim();
+  const message = chatMessage.value.trim();
+  if (!title || !message) return alert("Enter title and message.");
+
+  try {
+    const docId = `${currentUser.uid}_${Date.now()}`;
+    await setDoc(doc(db, `users/${currentUser.uid}/supportMessages`, docId), {
+      userId: currentUser.uid,
+      userEmail: currentUser.email || "",
+      title,
+      message,
+      isAdmin: false,
+      timestamp: serverTimestamp()
+    });
+
+    chatTitle.value = "";
+    chatMessage.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Failed to send message.");
+  }
+});
