@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, doc, setDoc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -14,76 +15,90 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const container = document.getElementById("walletRequestsContainer");
 
-// Admin auth
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access Denied. Admin only.");
+    alert("Access denied: Admin only");
     window.location.href = "admin-login.html";
     return;
   }
-  loadWalletRequests();
+  await loadWalletRequests();
 });
 
-// Load wallet requests in real-time
-function loadWalletRequests() {
-  const q = query(collection(db, "pendingTransactions"), where("type", "==", "generateWallet"));
-  
-  onSnapshot(q, snapshot => {
-    container.innerHTML = "";
-    if (snapshot.empty) {
-      container.innerHTML = "<div>No wallet requests found.</div>";
+async function loadWalletRequests() {
+  container.innerHTML = "<p class='text-center'>Loading...</p>";
+
+  try {
+    // Get all pending transactions
+    const q = query(collection(db, "pendingTransactions"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      container.innerHTML = "<p class='text-center text-zinc-400'>No pending wallet requests</p>";
       return;
     }
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "p-4 border border-green-500 rounded bg-zinc-900 flex flex-col md:flex-row md:justify-between items-start md:items-center space-y-2 md:space-y-0";
+    container.innerHTML = "";
 
-      const info = document.createElement("div");
-      info.innerHTML = `
-        <strong>User ID:</strong> ${data.userId}<br>
-        <strong>Coin:</strong> ${data.coin}<br>
-        <strong>Status:</strong> ${data.status}<br>
-        <strong>Created At:</strong> ${data.createdAt?.toDate().toLocaleString() || "N/A"}<br>
-        <strong>Admin Reply:</strong> ${data.adminReply || "-"}
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const date = data.createdAt?.toDate?.() || new Date();
+
+      const row = document.createElement("div");
+      row.className = "p-4 bg-zinc-900 rounded-xl mb-4 border border-zinc-700";
+
+      row.innerHTML = `
+        <p><strong>User:</strong> ${data.userId}</p>
+        <p><strong>Method/Coin:</strong> ${data.coin || data.method || data.type}</p>
+        <p><strong>Requested Amount:</strong> ${data.amount}</p>
+        <p><strong>Status:</strong> ${data.status || 'Pending'}</p>
+        <p><strong>Date:</strong> ${date.toLocaleString()}</p>
+        <button data-id="${id}" class="approveBtn mt-2 bg-emerald-400 text-black p-2 rounded font-bold">Approve</button>
       `;
 
-      const buttons = document.createElement("div");
-      buttons.className = "flex space-x-2";
-      
-      const approveBtn = document.createElement("button");
-      approveBtn.innerText = "Approve";
-      approveBtn.className = "bg-green-500 p-2 rounded font-bold";
-      approveBtn.onclick = async () => {
-        await updateDoc(doc(db, "pendingTransactions", docSnap.id), {
-          status: "Approved",
-          adminReply: "Approved",
-          updatedAt: serverTimestamp()
-        });
-      };
-
-      const rejectBtn = document.createElement("button");
-      rejectBtn.innerText = "Reject";
-      rejectBtn.className = "bg-red-500 p-2 rounded font-bold";
-      rejectBtn.onclick = async () => {
-        await updateDoc(doc(db, "pendingTransactions", docSnap.id), {
-          status: "Rejected",
-          adminReply: "Rejected",
-          updatedAt: serverTimestamp()
-        });
-      };
-
-      buttons.appendChild(approveBtn);
-      buttons.appendChild(rejectBtn);
-
-      div.appendChild(info);
-      div.appendChild(buttons);
-      container.appendChild(div);
+      container.appendChild(row);
     });
-  });
+
+    // Attach approve buttons
+    document.querySelectorAll(".approveBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const docId = btn.dataset.id;
+        await approveWalletRequest(docId);
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p class='text-center text-red-500'>Failed to load wallet requests</p>";
+  }
+}
+
+async function approveWalletRequest(docId) {
+  const txnRef = doc(db, "pendingTransactions", docId);
+
+  try {
+    const txnSnap = await getDocs(query(collection(db, "pendingTransactions")));
+    const data = (await txnRef.get()).data?.() || {};
+
+    if (!data) return alert("Transaction not found");
+
+    // If the request is a coin, add it to user coins
+    if (data.coin) {
+      const userCoinRef = doc(db, `users/${data.userId}/coins/${data.coin}`);
+      await setDoc(userCoinRef, { amount: Number(data.amount) }, { merge: true });
+    }
+
+    // Mark the transaction as approved
+    await updateDoc(txnRef, { status: "Approved" });
+
+    alert(`Approved request for user ${data.userId} (${data.coin || data.method || data.type})`);
+    loadWalletRequests(); // reload list
+  } catch (err) {
+    console.error(err);
+    alert("Failed to approve request");
+  }
 }
