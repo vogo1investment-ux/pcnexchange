@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// ------------------ Firebase Config ------------------
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -15,18 +15,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// ------------------ Admin UID ------------------
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// ------------------ DOM Elements ------------------
+// DOM Elements
 const messagesContainer = document.getElementById("messagesContainer");
 const personalUid = document.getElementById("personalUid");
 const personalTitle = document.getElementById("personalTitle");
 const personalMessage = document.getElementById("personalMessage");
 const sendPersonalBtn = document.getElementById("sendPersonalBtn");
 
-// ------------------ Admin Login Check ------------------
+// Admin check
 onAuthStateChanged(auth, user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access Denied: Admin Only");
@@ -36,10 +34,9 @@ onAuthStateChanged(auth, user => {
   loadAllMessages();
 });
 
-// ------------------ Load All Messages ------------------
+// Load messages from Firestore
 function loadAllMessages() {
   const q = query(collection(db, "supportMessages"), orderBy("timestamp", "desc"));
-
   onSnapshot(q, snapshot => {
     messagesContainer.innerHTML = "";
     if (snapshot.empty) {
@@ -52,7 +49,7 @@ function loadAllMessages() {
       const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
 
       const div = document.createElement("div");
-      div.className = "p-4 bg-green-900 rounded-xl border border-green-700 shadow-lg";
+      div.className = "p-4 bg-green-800 rounded-xl border border-green-600 shadow-lg space-y-1";
 
       div.innerHTML = `
         <p><strong>User UID:</strong> ${data.userId}</p>
@@ -61,7 +58,28 @@ function loadAllMessages() {
         <p><strong>Message:</strong> ${data.message}</p>
         <p><strong>Admin Reply:</strong> ${data.reply || "-"}</p>
         <p class="text-xs text-green-300">Sent: ${ts}</p>
+        <div class="mt-2 space-y-1">
+          <input type="text" placeholder="Reply here..." class="replyInput w-full p-2 rounded-xl bg-green-700 border border-green-600"/>
+          <button class="replyBtn bg-green-400 text-black p-2 rounded-xl w-full font-bold">Send Reply</button>
+        </div>
       `;
+
+      // Reply button handler
+      const replyBtn = div.querySelector(".replyBtn");
+      const replyInput = div.querySelector(".replyInput");
+      replyBtn.addEventListener("click", async () => {
+        const replyText = replyInput.value.trim();
+        if (!replyText) return alert("Enter a reply.");
+        try {
+          await updateDoc(doc(db, "supportMessages", docSnap.id), { reply: replyText });
+          replyInput.value = "";
+          alert("Reply sent successfully!");
+        } catch (err) {
+          console.error(err);
+          alert("Failed to send reply.");
+        }
+      });
+
       messagesContainer.appendChild(div);
     });
   }, error => {
@@ -70,7 +88,7 @@ function loadAllMessages() {
   });
 }
 
-// ------------------ Send Personal Message ------------------
+// Send new personal message
 sendPersonalBtn.addEventListener("click", async () => {
   const uid = personalUid.value.trim();
   const title = personalTitle.value.trim();
@@ -79,25 +97,22 @@ sendPersonalBtn.addEventListener("click", async () => {
   if (!uid || !title || !message) return alert("Enter UID, title, and message.");
 
   try {
-    // Create a new document with a unique ID
     const docId = `${uid}_${Date.now()}`;
     await setDoc(doc(db, "supportMessages", docId), {
       userId: uid,
-      userEmail: "", // optional, admin can fill
+      userEmail: "",
       title,
       message,
       reply: "",
-      status: "pending",
+      status: "approved",
       timestamp: serverTimestamp()
     });
-
     personalUid.value = "";
     personalTitle.value = "";
     personalMessage.value = "";
-    alert("Message sent successfully!");
-
+    alert("Message sent to user!");
   } catch (err) {
     console.error(err);
-    alert("Failed to send message. Check console.");
+    alert("Failed to send message.");
   }
 });
