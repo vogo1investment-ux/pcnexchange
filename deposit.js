@@ -1,8 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,61 +21,40 @@ const storage = getStorage(app);
 // Deposit submission
 document.getElementById("submitDeposit").addEventListener("click", async () => {
   const amount = parseFloat(document.getElementById("amount").value);
-  const proof = document.getElementById("proof").files[0];
+  const proofFile = document.getElementById("proof").files[0];
 
-  if (!amount || !proof) return alert("Enter amount and select proof file.");
+  if (!amount || !proofFile) return alert("Enter amount and select proof file.");
 
   const user = auth.currentUser;
   if (!user) return alert("You must be logged in.");
 
   try {
-    const proofRef = ref(storage, `depositProofs/${Date.now()}_${proof.name}`);
-    const snap = await uploadBytes(proofRef, proof);
+    // Upload proof to Firebase Storage
+    const storageRef = ref(storage, `depositProofs/${Date.now()}_${proofFile.name}`);
+    const snap = await uploadBytes(storageRef, proofFile);
     const proofUrl = await getDownloadURL(snap.ref);
 
+    // Add deposit to pendingTransactions
     await addDoc(collection(db, "pendingTransactions"), {
       type: "deposit",
       amount,
       userId: user.uid,
-      proofName: proof.name,
+      proofName: proofFile.name,
       proofUrl,
       status: "Pending",
       createdAt: serverTimestamp()
     });
 
-    alert("Deposit submitted!");
+    alert("Deposit submitted successfully!");
     document.getElementById("amount").value = "";
     document.getElementById("proof").value = "";
+
+    // Reload user's deposit history
     loadWalletHistory();
+
   } catch (err) {
     console.error(err);
     alert("Failed to submit deposit.");
-  }
-});
-
-// Wallet/payment request submission
-document.getElementById("requestWalletBtn").addEventListener("click", async () => {
-  const selected = document.getElementById("cryptoCoinSelect").value;
-  if (!selected) return alert("Select a coin or payment option");
-
-  const user = auth.currentUser;
-  if (!user) return alert("You must be logged in.");
-
-  try {
-    await addDoc(collection(db, "pendingTransactions"), {
-      type: "walletRequest",
-      coinOrPayment: selected,
-      userId: user.uid,
-      status: "Pending",
-      createdAt: serverTimestamp()
-    });
-
-    alert(`Request for ${selected} submitted!`);
-    document.getElementById("cryptoCoinSelect").value = "";
-    loadWalletHistory();
-  } catch (err) {
-    console.error(err);
-    alert("Failed to submit wallet/payment request.");
   }
 });
 
@@ -87,15 +67,11 @@ async function loadWalletHistory() {
   walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>Loading...</p>";
 
   try {
-    const q = query(
-      collection(db, "pendingTransactions"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
-    const snapshot = await getDocs(q);
+    const q = collection(db, "pendingTransactions");
+    const snapshot = await (await getDocs(q)).docs.filter(d => d.data().userId === user.uid);
 
-    if (snapshot.empty) {
-      walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>No history found</p>";
+    if (snapshot.length === 0) {
+      walletHistoryDiv.innerHTML = "<p class='text-zinc-400'>No deposit history found</p>";
       return;
     }
 
@@ -105,21 +81,20 @@ async function loadWalletHistory() {
       const div = document.createElement("div");
       div.className = "mb-3 p-2 bg-zinc-900 rounded-xl";
       div.innerHTML = `
-        <p><strong>Type:</strong> ${d.type === "walletRequest" ? "Wallet/Payment Request" : "Deposit"}</p>
-        ${d.amount ? `<p><strong>Amount:</strong> $${d.amount}</p>` : ""}
-        ${d.coinOrPayment ? `<p><strong>Coin / Payment:</strong> ${d.coinOrPayment}</p>` : ""}
-        ${d.proofUrl ? `<a href="${d.proofUrl}" target="_blank" class="text-emerald-400 underline">View Proof</a>` : ""}
+        <p><strong>Type:</strong> Deposit</p>
+        <p><strong>Amount:</strong> $${d.amount}</p>
         <p><strong>Status:</strong> ${d.status}</p>
-        ${d.adminReply ? `<p><strong>Admin Reply:</strong> ${d.adminReply}</p>` : ""}
+        <a href="${d.proofUrl}" target="_blank" class="text-emerald-400 underline">View Proof</a>
       `;
       walletHistoryDiv.appendChild(div);
     });
   } catch (err) {
     console.error(err);
-    walletHistoryDiv.innerHTML = "<p class='text-red-500'>Failed to load history.</p>";
+    walletHistoryDiv.innerHTML = "<p class='text-red-500'>Failed to load deposit history.</p>";
   }
 }
 
+// Auto-load history when user is logged in
 onAuthStateChanged(auth, user => {
   if (user) loadWalletHistory();
 });
