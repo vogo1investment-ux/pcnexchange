@@ -43,7 +43,7 @@ sendMessageBtn.addEventListener("click", async () => {
 
   try {
     const docId = `${currentUser.uid}_${Date.now()}`;
-    await setDoc(doc(db, "supportMessages", docId), {
+    await setDoc(doc(db, `users/${currentUser.uid}/supportMessages`, docId), {
       userId: currentUser.uid,
       userEmail: currentUser.email || "",
       title,
@@ -63,21 +63,17 @@ sendMessageBtn.addEventListener("click", async () => {
 
 // Load user's messages in real-time
 function loadUserMessages() {
-  const q = query(
-    collection(db, "supportMessages"),
-    orderBy("timestamp", "desc")
-  );
+  const supportCol = collection(db, `users/${currentUser.uid}/supportMessages`);
+  const q = query(supportCol, orderBy("timestamp", "desc"));
 
   onSnapshot(q, snapshot => {
     userMessagesContainer.innerHTML = "";
-    const userMessages = snapshot.docs.filter(d => d.data().userId === currentUser.uid);
-
-    if (userMessages.length === 0) {
+    if (snapshot.empty) {
       userMessagesContainer.innerHTML = `<p class="text-center text-green-300">No messages found.</p>`;
       return;
     }
 
-    userMessages.forEach(docSnap => {
+    snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const ts = data.timestamp?.toDate?.().toLocaleString() || "-";
 
