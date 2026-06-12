@@ -3,33 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Support Center</title>
+<title>User Support Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="support.css">
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-6">
+<body class="bg-green-900 text-white min-h-screen p-5">
 
-<h1 class="text-4xl font-bold text-emerald-400 mb-6 text-center">Support Center</h1>
+<h1 class="text-3xl font-bold text-green-400 mb-6">Support Center</h1>
 
-<!-- Send Message Section -->
-<div class="max-w-2xl mx-auto mb-8 p-6 bg-zinc-800 rounded-2xl shadow-md">
-  <input id="titleInput" type="text" placeholder="Message Title" 
-    class="w-full p-3 rounded-xl mb-4 bg-zinc-700 border border-zinc-600 text-white" />
-  <textarea id="messageInput" placeholder="Write your message here..." rows="4"
-    class="w-full p-3 rounded-xl mb-4 bg-zinc-700 border border-zinc-600 text-white resize-none"></textarea>
-  <button id="sendMessageBtn"
-    class="w-full bg-emerald-400 text-black font-bold p-3 rounded-xl hover:bg-emerald-500 transition">
-    Send Message
-  </button>
+<!-- Send Message -->
+<div class="mb-6 p-4 bg-green-800 rounded-xl">
+  <h2 class="text-xl font-bold mb-2">Send a Message to Admin</h2>
+  <input id="messageTitle" placeholder="Message Title" class="w-full p-3 mb-2 rounded-xl bg-green-700 border border-green-600"/>
+  <textarea id="messageBody" placeholder="Write your message..." class="w-full p-3 mb-2 rounded-xl bg-green-700 border border-green-600"></textarea>
+  <button id="sendMessageBtn" class="bg-green-400 text-black p-3 rounded-xl w-full font-bold">Send Message</button>
 </div>
 
-<!-- User Messages Section -->
-<div class="max-w-2xl mx-auto p-6 bg-zinc-800 rounded-2xl shadow-md">
-  <h2 class="text-2xl font-semibold text-emerald-400 mb-4">Your Messages</h2>
-  <div id="messagesList" class="space-y-4 max-h-96 overflow-y-auto">
-    <p class="text-zinc-400">Loading messages...</p>
-  </div>
-</div>
+<!-- Messages History -->
+<h2 class="text-xl font-bold mb-2">Your Messages</h2>
+<div id="userMessagesContainer" class="space-y-4 max-h-[400px] overflow-y-auto p-2"></div>
 
 <script type="module" src="support.js"></script>
 </body>
