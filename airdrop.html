@@ -1,142 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrops</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-black text-white p-6">
+<title>Airdrop</title>
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Airdrops</h1>
-
-<div id="airdropsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// Helper: auto-increment function
-async function incrementAirdrop(userUid, airdropId, amount=0.0001, interval=1000) {
-  const ref = doc(db, "users", userUid, "airdrops", airdropId);
-  const timer = setInterval(async ()=>{
-    const snap = await ref.get();
-    if(!snap.exists()) return clearInterval(timer);
-    const data = snap.data();
-    if(data.status !== "collecting") return clearInterval(timer);
-    await updateDoc(ref, {
-      collectedAmount: data.collectedAmount + amount,
-      lastUpdated: Date.now()
-    });
-  }, interval);
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0b0f14;
+  color:white;
 }
 
-onAuthStateChanged(auth, async (user) => {
-  if(!user){
-    alert("Please login first");
-    window.location.href = "index.html";
-    return;
+.header {
+  padding:15px;
+  background:#111827;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:#00ff99;
+}
+
+.container {
+  padding:15px;
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+}
+
+@media(min-width: 768px){
+  .container {
+    grid-template-columns: 1fr 1fr;
   }
+}
 
-  const airdropsContainer = document.getElementById("airdropsList");
+.card {
+  background:#161b22;
+  padding:15px;
+  border-radius:12px;
+  border:1px solid #2a2f3a;
+}
 
-  // Real-time listener for active airdrops
-  onSnapshot(collection(db, "airdrops"), snap => {
-    airdropsContainer.innerHTML = "";
-    snap.forEach(ad => {
-      const data = ad.data();
-      if(data.status !== "active") return;
+button {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  margin-top:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-      const div = document.createElement("div");
-      div.className = "bg-zinc-800 p-4 rounded";
-      div.innerHTML = `
-        <h2 class="text-xl font-bold">${data.coinName} (${data.symbol})</h2>
-        <p>Start: ${data.startDate ? new Date(data.startDate).toLocaleString() : "N/A"}</p>
-        <p>End: ${data.endDate ? new Date(data.endDate).toLocaleString() : "N/A"}</p>
-        <p>Price per Coin: ${data.pricePerCoin || 0}</p>
-        <p>Total Collected: ${data.totalCollected || 0}</p>
-        <p>Your Collected: <span class="userCollected">0</span></p>
-        <button class="mt-2 bg-emerald-400 text-black px-4 py-2 rounded start-btn">Start Collecting Airdrop</button>
-        <button class="mt-2 bg-yellow-400 text-black px-4 py-2 rounded withdraw-btn">Withdraw Airdrop</button>
-      `;
+.startBtn { background:#00c853; color:black; }
+.withdrawBtn { background:#ffb300; color:black; }
 
-      // Track user's collected amount
-      const userCollectedSpan = div.querySelector(".userCollected");
-      const userAirdropRef = doc(db, "users", user.uid, "airdrops", ad.id);
-      onSnapshot(userAirdropRef, userSnap=>{
-        if(userSnap.exists()){
-          const userData = userSnap.data();
-          userCollectedSpan.innerText = userData.collectedAmount.toFixed(6);
-        } else {
-          userCollectedSpan.innerText = "0";
-        }
-      });
+.balanceBox {
+  background:#0f172a;
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  font-size:18px;
+  color:#00ff99;
+  border:1px solid #1f2937;
+}
+</style>
+</head>
 
-      // Start collecting
-      div.querySelector(".start-btn").addEventListener("click", async ()=>{
-        try {
-          await setDoc(userAirdropRef, {
-            collectedAmount: 0,
-            status: "collecting",
-            lastUpdated: Date.now()
-          });
-          incrementAirdrop(user.uid, ad.id);
-          alert(`You started collecting ${data.coinName} airdrop!`);
-        } catch(e){
-          console.error(e);
-          alert("Failed to start airdrop. Check console.");
-        }
-      });
+<body>
 
-      // Withdraw
-      div.querySelector(".withdraw-btn").addEventListener("click", async ()=>{
-        try {
-          const snap = await userAirdropRef.get();
-          if(!snap.exists()) return alert("Start collecting first");
-          const collected = snap.data().collectedAmount;
-          if(collected <= 0) return alert("You have no airdrop to withdraw");
+<div class="header">🚀 Airdrop Mining Panel</div>
 
-          // Create pending transaction
-          await addDoc(collection(db, "transactions"), {
-            userId: user.uid,
-            userEmail: user.email,
-            type: "airdrop-withdraw",
-            coin: data.symbol,
-            amount: collected,
-            status: "pending",
-            timestamp: Date.now()
-          });
+<div class="container">
 
-          // Reset user collected amount
-          await updateDoc(userAirdropRef, { collectedAmount: 0, status: "pending" });
+  <div class="balanceBox" id="balanceBox">
+    Balance: 0.000000
+  </div>
 
-          alert("Withdrawal requested. Waiting admin approval.");
-        } catch(e){
-          console.error(e);
-          alert("Failed to request withdrawal. Check console.");
-        }
-      });
+  <div id="airdropList"></div>
 
-      airdropsContainer.appendChild(div);
-    });
-  });
-});
-</script>
+</div>
+
+<button class="withdrawBtn" onclick="withdraw()">
+💰 Withdraw Balance
+</button>
+
+<script type="module" src="airdrop.js"></script>
 </body>
 </html>
