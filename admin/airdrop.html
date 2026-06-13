@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Airdrop Panel</title>
+
+<title>Airdrop System</title>
 
 <style>
 body {
@@ -14,58 +15,52 @@ body {
 
 .header {
   padding:15px;
-  background:#0f172a;
   text-align:center;
-  font-size:20px;
+  background:#0f172a;
   color:#00ff99;
   font-weight:bold;
 }
 
-.grid {
+.container {
   display:grid;
   grid-template-columns:1fr;
   gap:15px;
   padding:15px;
 }
 
-@media(min-width: 768px){
-  .grid {
-    grid-template-columns:1fr 1fr;
-  }
+@media(min-width:900px){
+  .container { grid-template-columns:1fr 1fr; }
 }
 
 .card {
   background:#0f172a;
-  border:1px solid #1f2937;
   padding:15px;
   border-radius:12px;
+  border:1px solid #1f2937;
 }
 
 input {
   width:100%;
   padding:10px;
-  margin:6px 0;
+  margin:5px 0;
   border-radius:8px;
   border:none;
-  outline:none;
   background:#111827;
   color:white;
 }
 
 button {
   width:100%;
-  padding:12px;
+  padding:10px;
   border:none;
   border-radius:8px;
-  cursor:pointer;
   font-weight:bold;
+  cursor:pointer;
+  margin-top:6px;
 }
 
-.createBtn { background:#00ff99; color:black; }
-
-.withdrawBox {
-  margin-top:10px;
-}
+.green { background:#00ff99; color:black; }
+.red { background:#ef4444; color:white; }
 
 .item {
   background:#111827;
@@ -74,40 +69,51 @@ button {
   border-radius:10px;
   border:1px solid #2a2f3a;
 }
-
-.approveBtn {
-  margin-top:8px;
-  background:#00ff99;
-  color:black;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">🛠 Admin Airdrop Dashboard</div>
+<div class="header">🚀 Airdrop Admin System</div>
 
-<div class="grid">
+<div class="container">
 
+  <!-- CREATE AIRDROP -->
   <div class="card">
     <h3>Create Airdrop</h3>
 
     <input id="name" placeholder="Coin Name">
-    <input id="rate" placeholder="Mining Rate per sec">
-    <input id="price" placeholder="Coin Price">
+    <input id="rate" placeholder="Mining Rate">
+    <input id="price" placeholder="Price">
+    <input id="duration" placeholder="Duration (minutes)">
 
-    <button class="createBtn" id="create">
-      Create Airdrop
-    </button>
+    <button class="green" id="createBtn">Create Airdrop</button>
+
+    <!-- 🔥 THIS IS YOUR MISSING START BUTTON -->
+    <button class="green" id="startAll">Start Airdrops</button>
+    <button class="red" id="stopAll">Stop Airdrops</button>
   </div>
 
+  <!-- ACTIVE -->
   <div class="card">
-    <h3>Withdraw Requests</h3>
-    <div id="withdrawals"></div>
+    <h3>Active Airdrops</h3>
+    <div id="activeList"></div>
+  </div>
+
+  <!-- ENDED -->
+  <div class="card">
+    <h3>Ended Airdrops</h3>
+    <div id="endedList"></div>
+  </div>
+
+  <!-- WITHDRAW -->
+  <div class="card">
+    <h3>Withdrawals</h3>
+    <div id="withdrawList"></div>
   </div>
 
 </div>
 
-<script type="module" src="admin-airdrop.js"></script>
+<script type="module" src="airdrop.js"></script>
 </body>
 </html>
