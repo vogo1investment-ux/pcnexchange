@@ -1,78 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Airdrop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="UTF-8">
+  <title>Airdrop System</title>
   <style>
-    body {
-      font-family: Arial;
-      background: #0b0f1a;
-      color: white;
-      margin: 0;
-      padding: 20px;
+    body{
+      margin:0;
+      font-family:Arial;
+      background:#0b1220;
+      color:white;
+      padding:15px;
     }
 
-    .balance {
-      font-size: 28px;
-      font-weight: bold;
-      background: #111a2e;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      text-align: center;
-      color: #00ff99;
+    .card{
+      background:#111a2e;
+      padding:15px;
+      border-radius:12px;
+      margin-bottom:12px;
     }
 
-    .btn {
-      padding: 12px;
-      background: #00ff99;
-      border: none;
-      width: 100%;
-      margin-bottom: 15px;
-      font-weight: bold;
-      border-radius: 8px;
+    .balance{
+      font-size:30px;
+      font-weight:bold;
+      color:#00ff99;
     }
 
-    .card {
-      background: #141c2f;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
+    button{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      margin-top:10px;
+      font-size:16px;
+      cursor:pointer;
     }
 
-    .title {
-      font-weight: bold;
-      font-size: 18px;
-      margin-bottom: 8px;
+    .search{
+      background:#22c55e;
+      color:white;
     }
 
-    .small {
-      font-size: 12px;
-      color: #aaa;
+    .start{
+      background:#facc15;
     }
 
-    button.start {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: none;
-      background: #ffcc00;
-      font-weight: bold;
-      border-radius: 6px;
+    .title{
+      font-size:20px;
+      font-weight:bold;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="balance" id="balanceBox">💰 Balance: 0.000000</div>
+  <div class="card">
+    <div>💰 Balance</div>
+    <div id="balance" class="balance">0.00000000</div>
+  </div>
 
-  <button class="btn" id="loadBtn">🔍 Search Airdrops</button>
+  <button class="search" onclick="loadAirdrops()">🔍 Search Airdrops</button>
 
   <div id="list"></div>
 
-  <script type="module" src="airdrop.js"></script>
+<script type="module" src="airdrop.js"></script>
 
 </body>
 </html>
