@@ -4,9 +4,8 @@ import {
   collection,
   getDocs,
   doc,
-  setDoc,
   getDoc,
-  updateDoc,
+  setDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
@@ -30,85 +29,110 @@ const list = document.getElementById("list");
 const searchBtn = document.getElementById("searchBtn");
 
 let uid;
-let runningIntervals = {};
+let miningIntervals = {};
 
 /* ---------------- LOGIN ---------------- */
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return location.href = "login.html";
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
+
   uid = user.uid;
 
   listenBalance();
+  loadRunningAirdrops();
 });
 
-/* ---------------- REAL BALANCE LISTENER ---------------- */
+/* ---------------- BALANCE LISTENER ---------------- */
 function listenBalance() {
   onSnapshot(doc(db, "airdropUsers", uid), (snap) => {
-    if (!snap.exists()) return;
+    if (!snap.exists()) {
+      balanceUI.innerText = "0.000000";
+      return;
+    }
+
     balanceUI.innerText = (snap.data().balance || 0).toFixed(6);
   });
 }
 
 /* ---------------- SEARCH AIRDROPS ---------------- */
 searchBtn.onclick = async () => {
-
   list.innerHTML = "Loading airdrops...";
 
-  const snap = await getDocs(collection(db, "airdropCampaigns"));
+  try {
+    const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-  list.innerHTML = "";
+    list.innerHTML = "";
 
-  snap.forEach((d) => {
-    const data = d.data();
+    if (snap.empty) {
+      list.innerHTML = "No airdrops found";
+      return;
+    }
 
-    list.innerHTML += `
-      <div class="card">
-        🚀 <b>${data.name}</b><br>
-        💰 Rate: ${data.rate}<br>
-        📅 Start: ${new Date(data.startTime).toLocaleString()}<br>
-        📅 End: ${new Date(data.endTime).toLocaleString()}<br>
+    snap.forEach((d) => {
+      const data = d.data();
 
-        <button class="btn start" onclick="startAirdrop('${d.id}', ${data.rate}, ${data.endTime})">
-          START AIRDROP
-        </button>
+      list.innerHTML += `
+        <div class="card">
+          🚀 <b>${data.name}</b><br>
+          💰 Rate: ${data.rate}<br>
+          📅 Start: ${new Date(data.startTime).toLocaleString()}<br>
+          📅 End: ${new Date(data.endTime).toLocaleString()}<br>
 
-        <button class="btn stop" onclick="stopAirdrop('${d.id}')">
-          STOP AIRDROP
-        </button>
-      </div>
-    `;
-  });
+          <button class="btn blue"
+            onclick="startAirdrop('${d.id}', ${data.rate}, ${data.endTime})">
+            START AIRDROP
+          </button>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = "❌ Failed to load airdrops";
+  }
 };
 
 /* ---------------- START AIRDROP ---------------- */
 window.startAirdrop = async (id, rate, endTime) => {
 
-  const ref = doc(db, "airdropUsers", uid, "active", id);
   const userRef = doc(db, "airdropUsers", uid);
+  const activeRef = doc(db, "airdropUsers", uid, "active", id);
 
-  const snap = await getDoc(userRef);
-
-  let balance = snap.exists() ? snap.data().balance || 0 : 0;
-
-  await setDoc(userRef, { balance }, { merge: true });
-  await setDoc(ref, { rate, endTime, running: true });
+  await setDoc(activeRef, {
+    rate,
+    endTime,
+    running: true
+  });
 
   runMining(id, rate, endTime);
 
   alert("Airdrop Started 🚀");
 };
 
+/* ---------------- AUTO LOAD RUNNING AIRDROPS ---------------- */
+async function loadRunningAirdrops() {
+  const snap = await getDocs(collection(db, "airdropUsers", uid, "active"));
+
+  snap.forEach((d) => {
+    const data = d.data();
+    runMining(d.id, data.rate, data.endTime);
+  });
+}
+
 /* ---------------- MINING ENGINE ---------------- */
 function runMining(id, rate, endTime) {
 
-  if (runningIntervals[id]) clearInterval(runningIntervals[id]);
+  if (miningIntervals[id]) clearInterval(miningIntervals[id]);
 
-  runningIntervals[id] = setInterval(async () => {
+  miningIntervals[id] = setInterval(async () => {
 
     const now = Date.now();
 
     if (now >= endTime) {
-      clearInterval(runningIntervals[id]);
-      alert("Airdrop ended ⛔");
+      clearInterval(miningIntervals[id]);
+      delete miningIntervals[id];
       return;
     }
 
@@ -125,12 +149,3 @@ function runMining(id, rate, endTime) {
 
   }, 3000);
 }
-
-/* ---------------- STOP AIRDROP ---------------- */
-window.stopAirdrop = (id) => {
-  if (runningIntervals[id]) {
-    clearInterval(runningIntervals[id]);
-    delete runningIntervals[id];
-  }
-  alert("Stopped");
-};
