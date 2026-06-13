@@ -4,9 +4,8 @@ import {
   getFirestore,
   collection,
   query,
-  where,
   orderBy,
-  onSnapshot
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -26,11 +25,8 @@ const historyTableBody = document.getElementById("historyTableBody");
 const tabButtons = document.querySelectorAll(".tab-btn");
 
 let currentType = "deposit";
-let currentUser = null;
 
-// ======================
-// TAB CLICK
-// ======================
+// ---------------- TAB CLICK ----------------
 tabButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     currentType = btn.dataset.type;
@@ -38,13 +34,11 @@ tabButtons.forEach(btn => {
     tabButtons.forEach(b => b.classList.remove("bg-emerald-500"));
     btn.classList.add("bg-emerald-500");
 
-    if (currentUser) loadTransactions(currentUser.uid);
+    loadTransactions();
   });
 });
 
-// ======================
-// AUTH
-// ======================
+// ---------------- AUTH ----------------
 onAuthStateChanged(auth, user => {
   if (!user) {
     alert("Login required");
@@ -52,26 +46,22 @@ onAuthStateChanged(auth, user => {
     return;
   }
 
-  currentUser = user;
   loadTransactions(user.uid);
 });
 
-// ======================
-// REALTIME LOAD (FIXED)
-// ======================
-function loadTransactions(uid) {
+// ---------------- LOAD USER TRANSACTIONS ----------------
+async function loadTransactions(uid) {
   historyTableBody.innerHTML =
     `<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>`;
 
-  const q = query(
-    collection(db, "pendingTransactions"),
-    where("userId", "==", uid),
-    orderBy("createdAt", "desc")
-  );
+  try {
+    // ✅ YOUR REAL STRUCTURE
+    const txnRef = collection(db, "users", uid, "transactions");
 
-  // 🔥 REALTIME LISTENER (IMPORTANT FIX)
-  onSnapshot(q, snapshot => {
-    if (snapshot.empty) {
+    const q = query(txnRef, orderBy("timestamp", "desc"));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
       historyTableBody.innerHTML =
         `<tr><td colspan="5" class="p-4 text-center">No transactions found</td></tr>`;
       return;
@@ -79,21 +69,23 @@ function loadTransactions(uid) {
 
     let rows = [];
 
-    snapshot.forEach(docSnap => {
+    snap.forEach(docSnap => {
       const t = docSnap.data();
       const type = (t.type || "").toLowerCase();
 
-      let match = false;
-
-      if (currentType === "deposit" && type.includes("deposit")) match = true;
-      if (currentType === "withdrawal" && type.includes("withdraw")) match = true;
-      if (currentType === "stake" && type.includes("stake")) match = true;
-      if (currentType === "transfer" && type.includes("transfer")) match = true;
-      if (currentType === "received" && type.includes("received")) match = true;
+      // FILTERING
+      let match =
+        (currentType === "deposit" && type.includes("deposit")) ||
+        (currentType === "withdrawal" && type.includes("withdraw")) ||
+        (currentType === "stake" && type.includes("stake")) ||
+        (currentType === "transfer" && type.includes("transfer")) ||
+        (currentType === "received" && type.includes("received"));
 
       if (!match) return;
 
-      const date = t.createdAt?.toDate ? t.createdAt.toDate() : new Date();
+      const date = t.timestamp?.toDate
+        ? t.timestamp.toDate()
+        : new Date();
 
       rows.push(`
         <tr class="bg-zinc-900 hover:bg-zinc-800">
@@ -106,16 +98,11 @@ function loadTransactions(uid) {
       `);
     });
 
-    if (rows.length === 0) {
-      historyTableBody.innerHTML =
-        `<tr><td colspan="5" class="p-4 text-center">No ${currentType} transactions</td></tr>`;
-      return;
-    }
-
     historyTableBody.innerHTML = rows.join("");
-  }, error => {
-    console.error(error);
+
+  } catch (err) {
+    console.error(err);
     historyTableBody.innerHTML =
       `<tr><td colspan="5" class="p-4 text-center text-red-500">Failed to load transactions</td></tr>`;
-  });
+  }
 }
