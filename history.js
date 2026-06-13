@@ -1,6 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { 
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -21,9 +28,9 @@ const tabButtons = document.querySelectorAll(".tab-btn");
 let currentType = "deposit";
 let currentUser = null;
 
-// =========================
-// TAB SWITCH
-// =========================
+// ======================
+// TAB CLICK
+// ======================
 tabButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     currentType = btn.dataset.type;
@@ -35,12 +42,12 @@ tabButtons.forEach(btn => {
   });
 });
 
-// =========================
+// ======================
 // AUTH
-// =========================
-onAuthStateChanged(auth, async user => {
+// ======================
+onAuthStateChanged(auth, user => {
   if (!user) {
-    alert("Please login first");
+    alert("Login required");
     window.location.href = "login.html";
     return;
   }
@@ -49,68 +56,46 @@ onAuthStateChanged(auth, async user => {
   loadTransactions(user.uid);
 });
 
-// =========================
-// LOAD HISTORY (FIXED)
-// =========================
-async function loadTransactions(uid) {
+// ======================
+// REALTIME LOAD (FIXED)
+// ======================
+function loadTransactions(uid) {
   historyTableBody.innerHTML =
     `<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>`;
 
-  try {
-    // 🔥 READ GLOBAL COLLECTION (IMPORTANT FIX)
-    const q = query(
-      collection(db, "pendingTransactions"),
-      where("userId", "==", uid),
-      orderBy("createdAt", "desc")
-    );
+  const q = query(
+    collection(db, "pendingTransactions"),
+    where("userId", "==", uid),
+    orderBy("createdAt", "desc")
+  );
 
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
+  // 🔥 REALTIME LISTENER (IMPORTANT FIX)
+  onSnapshot(q, snapshot => {
+    if (snapshot.empty) {
       historyTableBody.innerHTML =
         `<tr><td colspan="5" class="p-4 text-center">No transactions found</td></tr>`;
       return;
     }
 
-    const txns = [];
+    let rows = [];
 
-    snap.forEach(docSnap => {
+    snapshot.forEach(docSnap => {
       const t = docSnap.data();
-      if (!t.type) return;
-
       const type = (t.type || "").toLowerCase();
 
-      // =========================
-      // FILTER FIXED
-      // =========================
-      if (
-        (currentType === "deposit" && type.includes("deposit")) ||
-        (currentType === "withdrawal" && type.includes("withdraw")) ||
-        (currentType === "stake" && type.includes("stake")) ||
-        (currentType === "transfer" && type.includes("transfer") && !type.includes("received")) ||
-        (currentType === "received" && type.includes("received"))
-      ) {
-        txns.push(t);
-      }
-    });
+      let match = false;
 
-    if (txns.length === 0) {
-      historyTableBody.innerHTML =
-        `<tr><td colspan="5" class="p-4 text-center">No ${currentType} transactions</td></tr>`;
-      return;
-    }
+      if (currentType === "deposit" && type.includes("deposit")) match = true;
+      if (currentType === "withdrawal" && type.includes("withdraw")) match = true;
+      if (currentType === "stake" && type.includes("stake")) match = true;
+      if (currentType === "transfer" && type.includes("transfer")) match = true;
+      if (currentType === "received" && type.includes("received")) match = true;
 
-    // =========================
-    // RENDER
-    // =========================
-    historyTableBody.innerHTML = "";
+      if (!match) return;
 
-    txns.forEach(t => {
-      let date = t.createdAt?.toDate
-        ? t.createdAt.toDate()
-        : new Date();
+      const date = t.createdAt?.toDate ? t.createdAt.toDate() : new Date();
 
-      historyTableBody.innerHTML += `
+      rows.push(`
         <tr class="bg-zinc-900 hover:bg-zinc-800">
           <td class="p-2 border border-zinc-700">${t.type || "-"}</td>
           <td class="p-2 border border-zinc-700">${t.amount || 0}</td>
@@ -118,12 +103,19 @@ async function loadTransactions(uid) {
           <td class="p-2 border border-zinc-700">${t.status || "Pending"}</td>
           <td class="p-2 border border-zinc-700">${date.toLocaleString()}</td>
         </tr>
-      `;
+      `);
     });
 
-  } catch (err) {
-    console.error("HISTORY ERROR:", err);
+    if (rows.length === 0) {
+      historyTableBody.innerHTML =
+        `<tr><td colspan="5" class="p-4 text-center">No ${currentType} transactions</td></tr>`;
+      return;
+    }
+
+    historyTableBody.innerHTML = rows.join("");
+  }, error => {
+    console.error(error);
     historyTableBody.innerHTML =
       `<tr><td colspan="5" class="p-4 text-center text-red-500">Failed to load transactions</td></tr>`;
-  }
+  });
 }
