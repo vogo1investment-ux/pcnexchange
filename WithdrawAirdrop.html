@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdraw Airdrop</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0b1220;
+  color: white;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
+}
+
+/* BALANCE */
+.balanceBox {
+  background: #111a2e;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.balanceTitle {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.balanceAmount {
+  font-size: 32px;
+  font-weight: bold;
+  color: #00ff88;
+}
+
+/* INFO */
+.infoBox {
+  background: #111a2e;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+/* FORM */
+.card {
+  margin-top: 12px;
+  background: #111a2e;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 15px;
+  background: gold;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- BALANCE -->
+  <div class="balanceBox">
+    <div class="balanceTitle">💰 AVAILABLE AIRDROP BALANCE</div>
+    <div class="balanceAmount" id="balance">0.00000000</div>
+  </div>
+
+  <!-- INFO TEXT -->
+  <div class="infoBox">
+    <b style="color:#00ff88;">📢 Withdrawal Information</b><br><br>
+
+    When you submit a withdrawal request, your Airdrop earnings will be transferred from the Airdrop mining system into your main withdrawable balance.<br><br>
+
+    After admin approval, the funds will appear in your dashboard balance where you can withdraw to your bank or crypto wallet.<br><br>
+
+    ⚠️ Make sure your User ID and password are correct before submitting.
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+
+    <input type="text" id="userId" placeholder="Enter your User ID">
+
+    <input type="password" id="password" placeholder="Enter your password">
+
+    <input type="number" id="amount" placeholder="Enter withdrawal amount">
+
+    <button onclick="submitWithdraw()">Submit Withdrawal</button>
+
+  </div>
+
+</div>
+
+<script type="module" src="WithdrawAirdrop.js"></script>
+
+</body>
+</html>
