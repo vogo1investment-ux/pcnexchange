@@ -3,94 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop Panel</title>
+<title>Airdrop Mining</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0b1220;
-  color: white;
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 15px;
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
 }
 
-/* BALANCE */
-.balanceBox {
-  background: linear-gradient(135deg, #0f172a, #111a2e);
-  padding: 25px;
-  border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,255,136,0.2);
+/* BIG BALANCE */
+.balanceBox{
+  background:#111a2e;
+  padding:25px;
+  border-radius:15px;
+  text-align:center;
 }
 
-.balanceTitle {
-  font-size: 14px;
-  opacity: 0.7;
+.balanceTitle{
+  font-size:14px;
+  opacity:0.8;
 }
 
-.balanceValue {
-  font-size: 32px;
-  font-weight: bold;
-  color: #00ff88;
-  margin-top: 5px;
+.balanceValue{
+  font-size:32px;
+  font-weight:bold;
+  color:#00ff88;
 }
 
 /* BUTTON */
-.searchBtn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: #22c55e;
-  font-weight: bold;
-  cursor: pointer;
-  color: black;
+.btn{
+  width:100%;
+  margin-top:12px;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-/* AIRDROP CARD */
-.card {
-  background: #111a2e;
-  padding: 15px;
-  margin-top: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
+.search{
+  background:#22c55e;
+  color:black;
 }
 
-.title {
-  font-size: 18px;
-  font-weight: bold;
+.start{
+  background:#facc15;
+  color:black;
 }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 13px;
-  opacity: 0.9;
+/* CARD */
+.card{
+  background:#111a2e;
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
 }
 
-.mineBtn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: gold;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* SMALL TEXT */
-.small {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-top: 5px;
+.small{
+  font-size:12px;
+  opacity:0.7;
 }
 </style>
 </head>
@@ -102,25 +81,17 @@ body {
   <!-- BALANCE -->
   <div class="balanceBox">
     <div class="balanceTitle">TOTAL AIRDROP BALANCE</div>
-    <div class="balanceValue">
-      💰 <span id="balance">0.00000000</span>
-    </div>
-    <div class="small">Mining starts at 0.00000001 per tick</div>
+    <div class="balanceValue">💰 <span id="balance">0.00000000</span></div>
   </div>
 
   <!-- SEARCH -->
-  <button class="searchBtn" onclick="loadAirdrops()">
-    🔎 Search Airdrops
-  </button>
+  <button class="btn search" id="searchBtn">🔎 Search Airdrops</button>
 
   <!-- LIST -->
-  <div id="list">
-    <p class="small">No airdrops loaded yet...</p>
-  </div>
+  <div id="list"></div>
 
 </div>
 
 <script type="module" src="airdrop.js"></script>
-
 </body>
 </html>
