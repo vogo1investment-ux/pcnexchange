@@ -4,16 +4,16 @@ import {
   collection,
   getDocs,
   addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
   query,
   orderBy,
   onSnapshot,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -30,18 +30,12 @@ const auth = getAuth(app);
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const userList = document.getElementById("userList");
-const historyBox = document.getElementById("historyBox");
-
-const uidInput = document.getElementById("uid");
-const type = document.getElementById("type");
-const amount = document.getElementById("amount");
-const method = document.getElementById("method");
-const status = document.getElementById("status");
-
 let selectedUser = null;
 
-/* ---------------- ADMIN CHECK ---------------- */
+const usersDiv = document.getElementById("users");
+const historyDiv = document.getElementById("history");
+const selectedUserDiv = document.getElementById("selectedUser");
+
 onAuthStateChanged(auth, async user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access denied");
@@ -52,30 +46,34 @@ onAuthStateChanged(auth, async user => {
   loadUsers();
 });
 
-/* ---------------- LOAD USERS ---------------- */
+// LOAD USERS (with UID + name if exists)
 async function loadUsers() {
   const snap = await getDocs(collection(db, "users"));
 
-  userList.innerHTML = "";
+  usersDiv.innerHTML = "";
 
-  snap.forEach(doc => {
-    const u = doc.id;
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
 
     const div = document.createElement("div");
     div.className = "user";
-    div.textContent = u;
+
+    div.innerHTML = `
+      <b>${data.name || "No Name"}</b><br>
+      <small>${docSnap.id}</small>
+    `;
 
     div.onclick = () => {
-      selectedUser = u;
-      uidInput.value = u;
-      loadHistory(u);
+      selectedUser = docSnap.id;
+      selectedUserDiv.innerHTML = "Selected: " + selectedUser;
+      loadHistory(selectedUser);
     };
 
-    userList.appendChild(div);
+    usersDiv.appendChild(div);
   });
 }
 
-/* ---------------- LOAD HISTORY ---------------- */
+// LOAD HISTORY (small cards)
 function loadHistory(uid) {
   const q = query(
     collection(db, "users", uid, "transactions"),
@@ -83,39 +81,58 @@ function loadHistory(uid) {
   );
 
   onSnapshot(q, snap => {
-    historyBox.innerHTML = "<h3>History</h3>";
+    historyDiv.innerHTML = "";
 
     snap.forEach(d => {
       const t = d.data();
 
-      historyBox.innerHTML += `
-        <div class="txn">
-          <b>${t.type}</b><br>
-          Amount: ${t.amount || 0}<br>
-          Method: ${t.method || "-"}<br>
-          Status: ${t.status || "-"}
+      const div = document.createElement("div");
+      div.className = "historyItem";
+
+      div.innerHTML = `
+        <b>${t.type}</b> - ${t.amount}<br>
+        ${t.method || "-"} | ${t.status || "-"}
+        <div class="row">
+          <button class="smallBtn" onclick="editItem('${uid}','${d.id}','${t.type}','${t.amount}','${t.method}','${t.status}')">Edit</button>
+          <button class="smallBtn" onclick="deleteItem('${uid}','${d.id}')">Delete</button>
         </div>
       `;
+
+      historyDiv.appendChild(div);
     });
   });
 }
 
-/* ---------------- ADD HISTORY ---------------- */
-document.getElementById("addTxn").onclick = async () => {
-  if (!selectedUser) return alert("Select a user first");
+// ADD HISTORY
+document.getElementById("add").onclick = async () => {
+  if (!selectedUser) return alert("Select user first");
 
   await addDoc(collection(db, "users", selectedUser, "transactions"), {
     type: type.value,
     amount: Number(amount.value),
     method: method.value,
-    status: status.value || "pending",
-    userId: selectedUser,
+    status: status.value,
     timestamp: serverTimestamp()
   });
 
-  alert("History added!");
+  alert("Added");
+};
 
-  amount.value = "";
-  method.value = "";
-  status.value = "";
+// EDIT
+window.editItem = async (uid, id, typeV, amountV, methodV, statusV) => {
+  const newAmount = prompt("Amount", amountV);
+  const newStatus = prompt("Status", statusV);
+
+  await updateDoc(doc(db, "users", uid, "transactions", id), {
+    amount: Number(newAmount),
+    status: newStatus
+  });
+
+  alert("Updated");
+};
+
+// DELETE
+window.deleteItem = async (uid, id) => {
+  await deleteDoc(doc(db, "users", uid, "transactions", id));
+  alert("Deleted");
 };

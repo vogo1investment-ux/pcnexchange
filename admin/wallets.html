@@ -1,114 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin User History</title>
-  <style>
-    body {
-      background:#0b0f14;
-      color:white;
-      font-family: Arial;
-      display:flex;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .left {
-      width:30%;
-      border-right:1px solid #222;
-      height:100vh;
-      overflow:auto;
-      padding:10px;
-    }
+<title>Wallet Admin Panel</title>
 
-    .right {
-      width:70%;
-      padding:15px;
-    }
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0b0f14;
+  color:white;
+}
 
-    .user {
-      padding:10px;
-      background:#111;
-      margin-bottom:8px;
-      cursor:pointer;
-      border-radius:8px;
-    }
+.container {
+  display:flex;
+  flex-direction:row;
+}
 
-    .user:hover {
-      background:#1a1a1a;
-    }
+.left {
+  width:30%;
+  height:100vh;
+  overflow:auto;
+  border-right:1px solid #222;
+  padding:10px;
+}
 
-    .box {
-      background:#111;
-      padding:10px;
-      border-radius:10px;
-      margin-bottom:10px;
-    }
+.right {
+  width:70%;
+  padding:10px;
+}
 
-    input, select {
-      width:100%;
-      padding:10px;
-      margin:5px 0;
-      background:#000;
-      color:white;
-      border:1px solid #333;
-      border-radius:8px;
-    }
+.user {
+  padding:10px;
+  margin:5px 0;
+  background:#111;
+  cursor:pointer;
+  border-radius:8px;
+}
 
-    button {
-      padding:10px;
-      background:limegreen;
-      border:none;
-      width:100%;
-      cursor:pointer;
-      margin-top:10px;
-      border-radius:8px;
-      font-weight:bold;
-    }
+.user:hover {
+  background:#1a1a1a;
+}
 
-    .txn {
-      padding:10px;
-      background:#0f1720;
-      margin-top:8px;
-      border-radius:8px;
-    }
+.card {
+  background:#111;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
 
-    .title {
-      color:lime;
-      font-size:20px;
-      margin-bottom:10px;
-    }
-  </style>
+input, select {
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  background:#000;
+  color:white;
+  border:1px solid #333;
+  border-radius:8px;
+}
+
+button {
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  background:limegreen;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.historyItem {
+  background:#0f1720;
+  padding:8px;
+  border-radius:8px;
+  margin-top:5px;
+  font-size:14px;
+}
+
+.smallBtn {
+  width:48%;
+  display:inline-block;
+  margin-top:5px;
+  background:#333;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+}
+</style>
+
 </head>
+
 <body>
 
-<div class="left">
-  <h3>Users</h3>
-  <div id="userList"></div>
-</div>
+<div class="container">
 
-<div class="right">
-  <div class="title">User History Editor</div>
-
-  <div class="box">
-    <input id="uid" placeholder="Selected User UID" disabled />
-
-    <select id="type">
-      <option value="deposit">Deposit</option>
-      <option value="withdraw">Withdraw</option>
-      <option value="stake">Stake</option>
-      <option value="transfer">Transfer</option>
-      <option value="received">Received</option>
-    </select>
-
-    <input id="amount" placeholder="Amount" />
-    <input id="method" placeholder="Method (bank, crypto etc)" />
-    <input id="status" placeholder="Status (pending/approved)" />
-
-    <button id="addTxn">Add History</button>
+  <!-- USERS LIST -->
+  <div class="left">
+    <h3>Users</h3>
+    <div id="users"></div>
   </div>
 
-  <div id="historyBox"></div>
+  <!-- DETAILS -->
+  <div class="right">
+
+    <h3>User Panel</h3>
+    <div id="selectedUser">No user selected</div>
+
+    <div class="card">
+      <select id="type">
+        <option value="deposit">Deposit</option>
+        <option value="withdraw">Withdraw</option>
+        <option value="stake">Stake</option>
+        <option value="transfer">Transfer</option>
+        <option value="received">Received</option>
+      </select>
+
+      <input id="amount" placeholder="Amount">
+      <input id="method" placeholder="Method">
+      <input id="status" placeholder="Status">
+
+      <button id="add">Add History</button>
+    </div>
+
+    <h4>History (click to edit/delete)</h4>
+    <div id="history"></div>
+
+  </div>
+
 </div>
 
 <script type="module" src="wallets.js"></script>
-
 </body>
 </html>
