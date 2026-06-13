@@ -1,12 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import {
   getFirestore,
   collection,
   query,
   where,
-  onSnapshot
+  onSnapshot,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -19,95 +21,116 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const historyTableBody = document.getElementById("historyTableBody");
+const tabButtons = document.querySelectorAll(".tab-btn");
 
-let allTransactions = [];
+let currentType = "all";
+let currentUserId = null;
 
-// LOGIN CHECK
+// Tabs
+tabButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentType = btn.dataset.type;
+
+    tabButtons.forEach(b => b.classList.remove("bg-emerald-500"));
+    btn.classList.add("bg-emerald-500");
+
+    if (currentUserId) loadAllHistory(currentUserId);
+  });
+});
+
+// Auth
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
 
-  loadHistory(user.uid);
+  currentUserId = user.uid;
+  loadAllHistory(user.uid);
 });
 
-// LOAD ALL HISTORY
-function loadHistory(uid) {
-  historyTableBody.innerHTML =
-    `<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>`;
+// MAIN LOADER (FIX)
+function loadAllHistory(uid) {
+  historyTableBody.innerHTML = `
+    <tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>
+  `;
 
-  allTransactions = [];
+  let allTransactions = [];
 
-  // 1. USER OWN TRANSACTIONS
-  const userTxnRef = collection(db, "users", uid, "transactions");
-  const q1 = query(userTxnRef);
+  // 1. USER SUBCOLLECTION
+  const userTxRef = collection(db, "users", uid, "transactions");
+  const q1 = query(userTxRef, orderBy("timestamp", "desc"));
 
-  onSnapshot(q1, (snap) => {
-    syncData(snap, uid);
+  onSnapshot(q1, (snap1) => {
+    allTransactions = [];
+
+    snap1.forEach(doc => {
+      allTransactions.push(doc.data());
+    });
+
+    render(allTransactions);
+  }, (err) => {
+    console.log("User tx error:", err);
   });
 
-  // 2. GLOBAL PENDING TRANSACTIONS (deposit/withdraw/admin created)
-  const pendingRef = collection(db, "pendingTransactions");
-  const q2 = query(pendingRef, where("userId", "==", uid));
+  // 2. ROOT PENDING TRANSACTIONS
+  const rootTxRef = collection(db, "pendingTransactions");
+  const q2 = query(rootTxRef, where("userId", "==", uid));
 
-  onSnapshot(q2, (snap) => {
-    syncData(snap, uid);
+  onSnapshot(q2, (snap2) => {
+    snap2.forEach(doc => {
+      const data = doc.data();
+      allTransactions.push(data);
+    });
+
+    render(allTransactions);
+  }, (err) => {
+    console.log("Root tx error:", err);
   });
 }
 
-// MERGE DATA FROM BOTH SOURCES
-function syncData(snapshot, uid) {
-  snapshot.forEach(doc => {
-    const data = doc.data();
+// FILTER + RENDER
+function render(txns) {
+  historyTableBody.innerHTML = "";
 
-    const item = {
-      type: data.type || "unknown",
-      amount: data.amount || 0,
-      method: data.method || "-",
-      status: data.status || "pending",
-      timestamp: data.createdAt?.toDate?.() || new Date(),
-      raw: data
-    };
+  let filtered = txns.filter(t => {
+    if (!t.type) return false;
 
-    // avoid duplicates
-    const exists = allTransactions.find(t =>
-      t.timestamp?.getTime?.() === item.timestamp?.getTime?.() &&
-      t.amount === item.amount &&
-      t.type === item.type
-    );
+    const type = t.type.toLowerCase();
 
-    if (!exists) allTransactions.push(item);
+    if (currentType === "all") return true;
+    if (currentType === "deposits") return type.includes("deposit");
+    if (currentType === "withdrawals") return type.includes("withdraw");
+    if (currentType === "stakes") return type.includes("stake");
+    if (currentType === "transfers") return type.includes("transfer");
+    if (currentType === "received") return type.includes("receive");
+
+    return true;
   });
 
-  renderHistory();
-}
-
-// RENDER UI
-function renderHistory() {
-  if (!allTransactions.length) {
-    historyTableBody.innerHTML =
-      `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
+  if (filtered.length === 0) {
+    historyTableBody.innerHTML = `
+      <tr><td colspan="5" class="p-4 text-center">No transactions found</td></tr>
+    `;
     return;
   }
 
-  // sort newest first
-  allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+  filtered.forEach(t => {
+    const date = t.timestamp?.toDate?.()
+      || new Date(t.createdAt?.seconds * 1000)
+      || new Date();
 
-  historyTableBody.innerHTML = "";
-
-  allTransactions.forEach(t => {
     historyTableBody.innerHTML += `
-      <tr>
-        <td>${t.type}</td>
-        <td>${t.amount}</td>
-        <td>${t.method}</td>
-        <td>${t.status}</td>
-        <td>${new Date(t.timestamp).toLocaleString()}</td>
+      <tr class="bg-zinc-900">
+        <td class="p-2 border border-zinc-700">${t.type || "-"}</td>
+        <td class="p-2 border border-zinc-700">${t.amount || 0}</td>
+        <td class="p-2 border border-zinc-700">${t.method || t.coinOrPayment || "-"}</td>
+        <td class="p-2 border border-zinc-700">${t.status || "Pending"}</td>
+        <td class="p-2 border border-zinc-700">${date.toLocaleString()}</td>
       </tr>
     `;
   });
