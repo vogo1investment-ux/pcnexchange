@@ -2,11 +2,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getFirestore,
   collection,
+  getDocs,
   doc,
   setDoc,
   getDoc,
-  onSnapshot,
-  updateDoc
+  updateDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -14,93 +15,122 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-const app = initializeApp({
+const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange",
-});
+  projectId: "pcnexchange"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const list = document.getElementById("airdropList");
-const balanceBox = document.getElementById("totalBalance");
+const balanceUI = document.getElementById("balance");
+const list = document.getElementById("list");
+const searchBtn = document.getElementById("searchBtn");
 
 let uid;
+let runningIntervals = {};
 
-/* ---------------- AUTH ---------------- */
-onAuthStateChanged(auth, (user) => {
-  if (!user) return (location.href = "login.html");
+/* ---------------- LOGIN ---------------- */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return location.href = "login.html";
   uid = user.uid;
-  loadAirdrops();
+
+  listenBalance();
 });
 
-/* ---------------- LOAD AIRDROPS ---------------- */
-function loadAirdrops() {
-  onSnapshot(collection(db, "airdropCampaigns"), (snap) => {
-
-    list.innerHTML = "";
-
-    snap.forEach((docSnap) => {
-      const d = docSnap.data();
-
-      list.innerHTML += `
-        <div class="card">
-          🚀 <b>${d.name}</b><br>
-          💰 Rate: ${d.rate}<br>
-          📅 Start: ${new Date(d.startTime).toLocaleString()}<br>
-          📅 End: ${new Date(d.endTime).toLocaleString()}<br>
-
-          <button onclick="startAirdrop('${docSnap.id}', ${d.rate})"
-          style="width:100%;padding:10px;background:#22c55e;border:none">
-            START AIRDROP
-          </button>
-        </div>
-      `;
-    });
+/* ---------------- REAL BALANCE LISTENER ---------------- */
+function listenBalance() {
+  onSnapshot(doc(db, "airdropUsers", uid), (snap) => {
+    if (!snap.exists()) return;
+    balanceUI.innerText = (snap.data().balance || 0).toFixed(6);
   });
 }
 
-/* ---------------- START AIRDROP ---------------- */
-window.startAirdrop = async (id, rate) => {
+/* ---------------- SEARCH AIRDROPS ---------------- */
+searchBtn.onclick = async () => {
 
-  const ref = doc(db, "airdropUsers", uid, "activeAirdrops", id);
+  list.innerHTML = "Loading airdrops...";
 
-  const snap = await getDoc(ref);
+  const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-  let currentBalance = snap.exists() ? snap.data().balance : 0;
+  list.innerHTML = "";
 
-  await setDoc(ref, {
-    balance: currentBalance,
-    rate,
-    lastUpdate: Date.now()
+  snap.forEach((d) => {
+    const data = d.data();
+
+    list.innerHTML += `
+      <div class="card">
+        🚀 <b>${data.name}</b><br>
+        💰 Rate: ${data.rate}<br>
+        📅 Start: ${new Date(data.startTime).toLocaleString()}<br>
+        📅 End: ${new Date(data.endTime).toLocaleString()}<br>
+
+        <button class="btn start" onclick="startAirdrop('${d.id}', ${data.rate}, ${data.endTime})">
+          START AIRDROP
+        </button>
+
+        <button class="btn stop" onclick="stopAirdrop('${d.id}')">
+          STOP AIRDROP
+        </button>
+      </div>
+    `;
   });
-
-  alert("Airdrop Started 🚀");
-
-  runMining(id);
 };
 
-/* ---------------- REAL MINING ---------------- */
-function runMining(id) {
+/* ---------------- START AIRDROP ---------------- */
+window.startAirdrop = async (id, rate, endTime) => {
 
-  const ref = doc(db, "airdropUsers", uid, "activeAirdrops", id);
+  const ref = doc(db, "airdropUsers", uid, "active", id);
+  const userRef = doc(db, "airdropUsers", uid);
 
-  setInterval(async () => {
+  const snap = await getDoc(userRef);
 
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
+  let balance = snap.exists() ? snap.data().balance || 0 : 0;
 
-    let data = snap.data();
+  await setDoc(userRef, { balance }, { merge: true });
+  await setDoc(ref, { rate, endTime, running: true });
 
-    let newBalance = Number(data.balance || 0) + Number(data.rate || 0);
+  runMining(id, rate, endTime);
 
-    await updateDoc(ref, {
-      balance: newBalance,
-      lastUpdate: Date.now()
-    });
+  alert("Airdrop Started 🚀");
+};
 
-    balanceBox.innerText = newBalance.toFixed(6);
+/* ---------------- MINING ENGINE ---------------- */
+function runMining(id, rate, endTime) {
+
+  if (runningIntervals[id]) clearInterval(runningIntervals[id]);
+
+  runningIntervals[id] = setInterval(async () => {
+
+    const now = Date.now();
+
+    if (now >= endTime) {
+      clearInterval(runningIntervals[id]);
+      alert("Airdrop ended ⛔");
+      return;
+    }
+
+    const userRef = doc(db, "airdropUsers", uid);
+    const snap = await getDoc(userRef);
+
+    let balance = snap.exists() ? snap.data().balance || 0 : 0;
+
+    balance += Number(rate);
+
+    await setDoc(userRef, { balance }, { merge: true });
+
+    balanceUI.innerText = balance.toFixed(6);
 
   }, 3000);
 }
+
+/* ---------------- STOP AIRDROP ---------------- */
+window.stopAirdrop = (id) => {
+  if (runningIntervals[id]) {
+    clearInterval(runningIntervals[id]);
+    delete runningIntervals[id];
+  }
+  alert("Stopped");
+};

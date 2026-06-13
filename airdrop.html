@@ -1,81 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop User Panel</title>
+  <title>Airdrop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#050816;
-  color:white;
-}
+  <style>
+    body {
+      background:#0b0f19;
+      color:white;
+      font-family: Arial;
+      margin:0;
+      padding:20px;
+    }
 
-.header{
-  padding:15px;
-  text-align:center;
-  background:#0f172a;
-  color:#00ff99;
-  font-weight:bold;
-}
+    .balance {
+      background:#111827;
+      padding:20px;
+      border-radius:15px;
+      text-align:center;
+      font-size:28px;
+      font-weight:bold;
+      color:#00ff99;
+      margin-bottom:20px;
+    }
 
-.balanceBox{
-  text-align:center;
-  padding:20px;
-  background:#0f172a;
-  margin:10px;
-  border-radius:12px;
-  border:1px solid #1f2937;
-}
+    .btn {
+      padding:12px;
+      width:100%;
+      margin-top:10px;
+      border:none;
+      border-radius:10px;
+      font-weight:bold;
+      cursor:pointer;
+    }
 
-.balanceBox h1{
-  color:#00ff99;
-  font-size:28px;
-  margin:0;
-}
+    .searchBtn {
+      background:#22c55e;
+      color:black;
+    }
 
-.container{
-  padding:15px;
-  display:grid;
-  gap:15px;
-}
+    .card {
+      background:#111827;
+      padding:15px;
+      margin-top:10px;
+      border-radius:10px;
+    }
 
-.card{
-  background:#0f172a;
-  border:1px solid #1f2937;
-  padding:15px;
-  border-radius:12px;
-}
+    .start {
+      background:#3b82f6;
+      color:white;
+    }
 
-button{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  margin-top:8px;
-  font-weight:bold;
-  cursor:pointer;
-}
+    .stop {
+      background:#ef4444;
+      color:white;
+      margin-top:5px;
+    }
 
-.green{background:#22c55e;color:black;}
-.gray{background:#334155;color:white;}
-</style>
+    #list {
+      margin-top:20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">🚀 Airdrop </div>
+  <div class="balance">
+    💰 BALANCE<br>
+    <span id="balance">0.000000</span>
+  </div>
 
-<!-- 💰 BIG BALANCE (FIXED) -->
-<div class="balanceBox">
-  💰 TOTAL BALANCE
-  <h1 id="totalBalance">0.000000</h1>
-</div>
+  <button class="btn searchBtn" id="searchBtn">
+    🔍 Search for Airdrop
+  </button>
 
-<div class="container" id="list"></div>
+  <div id="list"></div>
 
-<script type="module" src="airdrop.js"></script>
-
+  <script type="module" src="airdrop.js"></script>
 </body>
 </html>
