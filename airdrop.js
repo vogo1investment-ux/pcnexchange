@@ -6,8 +6,7 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc,
-  onSnapshot
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -29,14 +28,18 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let uid;
+let totalBalance = 0;
 const list = document.getElementById("list");
+const totalBalanceEl = document.getElementById("totalBalance");
 
-/* ================= USER LOGIN ================= */
+/* ================= USER AUTH ================= */
 onAuthStateChanged(auth, async (user) => {
   if (!user) return (location.href = "login.html");
 
   uid = user.uid;
+
   loadAirdrops();
+  loadUserBalanceLoop();
 });
 
 /* ================= LOAD AIRDROPS ================= */
@@ -46,26 +49,22 @@ async function loadAirdrops() {
 
   list.innerHTML = "";
 
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
+  snap.forEach(d => {
+    const x = d.data();
 
     list.innerHTML += `
       <div class="card">
-        🌟 <b>${d.name}</b><br>
+        🌟 <b>${x.name}</b><br>
 
-        ⚡ Rate: ${d.rate}<br>
-        💰 Price: $${d.price}<br>
+        ⚡ Rate: ${x.rate}<br>
+        💰 Price: $${x.price}<br>
 
-        🚀 Start: ${new Date(d.startTime).toLocaleString()}<br>
-        ⏳ End: ${new Date(d.endTime).toLocaleString()}<br>
+        🚀 Start: ${new Date(x.startTime).toLocaleString()}<br>
+        ⏳ End: ${new Date(x.endTime).toLocaleString()}<br>
 
-        📊 Status: ${d.status}<br>
+        📊 Status: ${x.status}<br>
 
-        <div class="balance" id="bal-${docSnap.id}">
-          Balance: 0.000000
-        </div>
-
-        <button class="green" onclick="startMining('${docSnap.id}', ${d.rate})">
+        <button class="green" onclick="startMining('${d.id}', ${x.rate})">
           🚀 Start Mining
         </button>
       </div>
@@ -85,6 +84,7 @@ window.startMining = async (airdropId, rate) => {
       uid,
       airdropId,
       balance: 0,
+      rate,
       isMining: true,
       lastUpdate: Date.now()
     });
@@ -98,15 +98,34 @@ window.startMining = async (airdropId, rate) => {
     const data = s.data();
     if (!data.isMining) return;
 
-    const newBal = data.balance + rate;
+    const newBal = (data.balance || 0) + rate;
 
     await updateDoc(ref, {
       balance: newBal,
       lastUpdate: Date.now()
     });
 
-    document.getElementById(`bal-${airdropId}`).innerText =
-      "Balance: " + newBal.toFixed(6);
-
   }, 1000);
 };
+
+/* ================= TOTAL BALANCE (FIXED) ================= */
+function loadUserBalanceLoop() {
+
+  setInterval(async () => {
+
+    const snap = await getDocs(collection(db, "userAirdrops"));
+
+    let total = 0;
+
+    snap.forEach(d => {
+      const x = d.data();
+      if (x.uid === uid) {
+        total += x.balance || 0;
+      }
+    });
+
+    totalBalance = total;
+    totalBalanceEl.innerText = totalBalance.toFixed(6);
+
+  }, 2000);
+}
