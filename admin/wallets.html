@@ -1,17 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Wallet Requests</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <title>Transaction History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background: #0b0f14;
+      color: white;
+      font-family: Arial;
+      padding: 15px;
+    }
+
+    h2 {
+      color: #00ff88;
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      background: #1c1f26;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .tab.active {
+      background: #00ff88;
+      color: black;
+      font-weight: bold;
+    }
+
+    .card {
+      background: #141922;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 3px solid #00ff88;
+    }
+
+    .type {
+      font-weight: bold;
+      color: #00ff88;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+  </style>
 </head>
-<body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">User Wallet Requests</h1>
+<body>
 
-<div id="walletRequestsContainer" class="max-h-[600px] overflow-y-auto"></div>
+<h2>Your History</h2>
 
-<script type="module" src="wallets.js"></script>
+<div class="tabs">
+  <div class="tab active" data-type="all">All</div>
+  <div class="tab" data-type="deposit">Deposit</div>
+  <div class="tab" data-type="withdrawal">Withdrawal</div>
+  <div class="tab" data-type="stake">Stake</div>
+  <div class="tab" data-type="transfer">Transfer</div>
+  <div class="tab" data-type="received">Received</div>
+</div>
+
+<div id="history"></div>
+
+<script type="module" src="history.js"></script>
 </body>
 </html>
