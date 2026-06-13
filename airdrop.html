@@ -2,87 +2,63 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop</title>
+<title>User Airdrop</title>
 
 <style>
-body {
+body{
   margin:0;
-  font-family: Arial;
-  background:#0b0f14;
+  font-family:Arial;
+  background:#050816;
   color:white;
 }
 
-.header {
+.header{
   padding:15px;
-  background:#111827;
   text-align:center;
-  font-size:20px;
-  font-weight:bold;
+  background:#0f172a;
   color:#00ff99;
+  font-weight:bold;
 }
 
-.container {
+.container{
   padding:15px;
   display:grid;
-  grid-template-columns: 1fr;
-  gap:12px;
+  gap:15px;
 }
 
-@media(min-width: 768px){
-  .container {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.card {
-  background:#161b22;
+.card{
+  background:#0f172a;
+  border:1px solid #1f2937;
   padding:15px;
   border-radius:12px;
-  border:1px solid #2a2f3a;
 }
 
-button {
+button{
   width:100%;
-  padding:12px;
+  padding:10px;
   border:none;
   border-radius:8px;
-  margin-top:10px;
+  margin-top:8px;
   font-weight:bold;
   cursor:pointer;
 }
 
-.startBtn { background:#00c853; color:black; }
-.withdrawBtn { background:#ffb300; color:black; }
+.green{background:#22c55e;color:black;}
+.gray{background:#334155;color:white;}
 
-.balanceBox {
-  background:#0f172a;
-  padding:15px;
-  border-radius:12px;
-  text-align:center;
+.balance{
   font-size:18px;
   color:#00ff99;
-  border:1px solid #1f2937;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">🚀 Airdrop Mining Panel</div>
+<div class="header">🚀 User Airdrop Panel</div>
 
-<div class="container">
-
-  <div class="balanceBox" id="balanceBox">
-    Balance: 0.000000
-  </div>
-
-  <div id="airdropList"></div>
-
-</div>
-
-<button class="withdrawBtn" onclick="withdraw()">
-💰 Withdraw Balance
-</button>
+<div class="container" id="list"></div>
 
 <script type="module" src="airdrop.js"></script>
 </body>

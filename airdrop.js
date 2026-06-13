@@ -4,10 +4,10 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc,
+  setDoc,
   getDoc,
-  addDoc,
-  serverTimestamp
+  updateDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -29,97 +29,84 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let uid;
-let interval = null;
+const list = document.getElementById("list");
 
-const list = document.getElementById("airdropList");
-const balanceBox = document.getElementById("balanceBox");
+/* ================= USER LOGIN ================= */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return (location.href = "login.html");
 
-// AUTH
-onAuthStateChanged(auth, user => {
-  if (!user) return location.href = "login.html";
   uid = user.uid;
-
   loadAirdrops();
-  loadBalance();
 });
 
-// LOAD AIRDROPS
+/* ================= LOAD AIRDROPS ================= */
 async function loadAirdrops() {
+
   const snap = await getDocs(collection(db, "airdropCampaigns"));
 
   list.innerHTML = "";
 
-  snap.forEach(d => {
-    const data = d.data();
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
 
-    const div = document.createElement("div");
-    div.className = "card";
+    list.innerHTML += `
+      <div class="card">
+        🌟 <b>${d.name}</b><br>
 
-    div.innerHTML = `
-      <h3>${data.name}</h3>
-      <p>Rate: ${data.rate}/sec</p>
-      <p>Price: $${data.price}</p>
-      <button onclick="startMining('${d.id}', ${data.rate})">Start</button>
+        ⚡ Rate: ${d.rate}<br>
+        💰 Price: $${d.price}<br>
+
+        🚀 Start: ${new Date(d.startTime).toLocaleString()}<br>
+        ⏳ End: ${new Date(d.endTime).toLocaleString()}<br>
+
+        📊 Status: ${d.status}<br>
+
+        <div class="balance" id="bal-${docSnap.id}">
+          Balance: 0.000000
+        </div>
+
+        <button class="green" onclick="startMining('${docSnap.id}', ${d.rate})">
+          🚀 Start Mining
+        </button>
+      </div>
     `;
-
-    list.appendChild(div);
   });
 }
 
-// START MINING
-window.startMining = async (coinId, rate) => {
-  const ref = doc(db, "users", uid);
+/* ================= START MINING ================= */
+window.startMining = async (airdropId, rate) => {
 
-  await updateDoc(ref, {
-    miningActive: true,
-    currentCoin: coinId
-  });
+  const ref = doc(db, "userAirdrops", `${uid}_${airdropId}`);
 
-  alert("Mining started");
+  const snap = await getDoc(ref);
 
-  if (interval) clearInterval(interval);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid,
+      airdropId,
+      balance: 0,
+      isMining: true,
+      lastUpdate: Date.now()
+    });
+  }
 
-  interval = setInterval(async () => {
-    const snap = await getDoc(ref);
-    let bal = snap.data()?.airdropBalance || 0;
+  setInterval(async () => {
 
-    bal += rate;
+    const s = await getDoc(ref);
+    if (!s.exists()) return;
+
+    const data = s.data();
+    if (!data.isMining) return;
+
+    const newBal = data.balance + rate;
 
     await updateDoc(ref, {
-      airdropBalance: bal
+      balance: newBal,
+      lastUpdate: Date.now()
     });
 
-    loadBalance();
-  }, 3000);
-};
+    document.getElementById(`bal-${airdropId}`).innerText =
+      "Balance: " + newBal.toFixed(6);
 
-// LOAD BALANCE
-async function loadBalance() {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  balanceBox.innerHTML =
-    "Balance: " + (snap.data()?.airdropBalance || 0).toFixed(6);
-}
-
-// WITHDRAW
-window.withdraw = async () => {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  const amount = snap.data()?.airdropBalance || 0;
-
-  await addDoc(collection(db, "airdropWithdrawals"), {
-    uid,
-    amount,
-    status: "pending",
-    createdAt: serverTimestamp()
-  });
-
-  await updateDoc(ref, {
-    airdropBalance: 0,
-    miningActive: false
-  });
-
-  alert("Withdrawal sent to admin");
+  }, 1000);
 };
