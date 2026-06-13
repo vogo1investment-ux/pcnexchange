@@ -2,10 +2,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getFirestore,
   collection,
-  getDocs,
+  onSnapshot,
   doc,
-  setDoc,
   getDoc,
+  setDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
@@ -28,47 +28,53 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let uid;
-let totalBalance = 0;
-const list = document.getElementById("list");
-const totalBalanceEl = document.getElementById("totalBalance");
 
-/* ================= USER AUTH ================= */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return (location.href = "login.html");
+const list = document.getElementById("list");
+const totalBalance = document.getElementById("totalBalance");
+
+/* ================= AUTH ================= */
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
 
   uid = user.uid;
 
-  loadAirdrops();
-  loadUserBalanceLoop();
+  listenAirdrops();   // REAL TIME FIX
+  listenBalance();
 });
 
-/* ================= LOAD AIRDROPS ================= */
-async function loadAirdrops() {
+/* ================= REAL TIME AIRDROPS ================= */
+function listenAirdrops() {
 
-  const snap = await getDocs(collection(db, "airdropCampaigns"));
+  onSnapshot(collection(db, "airdropCampaigns"), (snap) => {
 
-  list.innerHTML = "";
+    list.innerHTML = "";
 
-  snap.forEach(d => {
-    const x = d.data();
+    snap.forEach((d) => {
+      const x = d.data();
 
-    list.innerHTML += `
-      <div class="card">
-        🌟 <b>${x.name}</b><br>
+      list.innerHTML += `
+        <div class="card">
+          🌟 <b>${x.name}</b><br>
 
-        ⚡ Rate: ${x.rate}<br>
-        💰 Price: $${x.price}<br>
+          ⚡ Rate: ${x.rate}<br>
+          💰 Price: $${x.price}<br>
 
-        🚀 Start: ${new Date(x.startTime).toLocaleString()}<br>
-        ⏳ End: ${new Date(x.endTime).toLocaleString()}<br>
+          🚀 Start: ${new Date(x.startTime).toLocaleString()}<br>
+          ⏳ End: ${new Date(x.endTime).toLocaleString()}<br>
 
-        📊 Status: ${x.status}<br>
+          📊 Status: ${x.status}<br>
 
-        <button class="green" onclick="startMining('${d.id}', ${x.rate})">
-          🚀 Start Mining
-        </button>
-      </div>
-    `;
+          <button onclick="startMining('${d.id}', ${x.rate})"
+            style="background:#22c55e;color:black;padding:8px;width:100%">
+            🚀 Start Mining
+          </button>
+        </div>
+      `;
+    });
+
   });
 }
 
@@ -85,8 +91,7 @@ window.startMining = async (airdropId, rate) => {
       airdropId,
       balance: 0,
       rate,
-      isMining: true,
-      lastUpdate: Date.now()
+      isMining: true
     });
   }
 
@@ -98,18 +103,15 @@ window.startMining = async (airdropId, rate) => {
     const data = s.data();
     if (!data.isMining) return;
 
-    const newBal = (data.balance || 0) + rate;
-
     await updateDoc(ref, {
-      balance: newBal,
-      lastUpdate: Date.now()
+      balance: (data.balance || 0) + rate
     });
 
   }, 1000);
 };
 
-/* ================= TOTAL BALANCE (FIXED) ================= */
-function loadUserBalanceLoop() {
+/* ================= TOTAL BALANCE ================= */
+function listenBalance() {
 
   setInterval(async () => {
 
@@ -117,15 +119,14 @@ function loadUserBalanceLoop() {
 
     let total = 0;
 
-    snap.forEach(d => {
+    snap.forEach((d) => {
       const x = d.data();
       if (x.uid === uid) {
         total += x.balance || 0;
       }
     });
 
-    totalBalance = total;
-    totalBalanceEl.innerText = totalBalance.toFixed(6);
+    totalBalance.innerText = total.toFixed(6);
 
   }, 2000);
 }
