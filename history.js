@@ -1,17 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import {
   getFirestore,
   collection,
   query,
-  orderBy,
+  where,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -22,91 +19,96 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-let currentType = "all";
-let uid;
+const historyTableBody = document.getElementById("historyTableBody");
 
-const container = document.getElementById("historyContainer");
-const tabs = document.querySelectorAll(".tab");
+let allTransactions = [];
 
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    tabs.forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    currentType = tab.dataset.type;
-    loadHistory();
-  });
-});
-
-onAuthStateChanged(auth, user => {
+// LOGIN CHECK
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    alert("Login required");
     window.location.href = "login.html";
     return;
   }
 
-  uid = user.uid;
-  loadHistory();
+  loadHistory(user.uid);
 });
 
-function loadHistory() {
-  container.innerHTML = `<p style="text-align:center;color:#aaa">Loading...</p>`;
+// LOAD ALL HISTORY
+function loadHistory(uid) {
+  historyTableBody.innerHTML =
+    `<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>`;
 
-  const q = query(
-    collection(db, "users", uid, "transactions"),
-    orderBy("timestamp", "desc")
-  );
+  allTransactions = [];
 
-  onSnapshot(q, snap => {
-    container.innerHTML = "";
+  // 1. USER OWN TRANSACTIONS
+  const userTxnRef = collection(db, "users", uid, "transactions");
+  const q1 = query(userTxnRef);
 
-    if (snap.empty) {
-      container.innerHTML = `<p style="text-align:center;color:#aaa">No history found</p>`;
-      return;
-    }
+  onSnapshot(q1, (snap) => {
+    syncData(snap, uid);
+  });
 
-    snap.forEach(doc => {
-      const d = doc.data();
+  // 2. GLOBAL PENDING TRANSACTIONS (deposit/withdraw/admin created)
+  const pendingRef = collection(db, "pendingTransactions");
+  const q2 = query(pendingRef, where("userId", "==", uid));
 
-      const type = (d.type || "").toLowerCase();
+  onSnapshot(q2, (snap) => {
+    syncData(snap, uid);
+  });
+}
 
-      // FILTER LOGIC (fixed properly)
-      if (currentType !== "all") {
-        if (currentType === "deposit" && !type.includes("deposit")) return;
-        if (currentType === "withdraw" && !type.includes("withdraw")) return;
-        if (currentType === "stake" && !type.includes("stake")) return;
-        if (currentType === "transfer" && !type.includes("transfer")) return;
-        if (currentType === "received" && !type.includes("receive")) return;
-      }
+// MERGE DATA FROM BOTH SOURCES
+function syncData(snapshot, uid) {
+  snapshot.forEach(doc => {
+    const data = doc.data();
 
-      const date = d.timestamp?.toDate?.() || new Date();
+    const item = {
+      type: data.type || "unknown",
+      amount: data.amount || 0,
+      method: data.method || "-",
+      status: data.status || "pending",
+      timestamp: data.createdAt?.toDate?.() || new Date(),
+      raw: data
+    };
 
-      container.innerHTML += `
-        <div class="card">
-          <div class="row">
-            <div><b>${d.type || "Transaction"}</b></div>
-            <div class="badge">${d.status || "pending"}</div>
-          </div>
+    // avoid duplicates
+    const exists = allTransactions.find(t =>
+      t.timestamp?.getTime?.() === item.timestamp?.getTime?.() &&
+      t.amount === item.amount &&
+      t.type === item.type
+    );
 
-          <div class="row">
-            <div>Amount: ${d.amount || 0}</div>
-            <div>Method: ${d.method || "-"}</div>
-          </div>
+    if (!exists) allTransactions.push(item);
+  });
 
-          <div class="row">
-            <div>User: ${d.userId || uid}</div>
-          </div>
+  renderHistory();
+}
 
-          <div class="small">
-            ${date.toLocaleString()}
-          </div>
-        </div>
-      `;
-    });
-  }, err => {
-    console.error(err);
-    container.innerHTML = `<p style="color:red;text-align:center">Failed to load history</p>`;
+// RENDER UI
+function renderHistory() {
+  if (!allTransactions.length) {
+    historyTableBody.innerHTML =
+      `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
+    return;
+  }
+
+  // sort newest first
+  allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+
+  historyTableBody.innerHTML = "";
+
+  allTransactions.forEach(t => {
+    historyTableBody.innerHTML += `
+      <tr>
+        <td>${t.type}</td>
+        <td>${t.amount}</td>
+        <td>${t.method}</td>
+        <td>${t.status}</td>
+        <td>${new Date(t.timestamp).toLocaleString()}</td>
+      </tr>
+    `;
   });
 }
