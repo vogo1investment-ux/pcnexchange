@@ -13,8 +13,12 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -28,25 +32,34 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ---------------- ADMIN UID ----------------
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-let selectedUser = null;
-
+// ---------------- DOM ----------------
 const usersDiv = document.getElementById("users");
 const historyDiv = document.getElementById("history");
 const selectedUserDiv = document.getElementById("selectedUser");
 
-onAuthStateChanged(auth, async user => {
+const typeEl = document.getElementById("type");
+const amountEl = document.getElementById("amount");
+const methodEl = document.getElementById("method");
+const statusEl = document.getElementById("status");
+const addBtn = document.getElementById("add");
+
+let selectedUser = null;
+
+// ---------------- ADMIN CHECK ----------------
+onAuthStateChanged(auth, async (user) => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access denied");
-    location.href = "login.html";
+    window.location.href = "login.html";
     return;
   }
 
   loadUsers();
 });
 
-// LOAD USERS (with UID + name if exists)
+// ---------------- LOAD USERS ----------------
 async function loadUsers() {
   const snap = await getDocs(collection(db, "users"));
 
@@ -65,7 +78,7 @@ async function loadUsers() {
 
     div.onclick = () => {
       selectedUser = docSnap.id;
-      selectedUserDiv.innerHTML = "Selected: " + selectedUser;
+      selectedUserDiv.innerHTML = `Selected User: <b>${selectedUser}</b>`;
       loadHistory(selectedUser);
     };
 
@@ -73,55 +86,79 @@ async function loadUsers() {
   });
 }
 
-// LOAD HISTORY (small cards)
+// ---------------- LOAD HISTORY ----------------
 function loadHistory(uid) {
   const q = query(
     collection(db, "users", uid, "transactions"),
     orderBy("timestamp", "desc")
   );
 
-  onSnapshot(q, snap => {
+  onSnapshot(q, (snap) => {
     historyDiv.innerHTML = "";
 
-    snap.forEach(d => {
-      const t = d.data();
+    if (snap.empty) {
+      historyDiv.innerHTML = "<p>No history found</p>";
+      return;
+    }
 
-      const div = document.createElement("div");
-      div.className = "historyItem";
+    snap.forEach(docSnap => {
+      const t = docSnap.data();
 
-      div.innerHTML = `
+      const box = document.createElement("div");
+      box.className = "historyItem";
+
+      box.innerHTML = `
         <b>${t.type}</b> - ${t.amount}<br>
         ${t.method || "-"} | ${t.status || "-"}
-        <div class="row">
-          <button class="smallBtn" onclick="editItem('${uid}','${d.id}','${t.type}','${t.amount}','${t.method}','${t.status}')">Edit</button>
-          <button class="smallBtn" onclick="deleteItem('${uid}','${d.id}')">Delete</button>
+        <div>
+          <button onclick="editTxn('${uid}','${docSnap.id}','${t.amount}','${t.status}')">Edit</button>
+          <button onclick="deleteTxn('${uid}','${docSnap.id}')">Delete</button>
         </div>
       `;
 
-      historyDiv.appendChild(div);
+      historyDiv.appendChild(box);
     });
   });
 }
 
-// ADD HISTORY
-document.getElementById("add").onclick = async () => {
-  if (!selectedUser) return alert("Select user first");
+// ---------------- ADD HISTORY (FIXED) ----------------
+addBtn.onclick = async () => {
+  try {
+    if (!selectedUser) {
+      alert("Please select a user first");
+      return;
+    }
 
-  await addDoc(collection(db, "users", selectedUser, "transactions"), {
-    type: type.value,
-    amount: Number(amount.value),
-    method: method.value,
-    status: status.value,
-    timestamp: serverTimestamp()
-  });
+    if (!typeEl.value || !amountEl.value) {
+      alert("Fill type and amount");
+      return;
+    }
 
-  alert("Added");
+    await addDoc(collection(db, "users", selectedUser, "transactions"), {
+      type: typeEl.value,
+      amount: Number(amountEl.value),
+      method: methodEl.value || "-",
+      status: statusEl.value || "pending",
+      userId: selectedUser,
+      timestamp: serverTimestamp()
+    });
+
+    alert("✅ History Added Successfully");
+
+    amountEl.value = "";
+    methodEl.value = "";
+    statusEl.value = "";
+
+  } catch (err) {
+    console.error("ADD ERROR:", err);
+    alert("❌ Failed to add history");
+  }
 };
 
-// EDIT
-window.editItem = async (uid, id, typeV, amountV, methodV, statusV) => {
-  const newAmount = prompt("Amount", amountV);
-  const newStatus = prompt("Status", statusV);
+// ---------------- EDIT ----------------
+window.editTxn = async (uid, id, oldAmount, oldStatus) => {
+  const newAmount = prompt("New Amount", oldAmount);
+  const newStatus = prompt("New Status", oldStatus);
 
   await updateDoc(doc(db, "users", uid, "transactions", id), {
     amount: Number(newAmount),
@@ -131,8 +168,8 @@ window.editItem = async (uid, id, typeV, amountV, methodV, statusV) => {
   alert("Updated");
 };
 
-// DELETE
-window.deleteItem = async (uid, id) => {
+// ---------------- DELETE ----------------
+window.deleteTxn = async (uid, id) => {
   await deleteDoc(doc(db, "users", uid, "transactions", id));
   alert("Deleted");
 };
