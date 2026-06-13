@@ -1,12 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore,
-  collection,
-  getDocs,
-  doc,
-  updateDoc
+  collectionGroup,
+  query,
+  orderBy,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
 import {
   getAuth,
   onAuthStateChanged
@@ -26,86 +25,78 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+const container = document.getElementById("historyContainer");
 
-const list = document.getElementById("list");
+let currentType = "all";
 
-// ---------------- ADMIN CHECK ----------------
-onAuthStateChanged(auth, user => {
+/**
+ * REAL TIME ADMIN HISTORY
+ */
+onAuthStateChanged(auth, (user) => {
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Access denied");
+    alert("Admin only");
     window.location.href = "login.html";
     return;
   }
 
-  loadAllTransactions();
+  loadHistory();
 });
 
-// ---------------- LOAD ALL USERS HISTORY ----------------
-async function loadAllTransactions() {
-  list.innerHTML = "<p>Loading...</p>";
+function loadHistory() {
+  container.innerHTML = "Loading...";
 
-  const usersSnap = await getDocs(collection(db, "users"));
+  const q = query(
+    collectionGroup(db, "transactions"),
+    orderBy("createdAt", "desc")
+  );
 
-  list.innerHTML = "";
+  onSnapshot(q, (snapshot) => {
+    container.innerHTML = "";
 
-  for (const userDoc of usersSnap.docs) {
-    const uid = userDoc.id;
+    if (snapshot.empty) {
+      container.innerHTML = "<p>No transactions found</p>";
+      return;
+    }
 
-    const txSnap = await getDocs(
-      collection(db, "users", uid, "transactions")
-    );
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
 
-    txSnap.forEach(tx => {
-      const d = tx.data();
+      const type = (d.type || "").toLowerCase();
 
-      const card = document.createElement("div");
-      card.className = "card";
+      // filter tabs
+      if (currentType !== "all" && !type.includes(currentType)) return;
 
-      card.innerHTML = `
-        <div class="small">User ID: ${uid}</div>
+      const date = d.createdAt?.toDate?.() || new Date();
 
-        <div><b>Type:</b></div>
-        <input id="type_${tx.id}" value="${d.type || ""}" />
+      const box = document.createElement("div");
+      box.className = "p-3 bg-zinc-900 border border-zinc-700 rounded-xl mb-3";
 
-        <div><b>Amount:</b></div>
-        <input id="amount_${tx.id}" value="${d.amount || ""}" />
-
-        <div><b>Method:</b></div>
-        <input id="method_${tx.id}" value="${d.method || ""}" />
-
-        <div><b>Status:</b></div>
-        <select id="status_${tx.id}">
-          <option ${d.status==="Pending"?"selected":""}>Pending</option>
-          <option ${d.status==="Approved"?"selected":""}>Approved</option>
-          <option ${d.status==="Rejected"?"selected":""}>Rejected</option>
-        </select>
-
-        <button onclick="updateTx('${uid}','${tx.id}')">
-          Update Transaction
-        </button>
+      box.innerHTML = `
+        <p><b>Type:</b> ${d.type || "-"}</p>
+        <p><b>User:</b> ${d.userId || "-"}</p>
+        <p><b>Amount:</b> ${d.amount || "-"}</p>
+        <p><b>Method:</b> ${d.method || "-"}</p>
+        <p><b>Status:</b> ${d.status || "-"}</p>
+        <p class="text-xs text-gray-400">${date.toLocaleString()}</p>
       `;
 
-      list.appendChild(card);
+      container.appendChild(box);
     });
-  }
+  });
 }
 
-// ---------------- UPDATE FUNCTION ----------------
-window.updateTx = async (uid, txId) => {
-  try {
-    const ref = doc(db, "users", uid, "transactions", txId);
+/**
+ * TAB FILTER SUPPORT
+ */
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentType = btn.dataset.type.toLowerCase();
 
-    await updateDoc(ref, {
-      type: document.getElementById(`type_${txId}`).value,
-      amount: Number(document.getElementById(`amount_${txId}`).value),
-      method: document.getElementById(`method_${txId}`).value,
-      status: document.getElementById(`status_${txId}`).value,
-      updatedAt: new Date()
-    });
+    document.querySelectorAll(".tab-btn").forEach(b =>
+      b.classList.remove("bg-green-500")
+    );
+    btn.classList.add("bg-green-500");
 
-    alert("Updated successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to update transaction");
-  }
-};
+    loadHistory();
+  });
+});
