@@ -1,16 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Admin Airdrop Panel</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#050a0f;
+  color:white;
+}
+
+.header {
+  padding:15px;
+  background:#0f172a;
+  text-align:center;
+  font-size:20px;
+  color:#00ff99;
+  font-weight:bold;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:15px;
+  padding:15px;
+}
+
+@media(min-width: 768px){
+  .grid {
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+.card {
+  background:#0f172a;
+  border:1px solid #1f2937;
+  padding:15px;
+  border-radius:12px;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:none;
+  outline:none;
+  background:#111827;
+  color:white;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.createBtn { background:#00ff99; color:black; }
+
+.withdrawBox {
+  margin-top:10px;
+}
+
+.item {
+  background:#111827;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #2a2f3a;
+}
+
+.approveBtn {
+  margin-top:8px;
+  background:#00ff99;
+  color:black;
+}
+</style>
 </head>
-<body class="bg-black text-white p-4">
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">Airdrop Requests</h1>
-<div id="airdrop-list"></div>
+<body>
 
-<script type="module" src="airdrop.js"></script>
+<div class="header">🛠 Admin Airdrop Dashboard</div>
+
+<div class="grid">
+
+  <div class="card">
+    <h3>Create Airdrop</h3>
+
+    <input id="name" placeholder="Coin Name">
+    <input id="rate" placeholder="Mining Rate per sec">
+    <input id="price" placeholder="Coin Price">
+
+    <button class="createBtn" id="create">
+      Create Airdrop
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>Withdraw Requests</h3>
+    <div id="withdrawals"></div>
+  </div>
+
+</div>
+
+<script type="module" src="admin-airdrop.js"></script>
 </body>
 </html>
