@@ -2,28 +2,77 @@
 <html>
 <head>
   <title>Airdrop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    body { background:#0b0f19; color:white; font-family:sans-serif; padding:15px; }
-    .box { background:#121a2a; padding:15px; border-radius:12px; margin-bottom:15px; }
-    .balance { font-size:28px; color:#00ff88; font-weight:bold; }
-    button { background:#22c55e; border:none; padding:12px; width:100%; border-radius:10px; color:white; margin-top:10px; }
-    .card { background:#111827; padding:12px; margin-top:10px; border-radius:10px; }
-    .small { font-size:12px; opacity:0.7; }
+    body {
+      font-family: Arial;
+      background: #0b0f1a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .balance {
+      font-size: 28px;
+      font-weight: bold;
+      background: #111a2e;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #00ff99;
+    }
+
+    .btn {
+      padding: 12px;
+      background: #00ff99;
+      border: none;
+      width: 100%;
+      margin-bottom: 15px;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+
+    .card {
+      background: #141c2f;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    button.start {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      background: #ffcc00;
+      font-weight: bold;
+      border-radius: 6px;
+    }
   </style>
 </head>
 
 <body>
 
-<div class="box">
-  💰 BALANCE<br>
-  <div id="balance" class="balance">0.000000</div>
-</div>
+  <div class="balance" id="balanceBox">💰 Balance: 0.000000</div>
 
-<button id="loadAirdropsBtn">🔍 Search Airdrops</button>
+  <button class="btn" id="loadBtn">🔍 Search Airdrops</button>
 
-<div id="list"></div>
+  <div id="list"></div>
 
-<script type="module" src="airdrop.js"></script>
+  <script type="module" src="airdrop.js"></script>
+
 </body>
 </html>

@@ -14,7 +14,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -28,13 +27,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let uid = null;
-
 const balanceBox = document.getElementById("balanceBox");
-const list = document.getElementById("airdropList");
-const btn = document.getElementById("loadAirdropsBtn");
+const list = document.getElementById("list");
+const loadBtn = document.getElementById("loadBtn");
 
-// ---------------- AUTH ----------------
+let uid = null;
+let intervals = {};
+
+// ---------------- LOGIN ----------------
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -56,7 +56,7 @@ async function loadBalance() {
 }
 
 // ---------------- LOAD AIRDROPS ----------------
-btn.onclick = async () => {
+loadBtn.addEventListener("click", async () => {
   list.innerHTML = "Loading airdrops...";
 
   try {
@@ -72,32 +72,36 @@ btn.onclick = async () => {
     snap.forEach((docItem) => {
       const d = docItem.data();
 
-      list.innerHTML += `
-        <div class="card">
-          🚀 <b>${d.name}</b>
-          <div class="status">${d.status || "active"}</div>
+      const card = document.createElement("div");
+      card.className = "card";
 
-          <p>💰 Price: ${d.price}</p>
-          <p>⚡ Rate: ${d.rate}</p>
-          <p>📅 Start: ${new Date(d.startTime).toLocaleString()}</p>
-          <p>📅 End: ${new Date(d.endTime).toLocaleString()}</p>
+      card.innerHTML = `
+        <div class="title">🚀 ${d.name}</div>
+        <div class="small">💰 Price: ${d.price || 0}</div>
+        <div class="small">⚡ Rate: ${d.rate}</div>
+        <div class="small">📅 Start: ${new Date(d.startTime).toLocaleString()}</div>
+        <div class="small">📅 End: ${new Date(d.endTime).toLocaleString()}</div>
 
-          <button onclick="startAirdrop('${docItem.id}', ${d.rate}, ${d.endTime})">
-            Start Airdrop
-          </button>
-        </div>
+        <button class="start">Start Mining</button>
       `;
+
+      const btn = card.querySelector(".start");
+
+      btn.addEventListener("click", () => {
+        startMining(docItem.id, d.rate, d.endTime);
+      });
+
+      list.appendChild(card);
     });
 
-  } catch (e) {
-    console.log(e);
-    list.innerHTML = "❌ Failed to load airdrops";
+  } catch (err) {
+    console.log(err);
+    list.innerHTML = "Failed to load airdrops";
   }
-};
+});
 
-// ---------------- START AIRDROP ----------------
-window.startAirdrop = async (id, rate, endTime) => {
-
+// ---------------- MINING ----------------
+async function startMining(id, rate, endTime) {
   const userRef = doc(db, "users", uid);
   const stateRef = doc(db, "users", uid, "airdropState", id);
 
@@ -112,28 +116,30 @@ window.startAirdrop = async (id, rate, endTime) => {
     });
   }
 
-  alert("Airdrop started!");
+  alert("Mining started");
 
-  const interval = setInterval(async () => {
+  if (intervals[id]) clearInterval(intervals[id]);
+
+  intervals[id] = setInterval(async () => {
 
     const s = await getDoc(stateRef);
-    if (!s.exists()) return clearInterval(interval);
+    if (!s.exists()) return;
 
     const data = s.data();
 
     if (Date.now() > data.endTime) {
-      clearInterval(interval);
+      clearInterval(intervals[id]);
       alert("Airdrop ended");
       return;
     }
 
     const add = data.rate / 10;
-    const newAmount = (data.mined || 0) + add;
+    const newVal = (data.mined || 0) + add;
 
-    await updateDoc(stateRef, { mined: newAmount });
-    await updateDoc(userRef, { airdropBalance: newAmount });
+    await updateDoc(stateRef, { mined: newVal });
+    await updateDoc(userRef, { airdropBalance: newVal });
 
     loadBalance();
 
   }, 3000);
-};
+}
