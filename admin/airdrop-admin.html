@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Airdrop Admin</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#050a0f;
+  color:white;
+}
+
+.header {
+  padding:15px;
+  text-align:center;
+  background:#0f172a;
+  color:#00ff99;
+  font-weight:bold;
+}
+
+.container {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:15px;
+  padding:15px;
+}
+
+@media(min-width:900px){
+  .container { grid-template-columns:1fr 1fr; }
+}
+
+.card {
+  background:#0f172a;
+  padding:15px;
+  border-radius:12px;
+  border:1px solid #1f2937;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:none;
+  background:#111827;
+  color:white;
+}
+
+button {
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:6px;
+}
+
+.green { background:#00ff99; color:black; }
+.red { background:#ef4444; color:white; }
+.blue { background:#3b82f6; color:white; }
+
+.item {
+  background:#111827;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #2a2f3a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🛠 Airdrop Admin Control Panel</div>
+
+<div class="container">
+
+  <!-- 🔝 GLOBAL CONTROL -->
+  <div class="card">
+    <h3>🚀 Airdrop Master Control</h3>
+
+    <button class="green" id="startAll">Start All Airdrops</button>
+    <button class="red" id="stopAll">Stop All Airdrops</button>
+  </div>
+
+  <!-- ➕ CREATE AIRDROP -->
+  <div class="card">
+    <h3>Create Airdrop</h3>
+
+    <input id="name" placeholder="Coin Name">
+    <input id="rate" placeholder="Mining Rate per sec">
+    <input id="price" placeholder="Coin Price">
+    <input id="startTime" placeholder="Start Time (auto)">
+    <input id="endTime" placeholder="End Time (minutes)">
+
+    <button class="green" id="createBtn">Create Airdrop</button>
+  </div>
+
+  <!-- 📦 ACTIVE AIRDROPS -->
+  <div class="card">
+    <h3>📦 Active Airdrops</h3>
+    <div id="activeList"></div>
+  </div>
+
+  <!-- 📜 HISTORY -->
+  <div class="card">
+    <h3>📜 Ended Airdrops</h3>
+    <div id="endedList"></div>
+  </div>
+
+  <!-- 💸 WITHDRAWALS -->
+  <div class="card">
+    <h3>💸 Withdraw Requests</h3>
+    <div id="withdrawList"></div>
+  </div>
+
+</div>
+
+<script type="module" src="admin-airdrop.js"></script>
+</body>
+</html>
