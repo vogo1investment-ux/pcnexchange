@@ -1,66 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Airdrop System</title>
-  <style>
-    body{
-      margin:0;
-      font-family:Arial;
-      background:#0b1220;
-      color:white;
-      padding:15px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airdrop</title>
 
-    .card{
-      background:#111a2e;
-      padding:15px;
-      border-radius:12px;
-      margin-bottom:12px;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0b1220;
+  color: white;
+}
 
-    .balance{
-      font-size:30px;
-      font-weight:bold;
-      color:#00ff99;
-    }
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 12px;
+}
 
-    button{
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:10px;
-      margin-top:10px;
-      font-size:16px;
-      cursor:pointer;
-    }
+.balanceBox {
+  background: #111a2e;
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ff88;
+}
 
-    .search{
-      background:#22c55e;
-      color:white;
-    }
+.searchBtn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #22c55e;
+  font-weight: bold;
+  color: black;
+  cursor: pointer;
+}
 
-    .start{
-      background:#facc15;
-    }
+.card {
+  background: #111a2e;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 12px;
+}
 
-    .title{
-      font-size:20px;
-      font-weight:bold;
-    }
-  </style>
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.mineRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.mineBtn {
+  padding: 10px;
+  background: gold;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+</style>
 </head>
 
 <body>
 
-  <div class="card">
-    <div>💰 Balance</div>
-    <div id="balance" class="balance">0.00000000</div>
+<div class="container">
+
+  <!-- BALANCE -->
+  <div class="balanceBox">
+    💰 BALANCE: <span id="balance">0.000000</span>
   </div>
 
-  <button class="search" onclick="loadAirdrops()">🔍 Search Airdrops</button>
+  <!-- SEARCH -->
+  <button class="searchBtn" onclick="loadAirdrops()">
+    🔎 Search Airdrops
+  </button>
 
-  <div id="list"></div>
+  <!-- LIST -->
+  <div id="list">
+    <p class="small">Click search to load airdrops...</p>
+  </div>
+
+</div>
 
 <script type="module" src="airdrop.js"></script>
 

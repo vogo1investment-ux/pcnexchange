@@ -5,8 +5,8 @@ import {
   getDocs,
   doc,
   getDoc,
-  updateDoc,
-  onSnapshot
+  setDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -14,94 +14,151 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange"
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let uid;
+// ---------------- UI ----------------
+const balanceEl = document.getElementById("balance");
+const list = document.getElementById("list");
+
+let uid = null;
 let miningIntervals = {};
 
-// FIX FLOAT DISPLAY
-function format(n){
-  return Number(n || 0).toFixed(8);
-}
-
-// LOGIN CHECK + LIVE BALANCE
-onAuthStateChanged(auth, (user)=>{
-  if(!user){
-    location.href="login.html";
+// ---------------- AUTH ----------------
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
     return;
   }
 
   uid = user.uid;
-
-  const userRef = doc(db,"users",uid);
-
-  onSnapshot(userRef,(snap)=>{
-    const data = snap.data();
-    document.getElementById("balance").innerText =
-      format(data?.airdropBalance);
-  });
+  loadBalance();
 });
 
+// ---------------- BALANCE ----------------
+async function loadBalance() {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
 
-// LOAD AIRDROPS FROM ADMIN
-window.loadAirdrops = async function(){
+  if (!snap.exists()) return;
 
-  const list = document.getElementById("list");
-  list.innerHTML = "Loading airdrops...";
+  const data = snap.data();
+  balanceEl.innerText = (data.airdropBalance || 0).toFixed(6);
+}
 
-  const snap = await getDocs(collection(db,"airdropCampaigns"));
+// ---------------- LOAD AIRDROPS (GLOBAL FOR BUTTON) ----------------
+window.loadAirdrops = async function () {
+  list.innerHTML = "<p>Loading airdrops...</p>";
 
-  list.innerHTML = "";
+  try {
+    const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-  snap.forEach(d=>{
-    const data = d.data();
+    if (snap.empty) {
+      list.innerHTML = "<p>No airdrops available</p>";
+      return;
+    }
 
-    list.innerHTML += `
-      <div class="card">
-        <div class="title">🚀 ${data.name}</div>
+    list.innerHTML = "";
 
-        <p>💰 Price: ${data.price}</p>
-        <p>⚡ Rate: ${data.rate}</p>
-        <p>📅 Start: ${data.startTime}</p>
-        <p>📅 End: ${data.endTime}</p>
+    snap.forEach((docItem) => {
+      const d = docItem.data();
 
-        <button class="start" onclick="startMining('${d.id}')">
-          ⛏️ Start Mining
-        </button>
-      </div>
-    `;
-  });
-};
+      const card = document.createElement("div");
+      card.className = "card";
 
+      const startTime = d.startTime?.toDate?.() || new Date(d.startTime);
+      const endTime = d.endTime?.toDate?.() || new Date(d.endTime);
 
-// START MINING (0.00000001 per second)
-window.startMining = async function(airdropId){
+      card.innerHTML = `
+        <div class="title">🚀 ${d.name}</div>
 
-  if(miningIntervals[airdropId]){
-    clearInterval(miningIntervals[airdropId]);
-  }
+        <div class="row">
+          <div>💰 Price: ${d.price || 0}</div>
+          <div>⚡ Rate: ${d.rate || 0}</div>
+        </div>
 
-  miningIntervals[airdropId] = setInterval(async ()=>{
+        <div class="row">
+          <div>📅 Start: ${startTime.toLocaleString()}</div>
+        </div>
 
-    const userRef = doc(db,"users",uid);
-    const snap = await getDoc(userRef);
+        <div class="row">
+          <div>⛔ End: ${endTime.toLocaleString()}</div>
+        </div>
 
-    let bal = snap.data()?.airdropBalance || 0;
+        <div class="mineRow">
+          <button class="mineBtn">Start Mining</button>
+        </div>
+      `;
 
-    // EXACT RULE YOU WANTED
-    bal = Number(bal) + 0.00000001;
+      const btn = card.querySelector(".mineBtn");
 
-    await updateDoc(userRef,{
-      airdropBalance: bal
+      btn.addEventListener("click", () => {
+        startMining(docItem.id, d.rate || 0, d.endTime);
+      });
+
+      list.appendChild(card);
     });
 
-  },1000);
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = "<p style='color:red'>Failed to load airdrops</p>";
+  }
 };
+
+// ---------------- START MINING ----------------
+async function startMining(id, rate, endTime) {
+  const userRef = doc(db, "users", uid);
+  const stateRef = doc(db, "users", uid, "airdropState", id);
+
+  const snap = await getDoc(stateRef);
+
+  if (!snap.exists()) {
+    await setDoc(stateRef, {
+      mined: 0,
+      rate,
+      endTime,
+      active: true
+    });
+  }
+
+  alert("Mining started 🚀");
+
+  if (miningIntervals[id]) clearInterval(miningIntervals[id]);
+
+  miningIntervals[id] = setInterval(async () => {
+    const s = await getDoc(stateRef);
+
+    if (!s.exists()) return;
+
+    const data = s.data();
+
+    const now = Date.now();
+    const end = data.endTime;
+
+    if (now > end) {
+      clearInterval(miningIntervals[id]);
+      alert("⛔ Airdrop ended");
+      return;
+    }
+
+    const add = (data.rate || 0) / 10;
+    const newVal = (data.mined || 0) + add;
+
+    await updateDoc(stateRef, { mined: newVal });
+    await updateDoc(userRef, { airdropBalance: newVal });
+
+    balanceEl.innerText = newVal.toFixed(6);
+
+  }, 3000);
+}
