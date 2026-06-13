@@ -5,8 +5,7 @@ import {
   getDoc,
   updateDoc,
   addDoc,
-  collection,
-  increment
+  collection
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -14,6 +13,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26yT38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -30,14 +30,16 @@ const auth = getAuth(app);
 const balanceEl = document.getElementById("balance");
 
 let uid = null;
-let userBalance = 0;
+let balance = 0;
 
-// always 8 decimals (your format)
+// format 8 decimals (your rule system)
 function format(num) {
-  return Number(num).toFixed(8);
+  return Number(num || 0).toFixed(8);
 }
 
-// ---------------- LOAD USER ----------------
+//
+// 🔥 LOAD USER BALANCE
+//
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -50,25 +52,25 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
-    userBalance = snap.data().balance || 0;
+    balance = snap.data().balance || 0;
   } else {
-    await updateDoc(ref, { balance: 0 }).catch(async () => {
-      // if doc not exist
-      await updateDoc(ref, { balance: 0 }).catch(() => {});
-    });
+    balance = 0;
+    await updateDoc(ref, { balance: 0 }).catch(() => {});
   }
 
-  balanceEl.textContent = format(userBalance);
+  balanceEl.textContent = format(balance);
 });
 
-// ---------------- WITHDRAW ----------------
+//
+// 🔥 WITHDRAW FUNCTION (SENDS TO ADMIN)
+//
 window.submitWithdraw = async function () {
 
   const userIdInput = document.getElementById("userId").value.trim();
   const password = document.getElementById("password").value.trim();
   const amount = Number(document.getElementById("amount").value);
 
-  if (!uid) return alert("User not logged in");
+  if (!uid) return alert("Not logged in");
 
   if (!userIdInput || !password || !amount) {
     return alert("Fill all fields");
@@ -78,13 +80,13 @@ window.submitWithdraw = async function () {
     return alert("Minimum withdrawal is 0.00000001");
   }
 
-  if (amount > userBalance) {
+  if (amount > balance) {
     return alert("Insufficient balance");
   }
 
   try {
 
-    // 1. SEND TO ADMIN (IMPORTANT FIX)
+    // ✅ SEND TO ADMIN (YOUR RULE: pendingTransactions)
     await addDoc(collection(db, "pendingTransactions"), {
       type: "airdrop_withdraw",
       userId: uid,
@@ -95,13 +97,15 @@ window.submitWithdraw = async function () {
       createdAt: Date.now()
     });
 
-    // 2. DEDUCT BALANCE (REAL SYSTEM LOGIC)
+    // ✅ DEDUCT USER BALANCE
+    const newBalance = Number((balance - amount).toFixed(8));
+
     await updateDoc(doc(db, "users", uid), {
-      balance: Number((userBalance - amount).toFixed(8))
+      balance: newBalance
     });
 
-    userBalance -= amount;
-    balanceEl.textContent = format(userBalance);
+    balance = newBalance;
+    balanceEl.textContent = format(balance);
 
     alert("Withdrawal sent to admin successfully ✔");
 
