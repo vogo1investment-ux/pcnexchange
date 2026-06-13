@@ -1,78 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Transaction History</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallets Admin Panel</title>
 
-  <style>
-    body {
-      background: #0b0f14;
-      color: white;
-      font-family: Arial;
-      padding: 15px;
-    }
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0b0f0c;
+  color:white;
+}
 
-    h2 {
-      color: #00ff88;
-      text-align: center;
-    }
+h1 {
+  text-align:center;
+  color:#00ff88;
+  padding:15px;
+}
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 15px;
-    }
+.container {
+  padding:15px;
+}
 
-    .tab {
-      padding: 8px 12px;
-      background: #1c1f26;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-    }
+.card {
+  background:#121a14;
+  border:1px solid #1f2b22;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+}
 
-    .tab.active {
-      background: #00ff88;
-      color: black;
-      font-weight: bold;
-    }
+input, select {
+  width:100%;
+  margin-top:5px;
+  padding:8px;
+  border:none;
+  border-radius:6px;
+  background:#1c2520;
+  color:white;
+}
 
-    .card {
-      background: #141922;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      border-left: 3px solid #00ff88;
-    }
+button {
+  margin-top:8px;
+  width:100%;
+  padding:10px;
+  background:#00ff88;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+  border-radius:6px;
+}
 
-    .type {
-      font-weight: bold;
-      color: #00ff88;
-    }
+.small {
+  font-size:12px;
+  opacity:0.7;
+}
 
-    .small {
-      font-size: 12px;
-      opacity: 0.7;
-    }
-  </style>
+.badge {
+  background:#00ff88;
+  color:black;
+  padding:3px 8px;
+  border-radius:5px;
+  font-size:12px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Your History</h2>
+<h1>Wallets Admin History</h1>
 
-<div class="tabs">
-  <div class="tab active" data-type="all">All</div>
-  <div class="tab" data-type="deposit">Deposit</div>
-  <div class="tab" data-type="withdrawal">Withdrawal</div>
-  <div class="tab" data-type="stake">Stake</div>
-  <div class="tab" data-type="transfer">Transfer</div>
-  <div class="tab" data-type="received">Received</div>
+<div class="container">
+  <div id="list"></div>
 </div>
 
-<div id="history"></div>
-
-<script type="module" src="history.js"></script>
+<script type="module" src="wallets.js"></script>
 </body>
 </html>
