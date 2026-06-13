@@ -3,38 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User Transaction History</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Transaction History</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#0b0f0c;
+  color:white;
+}
+
+.container {
+  padding:15px;
+  max-width:1000px;
+  margin:auto;
+}
+
+h1 {
+  color:#20e38a;
+  text-align:center;
+}
+
+.tabs {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin:15px 0;
+}
+
+.tab {
+  padding:10px 15px;
+  border-radius:10px;
+  background:#1a1f1c;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.tab.active {
+  background:#20e38a;
+  color:black;
+  font-weight:bold;
+}
+
+.card {
+  background:#111814;
+  border:1px solid #1f2b24;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  font-size:13px;
+}
+
+.badge {
+  padding:3px 8px;
+  border-radius:6px;
+  background:#20e38a;
+  color:black;
+  font-size:12px;
+}
+
+.small {
+  font-size:11px;
+  color:#aaa;
+}
+
+</style>
 </head>
-<body class="bg-black text-white min-h-screen p-5">
 
-<h1 class="text-3xl font-bold text-emerald-400 mb-6">Your Transaction History</h1>
+<body>
 
-<!-- Tabs -->
-<div class="mb-4 flex gap-4">
-  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="deposit">Deposits</button>
-  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="withdrawal">Withdrawals</button>
-  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="stake">Stakes</button>
-  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="transfer">Transfers</button>
-  <button class="tab-btn p-2 rounded bg-zinc-800 font-bold" data-type="received">Received</button>
-</div>
+<div class="container">
+  <h1>Transaction History</h1>
 
-<!-- Table -->
-<div id="historyContent" class="overflow-x-auto">
-  <table class="w-full text-left border-collapse">
-    <thead>
-      <tr class="bg-zinc-800">
-        <th class="p-2 border border-zinc-700">Type</th>
-        <th class="p-2 border border-zinc-700">Amount</th>
-        <th class="p-2 border border-zinc-700">Method</th>
-        <th class="p-2 border border-zinc-700">Status</th>
-        <th class="p-2 border border-zinc-700">Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="historyTableBody">
-      <tr><td colspan="5" class="p-4 text-center">Loading your transactions...</td></tr>
-    </tbody>
-  </table>
+  <div class="tabs">
+    <div class="tab active" data-type="all">All</div>
+    <div class="tab" data-type="deposit">Deposits</div>
+    <div class="tab" data-type="withdraw">Withdrawals</div>
+    <div class="tab" data-type="stake">Stakes</div>
+    <div class="tab" data-type="transfer">Transfers</div>
+    <div class="tab" data-type="received">Received</div>
+  </div>
+
+  <div id="historyContainer"></div>
 </div>
 
 <script type="module" src="history.js"></script>
