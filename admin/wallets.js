@@ -3,8 +3,11 @@ import {
   getFirestore,
   collection,
   getDocs,
-  doc,
-  updateDoc
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -27,85 +30,92 @@ const auth = getAuth(app);
 
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-const list = document.getElementById("list");
+const userList = document.getElementById("userList");
+const historyBox = document.getElementById("historyBox");
 
-// ---------------- ADMIN CHECK ----------------
-onAuthStateChanged(auth, user => {
+const uidInput = document.getElementById("uid");
+const type = document.getElementById("type");
+const amount = document.getElementById("amount");
+const method = document.getElementById("method");
+const status = document.getElementById("status");
+
+let selectedUser = null;
+
+/* ---------------- ADMIN CHECK ---------------- */
+onAuthStateChanged(auth, async user => {
   if (!user || user.uid !== ADMIN_UID) {
     alert("Access denied");
-    window.location.href = "login.html";
+    location.href = "login.html";
     return;
   }
 
-  loadAllTransactions();
+  loadUsers();
 });
 
-// ---------------- LOAD ALL USERS HISTORY ----------------
-async function loadAllTransactions() {
-  list.innerHTML = "<p>Loading...</p>";
+/* ---------------- LOAD USERS ---------------- */
+async function loadUsers() {
+  const snap = await getDocs(collection(db, "users"));
 
-  const usersSnap = await getDocs(collection(db, "users"));
+  userList.innerHTML = "";
 
-  list.innerHTML = "";
+  snap.forEach(doc => {
+    const u = doc.id;
 
-  for (const userDoc of usersSnap.docs) {
-    const uid = userDoc.id;
+    const div = document.createElement("div");
+    div.className = "user";
+    div.textContent = u;
 
-    const txSnap = await getDocs(
-      collection(db, "users", uid, "transactions")
-    );
+    div.onclick = () => {
+      selectedUser = u;
+      uidInput.value = u;
+      loadHistory(u);
+    };
 
-    txSnap.forEach(tx => {
-      const d = tx.data();
-
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML = `
-        <div class="small">User ID: ${uid}</div>
-
-        <div><b>Type:</b></div>
-        <input id="type_${tx.id}" value="${d.type || ""}" />
-
-        <div><b>Amount:</b></div>
-        <input id="amount_${tx.id}" value="${d.amount || ""}" />
-
-        <div><b>Method:</b></div>
-        <input id="method_${tx.id}" value="${d.method || ""}" />
-
-        <div><b>Status:</b></div>
-        <select id="status_${tx.id}">
-          <option ${d.status==="Pending"?"selected":""}>Pending</option>
-          <option ${d.status==="Approved"?"selected":""}>Approved</option>
-          <option ${d.status==="Rejected"?"selected":""}>Rejected</option>
-        </select>
-
-        <button onclick="updateTx('${uid}','${tx.id}')">
-          Update Transaction
-        </button>
-      `;
-
-      list.appendChild(card);
-    });
-  }
+    userList.appendChild(div);
+  });
 }
 
-// ---------------- UPDATE FUNCTION ----------------
-window.updateTx = async (uid, txId) => {
-  try {
-    const ref = doc(db, "users", uid, "transactions", txId);
+/* ---------------- LOAD HISTORY ---------------- */
+function loadHistory(uid) {
+  const q = query(
+    collection(db, "users", uid, "transactions"),
+    orderBy("timestamp", "desc")
+  );
 
-    await updateDoc(ref, {
-      type: document.getElementById(`type_${txId}`).value,
-      amount: Number(document.getElementById(`amount_${txId}`).value),
-      method: document.getElementById(`method_${txId}`).value,
-      status: document.getElementById(`status_${txId}`).value,
-      updatedAt: new Date()
+  onSnapshot(q, snap => {
+    historyBox.innerHTML = "<h3>History</h3>";
+
+    snap.forEach(d => {
+      const t = d.data();
+
+      historyBox.innerHTML += `
+        <div class="txn">
+          <b>${t.type}</b><br>
+          Amount: ${t.amount || 0}<br>
+          Method: ${t.method || "-"}<br>
+          Status: ${t.status || "-"}
+        </div>
+      `;
     });
+  });
+}
 
-    alert("Updated successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to update transaction");
-  }
+/* ---------------- ADD HISTORY ---------------- */
+document.getElementById("addTxn").onclick = async () => {
+  if (!selectedUser) return alert("Select a user first");
+
+  await addDoc(collection(db, "users", selectedUser, "transactions"), {
+    type: type.value,
+    amount: Number(amount.value),
+    method: method.value,
+    status: status.value || "pending",
+    userId: selectedUser,
+    timestamp: serverTimestamp()
+  });
+
+  alert("History added!");
+
+  amount.value = "";
+  method.value = "";
+  status.value = "";
 };
