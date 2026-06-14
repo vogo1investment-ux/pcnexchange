@@ -19,7 +19,6 @@ body {
   padding: 15px;
 }
 
-/* BALANCE */
 .balanceBox {
   background: #111a2e;
   padding: 20px;
@@ -38,7 +37,6 @@ body {
   color: #00ff88;
 }
 
-/* INFO */
 .infoBox {
   background: #111a2e;
   padding: 15px;
@@ -49,7 +47,6 @@ body {
   line-height: 1.5;
 }
 
-/* FORM */
 .card {
   margin-top: 12px;
   background: #111a2e;
@@ -63,7 +60,6 @@ input {
   margin-top: 10px;
   border-radius: 8px;
   border: none;
-  outline: none;
 }
 
 button {
@@ -74,7 +70,6 @@ button {
   border: none;
   border-radius: 10px;
   font-weight: bold;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -83,34 +78,23 @@ button {
 
 <div class="container">
 
-  <!-- BALANCE -->
   <div class="balanceBox">
     <div class="balanceTitle">💰 AVAILABLE AIRDROP BALANCE</div>
     <div class="balanceAmount" id="balance">0.00000000</div>
   </div>
 
-  <!-- INFO TEXT -->
   <div class="infoBox">
-    <b style="color:#00ff88;">📢 Withdrawal Information</b><br><br>
-
     When you submit a withdrawal request, your Airdrop earnings will be transferred from the Airdrop mining system into your main withdrawable balance.<br><br>
 
-    After admin approval, the funds will appear in your dashboard balance where you can withdraw to your bank or crypto wallet.<br><br>
-
-    ⚠️ Make sure your User ID and password are correct before submitting.
+    After admin approval, the funds will appear in your dashboard balance where you can withdraw to your bank or crypto wallet.
   </div>
 
-  <!-- FORM -->
   <div class="card">
-
     <input type="text" id="userId" placeholder="Enter your User ID">
-
     <input type="password" id="password" placeholder="Enter your password">
-
     <input type="number" id="amount" placeholder="Enter withdrawal amount">
 
     <button onclick="submitWithdraw()">Submit Withdrawal</button>
-
   </div>
 
 </div>

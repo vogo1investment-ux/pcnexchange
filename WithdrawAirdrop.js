@@ -5,7 +5,8 @@ import {
   getDoc,
   updateDoc,
   addDoc,
-  collection
+  collection,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -13,9 +14,9 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// Firebase config
+// Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26yT38JRJhRlUbBoa2CIPo",
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
@@ -27,19 +28,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const balanceEl = document.getElementById("balance");
-
 let uid = null;
 let balance = 0;
 
-// format 8 decimals (your rule system)
-function format(num) {
-  return Number(num || 0).toFixed(8);
+const balanceEl = document.getElementById("balance");
+
+// format 8 decimals
+function format(n) {
+  return Number(n || 0).toFixed(8);
 }
 
-//
-// 🔥 LOAD USER BALANCE
-//
+// ---------------- LOAD USER ----------------
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -52,65 +51,46 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
-    balance = snap.data().balance || 0;
-  } else {
-    balance = 0;
-    await updateDoc(ref, { balance: 0 }).catch(() => {});
+    balance = snap.data().airdropBalance || 0;
   }
 
   balanceEl.textContent = format(balance);
 });
 
-//
-// 🔥 WITHDRAW FUNCTION (SENDS TO ADMIN)
-//
+// ---------------- WITHDRAW SYSTEM ----------------
 window.submitWithdraw = async function () {
-
-  const userIdInput = document.getElementById("userId").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const amount = Number(document.getElementById("amount").value);
-
-  if (!uid) return alert("Not logged in");
-
-  if (!userIdInput || !password || !amount) {
-    return alert("Fill all fields");
-  }
-
-  if (amount < 0.00000001) {
-    return alert("Minimum withdrawal is 0.00000001");
-  }
-
-  if (amount > balance) {
-    return alert("Insufficient balance");
-  }
-
   try {
+    const userIdInput = document.getElementById("userId").value;
+    const password = document.getElementById("password").value;
+    const amount = Number(document.getElementById("amount").value);
 
-    // ✅ SEND TO ADMIN (YOUR RULE: pendingTransactions)
-    await addDoc(collection(db, "pendingTransactions"), {
-      type: "airdrop_withdraw",
+    if (!uid) return alert("Not logged in");
+    if (!amount || amount <= 0) return alert("Invalid amount");
+    if (amount > balance) return alert("Insufficient balance");
+
+    // create withdrawal request for admin
+    await addDoc(collection(db, "pendingWithdrawals"), {
       userId: uid,
-      enteredUserId: userIdInput,
+      userInputId: userIdInput,
       password: password,
       amount: amount,
       status: "pending",
-      createdAt: Date.now()
+      createdAt: serverTimestamp()
     });
 
-    // ✅ DEDUCT USER BALANCE
-    const newBalance = Number((balance - amount).toFixed(8));
+    // deduct from airdrop balance immediately (pending lock)
+    balance -= amount;
 
     await updateDoc(doc(db, "users", uid), {
-      balance: newBalance
+      airdropBalance: balance
     });
 
-    balance = newBalance;
     balanceEl.textContent = format(balance);
 
-    alert("Withdrawal sent to admin successfully ✔");
+    alert("Withdrawal request sent successfully");
 
   } catch (err) {
     console.error(err);
-    alert("Failed to send withdrawal: " + err.message);
+    alert("Failed to send withdrawal");
   }
 };
