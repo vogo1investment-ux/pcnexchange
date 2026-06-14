@@ -20,6 +20,7 @@ body {
 }
 
 h2 {
+  text-align: center;
   color: gold;
 }
 
@@ -30,14 +31,17 @@ h2 {
   border-radius: 12px;
 }
 
+/* INPUTS */
 input {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 8px;
   border-radius: 8px;
   border: none;
+  outline: none;
 }
 
+/* BUTTONS */
 button {
   width: 100%;
   padding: 12px;
@@ -59,6 +63,11 @@ button {
   background: #0f172a;
   border-radius: 10px;
 }
+
+/* MOBILE FIX */
+@media(max-width:600px){
+  .container { padding: 10px; }
+}
 </style>
 </head>
 
@@ -72,25 +81,36 @@ button {
 <div class="card">
 <h3>➕ Create Airdrop</h3>
 
-<input id="name" placeholder="Name">
-<input id="rate" placeholder="Rate per tick (0.00000001)">
+<input id="name" placeholder="Airdrop Name">
+<input id="rate" placeholder="Rate (0.00000001)">
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button class="create" onclick="createAirdrop()">Create</button>
+<button class="create" onclick="createAirdrop()">Create Airdrop</button>
 </div>
 
-<!-- AIRDROP LIST -->
+<!-- AIRDROPS LIST -->
 <div class="card">
-<h3>📡 Airdrops</h3>
+<h3>📡 Active Airdrops</h3>
 <button class="fetch" onclick="loadAirdrops()">Load Airdrops</button>
+
 <div id="airdropList"></div>
 </div>
 
-<!-- WITHDRAWALS -->
+<!-- 🔥 NEW BUTTON SECTION -->
 <div class="card">
-<h3>💸 Withdrawals</h3>
-<button class="fetch" onclick="fetchWithdrawals()">Fetch Withdrawals</button>
+<h3>💸 Withdrawal System</h3>
+
+<!-- BUTTON 1 -->
+<button class="start" onclick="startWithdrawalBatch()">
+🟢 Start Airdrop Withdrawal Batch
+</button>
+
+<!-- BUTTON 2 -->
+<button class="fetch" onclick="fetchWithdrawals()">
+🔵 Fetch Withdrawals
+</button>
+
 <div id="withdrawals"></div>
 </div>
 

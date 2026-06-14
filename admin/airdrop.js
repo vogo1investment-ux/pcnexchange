@@ -6,7 +6,7 @@ import {
   getDocs,
   doc,
   updateDoc,
-  getDoc
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -21,11 +21,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ADMIN ID */
-const ADMIN_ID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+let currentBatchId = null;
 
-/* ---------------- CREATE AIRDROP ---------------- */
+---
+
+# 🟢 CREATE AIRDROP
+
 window.createAirdrop = async function () {
+
   const name = document.getElementById("name").value;
   const rate = parseFloat(document.getElementById("rate").value);
   const start = new Date(document.getElementById("start").value).getTime();
@@ -34,44 +37,54 @@ window.createAirdrop = async function () {
   await addDoc(collection(db, "airdropCampaigns"), {
     name,
     rate,
-    startTime: start,
-    endTime: end,
-    isActive: false
+    start,
+    end,
+    isActive: false,
+    createdAt: serverTimestamp()
   });
 
-  alert("Airdrop created 🚀");
+  alert("Airdrop Created 🚀");
 };
 
-/* ---------------- LOAD AIRDROPS ---------------- */
+---
+
+# 📡 LOAD AIRDROPS
+
 window.loadAirdrops = async function () {
-  const box = document.getElementById("airdropList");
-  box.innerHTML = "Loading...";
+
+  const list = document.getElementById("airdropList");
+  list.innerHTML = "Loading...";
 
   const snap = await getDocs(collection(db, "airdropCampaigns"));
-  box.innerHTML = "";
+
+  list.innerHTML = "";
 
   snap.forEach((d) => {
+
     const a = d.data();
 
     const div = document.createElement("div");
     div.className = "box";
 
     div.innerHTML = `
-      <p>🚀 ${a.name}</p>
-      <p>💰 Rate: ${a.rate}</p>
-      <p>⏰ Start: ${new Date(a.startTime).toLocaleString()}</p>
-      <p>⏳ End: ${new Date(a.endTime).toLocaleString()}</p>
-      <p>🔥 Active: ${a.isActive}</p>
+      🚀 <b>${a.name}</b><br>
+      💰 Rate: ${a.rate}<br>
+      ⏰ Start: ${new Date(a.start).toLocaleString()}<br>
+      ⏳ End: ${new Date(a.end).toLocaleString()}<br>
+      🔥 Active: ${a.isActive}<br><br>
 
-      <button class="start" onclick="startAirdrop('${d.id}')">Start 🟢</button>
-      <button class="stop" onclick="stopAirdrop('${d.id}')">Stop 🔴</button>
+      <button class="start" onclick="startAirdrop('${d.id}')">🟢 Start</button>
+      <button class="stop" onclick="stopAirdrop('${d.id}')">🔴 Stop</button>
     `;
 
-    box.appendChild(div);
+    list.appendChild(div);
   });
 };
 
-/* ---------------- START AIRDROP ---------------- */
+---
+
+# 🟢 START AIRDROP
+
 window.startAirdrop = async function (id) {
   await updateDoc(doc(db, "airdropCampaigns", id), {
     isActive: true
@@ -80,7 +93,10 @@ window.startAirdrop = async function (id) {
   alert("Airdrop Started 🚀");
 };
 
-/* ---------------- STOP AIRDROP ---------------- */
+---
+
+# 🔴 STOP AIRDROP
+
 window.stopAirdrop = async function (id) {
   await updateDoc(doc(db, "airdropCampaigns", id), {
     isActive: false
@@ -89,56 +105,99 @@ window.stopAirdrop = async function (id) {
   alert("Airdrop Stopped ⛔");
 };
 
-/* ---------------- FETCH WITHDRAWALS ---------------- */
+---
+
+# 🟢 NEW: START WITHDRAWAL BATCH (IMPORTANT)
+
+window.startWithdrawalBatch = async function () {
+
+  const batchRef = await addDoc(collection(db, "airdropWithdrawals"), {
+    status: "active",
+    createdAt: serverTimestamp()
+  });
+
+  currentBatchId = batchRef.id;
+
+  alert("Withdrawal Batch Started 🟢");
+};
+
+---
+
+# 🔵 FETCH WITHDRAWALS (ONLY THIS SYSTEM)
+
 window.fetchWithdrawals = async function () {
+
   const box = document.getElementById("withdrawals");
   box.innerHTML = "Loading...";
 
-  const snap = await getDocs(collection(db, "withdrawalRequests"));
+  const batches = await getDocs(collection(db, "airdropWithdrawals"));
+
   box.innerHTML = "";
 
-  snap.forEach((d) => {
-    const w = d.data();
+  batches.forEach(async (batch) => {
 
-    const div = document.createElement("div");
-    div.className = "box";
+    const requests = await getDocs(
+      collection(db, "airdropWithdrawals", batch.id, "requests")
+    );
 
-    div.innerHTML = `
-      <p>👤 User: ${w.userId}</p>
-      <p>💰 Amount: ${w.amount}</p>
-      <p>📌 Status: ${w.status}</p>
+    const container = document.createElement("div");
+    container.className = "box";
 
-      <button class="start" onclick="approve('${d.id}', '${w.userId}', ${w.amount})">Approve ✔️</button>
-      <button class="stop" onclick="reject('${d.id}')">Reject ❌</button>
-    `;
+    container.innerHTML = `📦 Batch: ${batch.id}<br><br>`;
 
-    box.appendChild(div);
+    requests.forEach((r) => {
+
+      const w = r.data();
+
+      const item = document.createElement("div");
+
+      item.innerHTML = `
+        👤 ${w.userId} <br>
+        💰 ${w.amount} <br>
+        📌 ${w.status} <br><br>
+
+        <button class="start" onclick="approve('${batch.id}','${r.id}','${w.userId}',${w.amount})">✔️ Approve</button>
+        <button class="stop" onclick="reject('${batch.id}','${r.id}')">❌ Reject</button>
+        <hr>
+      `;
+
+      container.appendChild(item);
+    });
+
+    box.appendChild(container);
   });
 };
 
-/* ---------------- APPROVE ---------------- */
-window.approve = async function (id, userId, amount) {
-  const userRef = doc(db, "users", userId);
-  const userSnap = await getDoc(userRef);
+---
 
-  let bal = userSnap.data().balance || 0;
+# ✔️ APPROVE
+
+window.approve = async function (batchId, reqId, userId, amount) {
+
+  const userRef = doc(db, "users", userId);
 
   await updateDoc(userRef, {
-    balance: bal - amount
+    balance: 0
   });
 
-  await updateDoc(doc(db, "withdrawalRequests", id), {
-    status: "approved"
-  });
+  await updateDoc(
+    doc(db, "airdropWithdrawals", batchId, "requests", reqId),
+    { status: "approved" }
+  );
 
   alert("Approved ✔️");
 };
 
-/* ---------------- REJECT ---------------- */
-window.reject = async function (id) {
-  await updateDoc(doc(db, "withdrawalRequests", id), {
-    status: "rejected"
-  });
+---
+
+# ❌ REJECT
+
+window.reject = async function (batchId, reqId) {
+
+  await updateDoc(
+    doc(db, "airdropWithdrawals", batchId, "requests", reqId),
+    { status: "rejected" }
+  );
 
   alert("Rejected ❌");
 };
