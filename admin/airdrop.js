@@ -5,9 +5,12 @@ import {
   addDoc,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -20,93 +23,129 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+let miningData = {}; // track miners
 
-/* ================= CREATE AIRDROP ================= */
-document.getElementById("createBtn").onclick = async () => {
-
-  const name = document.getElementById("name").value;
-  const rate = Number(document.getElementById("rate").value);
-  const price = Number(document.getElementById("price").value);
-  const duration = Number(document.getElementById("duration").value);
-
-  const startTime = Date.now();
-  const endTime = startTime + duration * 60000;
-
+// ================= CREATE AIRDROP =================
+window.createAirdrop = async function () {
   await addDoc(collection(db, "airdropCampaigns"), {
-    name,
-    rate,
-    price,
-    creator: ADMIN_UID,
-    startTime,
-    endTime,
-    status: "stopped"
+    name: name.value,
+    rate: Number(rate.value),
+    price: Number(price.value),
+    startTime: new Date(start.value).getTime(),
+    endTime: new Date(end.value).getTime(),
+    active: true,
+    createdAt: serverTimestamp()
   });
 
+  alert("Airdrop Created 🚀");
   loadAirdrops();
 };
 
-/* ================= START ONE ================= */
-window.startOne = async (id) => {
-  await updateDoc(doc(db, "airdropCampaigns", id), {
-    status: "running",
-    startTime: Date.now()
-  });
-
-  loadAirdrops();
-};
-
-/* ================= STOP ONE ================= */
-window.stopOne = async (id) => {
-  await updateDoc(doc(db, "airdropCampaigns", id), {
-    status: "stopped",
-    endTime: Date.now()
-  });
-
-  loadAirdrops();
-};
-
-/* ================= LOAD AIRDROPS ================= */
+// ================= LOAD AIRDROPS =================
 async function loadAirdrops() {
-
   const snap = await getDocs(collection(db, "airdropCampaigns"));
+  const box = document.getElementById("airdrops");
 
-  const active = document.getElementById("activeList");
-  const ended = document.getElementById("endedList");
-
-  active.innerHTML = "";
-  ended.innerHTML = "";
+  box.innerHTML = "";
 
   snap.forEach(d => {
-    const x = d.data();
+    const data = d.data();
 
-    const html = `
-      <div class="item">
-        🌟 <b>${x.name}</b><br>
+    const div = document.createElement("div");
+    div.className = "card";
 
-        ⚡ Rate: ${x.rate}<br>
-        💰 Price: $${x.price}<br>
-        👤 Creator: ${x.creator}<br>
+    div.innerHTML = `
+      <b>${data.name}</b><br>
+      💰 Price: ${data.price}<br>
+      ⛏ Rate: ${data.rate}<br>
+      📅 Start: ${new Date(data.startTime)}<br>
+      📅 End: ${new Date(data.endTime)}<br>
+      Status: ${data.active ? "🟢 Running" : "🔴 Stopped"}<br>
 
-        🚀 Start: ${new Date(x.startTime).toLocaleString()}<br>
-        ⏳ End: ${new Date(x.endTime).toLocaleString()}<br>
-
-        📊 Status: ${x.status}<br>
-
-        <button onclick="startOne('${d.id}')" class="green">
-          🚀 Start Airdrop
-        </button>
-
-        <button onclick="stopOne('${d.id}')" class="red">
-          ⛔ Stop Airdrop
-        </button>
-      </div>
+      <button onclick="start('${d.id}')">🟢 Start</button>
+      <button onclick="stop('${d.id}')">🔴 Stop</button>
     `;
 
-    if (x.status === "running") active.innerHTML += html;
-    else ended.innerHTML += html;
+    box.appendChild(div);
   });
 }
 
-/* INIT */
+// ================= START / STOP =================
+window.start = async (id) => {
+  await updateDoc(doc(db, "airdropCampaigns", id), { active: true });
+  loadAirdrops();
+};
+
+window.stop = async (id) => {
+  await updateDoc(doc(db, "airdropCampaigns", id), { active: false });
+  loadAirdrops();
+};
+
+// ================= FETCH WITHDRAWALS =================
+window.fetchWithdrawals = async function () {
+  const snap = await getDocs(collection(db, "pendingWithdrawals"));
+  const box = document.getElementById("withdrawals");
+
+  box.innerHTML = "";
+
+  snap.forEach(d => {
+    const data = d.data();
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      👤 User: ${data.userId}<br>
+      💰 Amount: ${data.amount}<br>
+      Status: ${data.status || "pending"}<br>
+
+      <button onclick="approve('${d.id}', '${data.userId}', ${data.amount})">✅ Approve</button>
+      <button onclick="reject('${d.id}', '${data.userId}', ${data.amount})">❌ Reject</button>
+    `;
+
+    box.appendChild(div);
+  });
+};
+
+// ================= APPROVE =================
+window.approve = async (id, uid, amount) => {
+
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+
+  let mainBal = snap.data().balance || 0;
+  let airBal = snap.data().airdropBalance || 0;
+
+  await updateDoc(userRef, {
+    balance: mainBal + amount,
+    airdropBalance: airBal - amount
+  });
+
+  await updateDoc(doc(db, "pendingWithdrawals", id), {
+    status: "approved"
+  });
+
+  alert("Approved ✅");
+};
+
+// ================= REJECT =================
+window.reject = async (id, uid, amount) => {
+
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+
+  let airBal = snap.data().airdropBalance || 0;
+
+  await updateDoc(userRef, {
+    airdropBalance: airBal + amount
+  });
+
+  await updateDoc(doc(db, "pendingWithdrawals", id), {
+    status: "rejected"
+  });
+
+  alert("Rejected ❌");
+};
+
+// INIT
 loadAirdrops();
