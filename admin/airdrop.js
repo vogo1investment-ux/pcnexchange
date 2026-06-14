@@ -9,6 +9,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -21,183 +22,185 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let currentBatchId = null;
-
----
-
-# 🟢 CREATE AIRDROP
-
+/* =========================
+   CREATE AIRDROP
+========================= */
 window.createAirdrop = async function () {
-
   const name = document.getElementById("name").value;
   const rate = parseFloat(document.getElementById("rate").value);
   const start = new Date(document.getElementById("start").value).getTime();
   const end = new Date(document.getElementById("end").value).getTime();
 
-  await addDoc(collection(db, "airdropCampaigns"), {
-    name,
-    rate,
-    start,
-    end,
-    isActive: false,
-    createdAt: serverTimestamp()
-  });
+  try {
+    await addDoc(collection(db, "airdropCampaigns"), {
+      name,
+      rate,
+      start,
+      end,
+      isActive: false,
+      createdAt: serverTimestamp()
+    });
 
-  alert("Airdrop Created 🚀");
+    alert("✅ Airdrop Created");
+  } catch (e) {
+    alert("❌ Error creating airdrop");
+    console.error(e);
+  }
 };
 
----
-
-# 📡 LOAD AIRDROPS
-
+/* =========================
+   LOAD AIRDROPS
+========================= */
 window.loadAirdrops = async function () {
-
   const list = document.getElementById("airdropList");
   list.innerHTML = "Loading...";
 
-  const snap = await getDocs(collection(db, "airdropCampaigns"));
+  try {
+    const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-  list.innerHTML = "";
+    list.innerHTML = "";
 
-  snap.forEach((d) => {
+    snap.forEach((docSnap) => {
+      const a = docSnap.data();
+      const id = docSnap.id;
 
-    const a = d.data();
+      const div = document.createElement("div");
+      div.className = "box";
 
-    const div = document.createElement("div");
-    div.className = "box";
+      div.innerHTML = `
+        🚀 <b>${a.name || "Airdrop"}</b><br>
+        💰 Rate: ${a.rate || 0}<br>
+        ⏰ Start: ${new Date(a.start).toLocaleString()}<br>
+        ⏳ End: ${new Date(a.end).toLocaleString()}<br>
+        🔥 Active: ${a.isActive ? "YES" : "NO"}<br><br>
 
-    div.innerHTML = `
-      🚀 <b>${a.name}</b><br>
-      💰 Rate: ${a.rate}<br>
-      ⏰ Start: ${new Date(a.start).toLocaleString()}<br>
-      ⏳ End: ${new Date(a.end).toLocaleString()}<br>
-      🔥 Active: ${a.isActive}<br><br>
+        <button class="start" onclick="startAirdrop('${id}')">🟢 Start</button>
+        <button class="stop" onclick="stopAirdrop('${id}')">🔴 Stop</button>
+      `;
 
-      <button class="start" onclick="startAirdrop('${d.id}')">🟢 Start</button>
-      <button class="stop" onclick="stopAirdrop('${d.id}')">🔴 Stop</button>
-    `;
+      list.appendChild(div);
+    });
 
-    list.appendChild(div);
-  });
+  } catch (e) {
+    console.error(e);
+    list.innerHTML = "Error loading airdrops";
+  }
 };
 
----
-
-# 🟢 START AIRDROP
-
+/* =========================
+   START AIRDROP
+========================= */
 window.startAirdrop = async function (id) {
-  await updateDoc(doc(db, "airdropCampaigns", id), {
-    isActive: true
-  });
+  try {
+    await updateDoc(doc(db, "airdropCampaigns", id), {
+      isActive: true
+    });
 
-  alert("Airdrop Started 🚀");
+    alert("🟢 Airdrop Started");
+    loadAirdrops();
+  } catch (e) {
+    console.error(e);
+    alert("❌ Failed to start");
+  }
 };
 
----
-
-# 🔴 STOP AIRDROP
-
+/* =========================
+   STOP AIRDROP
+========================= */
 window.stopAirdrop = async function (id) {
-  await updateDoc(doc(db, "airdropCampaigns", id), {
-    isActive: false
-  });
+  try {
+    await updateDoc(doc(db, "airdropCampaigns", id), {
+      isActive: false
+    });
 
-  alert("Airdrop Stopped ⛔");
+    alert("🔴 Airdrop Stopped");
+    loadAirdrops();
+  } catch (e) {
+    console.error(e);
+    alert("❌ Failed to stop");
+  }
 };
 
----
-
-# 🟢 NEW: START WITHDRAWAL BATCH (IMPORTANT)
-
-window.startWithdrawalBatch = async function () {
-
-  const batchRef = await addDoc(collection(db, "airdropWithdrawals"), {
-    status: "active",
-    createdAt: serverTimestamp()
-  });
-
-  currentBatchId = batchRef.id;
-
-  alert("Withdrawal Batch Started 🟢");
-};
-
----
-
-# 🔵 FETCH WITHDRAWALS (ONLY THIS SYSTEM)
-
+/* =========================
+   WITHDRAWALS SYSTEM
+========================= */
 window.fetchWithdrawals = async function () {
-
   const box = document.getElementById("withdrawals");
   box.innerHTML = "Loading...";
 
-  const batches = await getDocs(collection(db, "airdropWithdrawals"));
+  try {
+    const batches = await getDocs(collection(db, "airdropWithdrawals"));
 
-  box.innerHTML = "";
+    box.innerHTML = "";
 
-  batches.forEach(async (batch) => {
+    for (const batch of batches.docs) {
+      const batchId = batch.id;
 
-    const requests = await getDocs(
-      collection(db, "airdropWithdrawals", batch.id, "requests")
+      const requests = await getDocs(
+        collection(db, "airdropWithdrawals", batchId, "requests")
+      );
+
+      const container = document.createElement("div");
+      container.className = "box";
+
+      container.innerHTML = `📦 Batch: ${batchId}<br><br>`;
+
+      requests.forEach((r) => {
+        const w = r.data();
+
+        const item = document.createElement("div");
+        item.innerHTML = `
+          👤 User: ${w.userId}<br>
+          💰 Amount: ${w.amount}<br>
+          📌 Status: ${w.status || "pending"}<br><br>
+
+          <button class="start" onclick="approve('${batchId}','${r.id}','${w.userId}',${w.amount})">✔ Approve</button>
+          <button class="stop" onclick="reject('${batchId}','${r.id}')">✖ Reject</button>
+          <hr>
+        `;
+
+        container.appendChild(item);
+      });
+
+      box.appendChild(container);
+    }
+
+  } catch (e) {
+    console.error(e);
+    box.innerHTML = "Error loading withdrawals";
+  }
+};
+
+/* =========================
+   APPROVE
+========================= */
+window.approve = async function (batchId, reqId, userId, amount) {
+  try {
+    await updateDoc(
+      doc(db, "airdropWithdrawals", batchId, "requests", reqId),
+      { status: "approved" }
     );
 
-    const container = document.createElement("div");
-    container.className = "box";
-
-    container.innerHTML = `📦 Batch: ${batch.id}<br><br>`;
-
-    requests.forEach((r) => {
-
-      const w = r.data();
-
-      const item = document.createElement("div");
-
-      item.innerHTML = `
-        👤 ${w.userId} <br>
-        💰 ${w.amount} <br>
-        📌 ${w.status} <br><br>
-
-        <button class="start" onclick="approve('${batch.id}','${r.id}','${w.userId}',${w.amount})">✔️ Approve</button>
-        <button class="stop" onclick="reject('${batch.id}','${r.id}')">❌ Reject</button>
-        <hr>
-      `;
-
-      container.appendChild(item);
-    });
-
-    box.appendChild(container);
-  });
+    alert("✔ Approved");
+  } catch (e) {
+    console.error(e);
+    alert("❌ Failed approve");
+  }
 };
 
----
-
-# ✔️ APPROVE
-
-window.approve = async function (batchId, reqId, userId, amount) {
-
-  const userRef = doc(db, "users", userId);
-
-  await updateDoc(userRef, {
-    balance: 0
-  });
-
-  await updateDoc(
-    doc(db, "airdropWithdrawals", batchId, "requests", reqId),
-    { status: "approved" }
-  );
-
-  alert("Approved ✔️");
-};
-
----
-
-# ❌ REJECT
-
+/* =========================
+   REJECT
+========================= */
 window.reject = async function (batchId, reqId) {
+  try {
+    await updateDoc(
+      doc(db, "airdropWithdrawals", batchId, "requests", reqId),
+      { status: "rejected" }
+    );
 
-  await updateDoc(
-    doc(db, "airdropWithdrawals", batchId, "requests", reqId),
-    { status: "rejected" }
-  );
-
-  alert("Rejected ❌");
+    alert("✖ Rejected");
+  } catch (e) {
+    console.error(e);
+    alert("❌ Failed reject");
+  }
 };
