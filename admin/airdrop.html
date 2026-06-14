@@ -3,45 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop Admin Panel</title>
+<title>🔥 Airdrop Admin Panel</title>
 
 <style>
 body {
-  margin:0;
+  margin: 0;
   font-family: Arial;
-  background:#0b1220;
-  color:white;
+  background: #0b1220;
+  color: white;
 }
 
-.container { max-width:1100px; margin:auto; padding:15px; }
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 15px;
+}
+
+h2 {
+  color: gold;
+}
 
 .card {
-  background:#111a2e;
-  padding:15px;
-  margin-top:12px;
-  border-radius:12px;
+  background: #111a2e;
+  padding: 15px;
+  margin-top: 12px;
+  border-radius: 12px;
 }
 
-input, button {
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border:none;
-  border-radius:8px;
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: none;
 }
 
 button {
-  background:gold;
-  font-weight:bold;
-  cursor:pointer;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.row {
-  display:flex;
-  justify-content:space-between;
-  font-size:13px;
+.create { background: gold; }
+.start { background: #22c55e; }
+.stop { background: #ef4444; }
+.fetch { background: #3b82f6; }
+
+.box {
+  margin-top: 10px;
+  padding: 10px;
+  background: #0f172a;
+  border-radius: 10px;
 }
-.small { font-size:12px; opacity:0.8; }
 </style>
 </head>
 
@@ -49,44 +66,37 @@ button {
 
 <div class="container">
 
-<h2>🚀 Airdrop Admin Panel</h2>
+<h2>🚀 ADMIN AIRDROP CONTROL</h2>
 
 <!-- CREATE AIRDROP -->
 <div class="card">
 <h3>➕ Create Airdrop</h3>
 
-<input id="name" placeholder="Airdrop Name">
-<input id="rate" placeholder="Mining Rate (0.00000001/sec)">
-<input id="price" placeholder="Coin Price 💰">
-
+<input id="name" placeholder="Name">
+<input id="rate" placeholder="Rate per tick (0.00000001)">
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button onclick="createAirdrop()">Create Airdrop</button>
+<button class="create" onclick="createAirdrop()">Create</button>
 </div>
 
-<!-- AIRDROPS -->
+<!-- AIRDROP LIST -->
 <div class="card">
-<h3>📅 Active Airdrops</h3>
-<div id="airdrops"></div>
-</div>
-
-<!-- MINERS -->
-<div class="card">
-<h3>⛏ Users Mining</h3>
-<div id="miners"></div>
+<h3>📡 Airdrops</h3>
+<button class="fetch" onclick="loadAirdrops()">Load Airdrops</button>
+<div id="airdropList"></div>
 </div>
 
 <!-- WITHDRAWALS -->
 <div class="card">
 <h3>💸 Withdrawals</h3>
-<button onclick="fetchWithdrawals()">📥 Fetch Withdrawals</button>
+<button class="fetch" onclick="fetchWithdrawals()">Fetch Withdrawals</button>
 <div id="withdrawals"></div>
 </div>
 
 </div>
 
-<script type="module" src="airdrop.js"></script>
+<script type="module" src="airdrops.js"></script>
 
 </body>
 </html>
