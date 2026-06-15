@@ -9,20 +9,39 @@ updateDoc,
 onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
+/* ================= FIREBASE ================= */
+
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YTR38JRJhRlUbBoa2CIPo",
 authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange"
+projectId: "pcnexchange",
+storageBucket: "pcnexchange.firebasestorage.app",
+messagingSenderId: "278761036604",
+appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* =========================
-CREATE AIRDROP
-========================= */
+/* ================= CREATE AIRDROP ================= */
 
-document.getElementById("create").onclick = async () => {
+const name = document.getElementById("name");
+const desc = document.getElementById("desc");
+const rate = document.getElementById("rate");
+const amount = document.getElementById("amount");
+const start = document.getElementById("start");
+const end = document.getElementById("end");
+
+const createBtn = document.getElementById("create");
+
+createBtn.onclick = async () => {
+
+if (!name.value || !rate.value) {
+alert("Fill all fields");
+return;
+}
+
+try {
 
 await addDoc(collection(db, "airdropCampaigns"), {
 name: name.value,
@@ -35,19 +54,32 @@ active: false,
 createdAt: Date.now()
 });
 
-alert("Airdrop created!");
+alert("Airdrop created successfully!");
+
+name.value = "";
+desc.value = "";
+rate.value = "";
+amount.value = "";
+
+} catch (e) {
+console.log(e);
+alert("Error creating airdrop");
+}
+
 };
 
-/* =========================
-LOAD AIRDROPS
-========================= */
+/* ================= LOAD AIRDROPS ================= */
 
-document.getElementById("load").onclick = async () => {
-
+const loadBtn = document.getElementById("load");
 const list = document.getElementById("list");
-list.innerHTML = "";
+
+loadBtn.onclick = async () => {
+
+list.innerHTML = "Loading...";
 
 const snap = await getDocs(collection(db, "airdropCampaigns"));
+
+list.innerHTML = "";
 
 snap.forEach(docSnap => {
 
@@ -56,81 +88,102 @@ const d = docSnap.data();
 const div = document.createElement("div");
 div.className = "airdrop";
 
-const start = d.startTime ? new Date(Number(d.startTime)) : null;
-const end = d.endTime ? new Date(Number(d.endTime)) : null;
+const startTime = d.startTime ? new Date(d.startTime).toLocaleString() : "N/A";
+const endTime = d.endTime ? new Date(d.endTime).toLocaleString() : "N/A";
 
 div.innerHTML = `
 <h3>${d.name}</h3>
 <p>${d.description}</p>
 <p>Rate: ${d.rate}</p>
-<p>Start: ${start ? start.toLocaleString() : "N/A"}</p>
-<p>End: ${end ? end.toLocaleString() : "N/A"}</p>
+<p>Amount: ${d.amount}</p>
+<p>Start: ${startTime}</p>
+<p>End: ${endTime}</p>
+<p>Status: ${d.active ? "🟢 ACTIVE" : "🔴 STOPPED"}</p>
 
-<button class="start">START</button>
-<button class="stop">STOP</button>
+<button class="start">START AIRDROP</button>
+<button class="stop">STOP AIRDROP</button>
 `;
 
 list.appendChild(div);
 
-/* START AIRDROP */
+/* ================= START AIRDROP ================= */
+
 div.querySelector(".start").onclick = async () => {
+
+try {
+
 await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
 active: true
 });
-alert("Started");
+
+alert("Airdrop started");
+
+} catch (e) {
+console.log(e);
+}
+
 };
 
-/* STOP AIRDROP */
+/* ================= STOP AIRDROP ================= */
+
 div.querySelector(".stop").onclick = async () => {
+
+try {
+
 await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
 active: false
 });
-alert("Stopped");
+
+alert("Airdrop stopped");
+
+} catch (e) {
+console.log(e);
+}
+
 };
 
 });
 
 };
 
-/* =========================
-LIVE USERS MINING
-========================= */
+/* ================= LIVE USERS MINING ================= */
 
-onSnapshot(collection(db, "users"), (snap) => {
+const usersBox = document.getElementById("users");
 
-const box = document.getElementById("users");
-box.innerHTML = "";
+onSnapshot(collection(db, "users"), snap => {
+
+if (!usersBox) return;
+
+usersBox.innerHTML = "";
 
 snap.forEach(u => {
 
 const d = u.data();
 
-if (d.airdropBalance > 0) {
-
 const div = document.createElement("div");
 div.className = "user";
 
 div.innerHTML = `
-UID: ${u.id} <br>
-Balance: ${d.airdropBalance}
+<b>UID:</b> ${u.id}<br>
+Balance: ${d.balance || 0}<br>
+Mining: ${d.airdropBalance || 0}
 `;
 
-box.appendChild(div);
-
-}
+usersBox.appendChild(div);
 
 });
 
 });
 
-/* =========================
-WITHDRAWALS
-========================= */
+/* ================= LIVE WITHDRAWALS ================= */
 
-onSnapshot(collection(db, "withdrawals"), (snap) => {
+const withdrawBox = document.getElementById("withdrawals");
 
-const box = document.getElementById("withdrawals");
-box.innerHTML = "";
+onSnapshot(collection(db, "withdrawals"), snap => {
+
+if (!withdrawBox) return;
+
+withdrawBox.innerHTML = "";
 
 snap.forEach(w => {
 
@@ -140,12 +193,12 @@ const div = document.createElement("div");
 div.className = "user";
 
 div.innerHTML = `
-User: ${d.userId} <br>
-Amount: ${d.amount} <br>
+User: ${d.userId}<br>
+Amount: ${d.amount}<br>
 Status: ${d.status}
 `;
 
-box.appendChild(div);
+withdrawBox.appendChild(div);
 
 });
 
