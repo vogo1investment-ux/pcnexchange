@@ -1,75 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>🔥 Airdrop Admin (WORKING)</title>
-
-<style>
-body{
-  background:#0b1220;
-  color:white;
-  font-family:Arial;
-  padding:10px;
-}
-
-.box{
-  background:#111a2e;
-  padding:12px;
-  margin:10px 0;
-  border-radius:10px;
-}
-
-input, button{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:none;
-}
-
-button{
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.create{ background:gold; }
-.blue{ background:#3b82f6; color:white; }
-.red{ background:red; color:white; }
-.green{ background:green; color:white; }
-</style>
+  <title>Airdrop Admin</title>
 </head>
 
 <body>
 
-<h2>⚙️ AIRDROP ADMIN PANEL (FIXED)</h2>
+<h2>⚙️ AIRDROP ADMIN</h2>
 
-<div class="box">
-<h3>Create Airdrop</h3>
+<div>
+  <h3>Create Airdrop</h3>
 
-<input id="name" placeholder="Name">
-<input id="desc" placeholder="Description">
-<input id="rate" placeholder="Rate">
-<input id="amount" placeholder="Amount">
-<input id="start" type="datetime-local">
-<input id="end" type="datetime-local">
+  <input id="name" placeholder="Name">
+  <input id="desc" placeholder="Description">
+  <input id="rate" placeholder="Rate">
+  <input id="amount" placeholder="Amount">
 
-<button id="createBtn" class="create">CREATE AIRDROP</button>
+  <input id="start" type="datetime-local">
+  <input id="end" type="datetime-local">
+
+  <button id="createBtn">CREATE AIRDROP</button>
 </div>
 
-<div class="box">
-<h3>Airdrops</h3>
-<button id="loadBtn" class="blue">LOAD AIRDROPS</button>
-<div id="list"></div>
+<hr>
+
+<div>
+  <h3>Airdrops</h3>
+  <button id="loadBtn">LOAD AIRDROPS</button>
+  <div id="list"></div>
 </div>
 
-<div class="box">
-<h3>Users</h3>
-<div id="users"></div>
+<hr>
+
+<div>
+  <h3>Users</h3>
+  <div id="users"></div>
 </div>
 
-<div class="box">
-<h3>Withdrawals</h3>
-<div id="withdrawals"></div>
+<hr>
+
+<div>
+  <h3>Withdrawals</h3>
+  <button id="loadWithdrawBtn">LOAD WITHDRAWALS</button>
+  <div id="withdrawals"></div>
 </div>
 
 <script type="module" src="airdrop.js"></script>
