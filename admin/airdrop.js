@@ -5,10 +5,11 @@ import {
   addDoc,
   getDocs,
   doc,
-  getDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -17,7 +18,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 
-// ---------------- FIREBASE CONFIG ----------------
+// ---------------- CONFIG ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -29,10 +30,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 
-// ---------------- ELEMENTS ----------------
-const list = document.getElementById("list");
-const usersDiv = document.getElementById("users");
-const withdrawalsDiv = document.getElementById("withdrawals");
+// ---------------- DOM WAIT FIX ----------------
+window.addEventListener("load", () => {
 
 const name = document.getElementById("name");
 const desc = document.getElementById("desc");
@@ -41,21 +40,27 @@ const amount = document.getElementById("amount");
 const start = document.getElementById("start");
 const end = document.getElementById("end");
 
-const createBtn = document.getElementById("create");
-const loadBtn = document.getElementById("load");
+const createBtn = document.getElementById("createBtn");
+const loadBtn = document.getElementById("loadBtn");
+
+const list = document.getElementById("list");
+const usersDiv = document.getElementById("users");
+const withdrawalsDiv = document.getElementById("withdrawals");
+
+let admin = null;
 
 
-// ---------------- AUTH CHECK ----------------
+// ---------------- AUTH ----------------
 onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    alert("Login required");
-  }
+  admin = user;
 });
 
 
 // ---------------- CREATE AIRDROP ----------------
 createBtn.onclick = async () => {
   try {
+
+    if (!admin) return alert("Login required");
 
     await addDoc(collection(db, "airdropCampaigns"), {
       name: name.value,
@@ -68,50 +73,38 @@ createBtn.onclick = async () => {
       createdAt: Date.now()
     });
 
-    alert("✅ Airdrop Created");
-
-    name.value = "";
-    desc.value = "";
-    rate.value = "";
-    amount.value = "";
-    start.value = "";
-    end.value = "";
+    alert("Airdrop created");
 
   } catch (e) {
     console.log(e);
-    alert("❌ Error creating airdrop");
+    alert("Failed to create");
   }
 };
 
 
 // ---------------- LOAD AIRDROPS ----------------
 loadBtn.onclick = async () => {
+
   list.innerHTML = "Loading...";
 
   const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-  if (snap.empty) {
-    list.innerHTML = "No airdrops";
-    return;
-  }
-
   list.innerHTML = "";
 
   snap.forEach((d) => {
+
     const data = d.data();
 
     const div = document.createElement("div");
+    div.className = "box";
+
     div.innerHTML = `
-      <div style="background:#222;padding:10px;margin:10px;border-radius:8px;">
-        <b>${data.name}</b><br>
-        Rate: ${data.rate}<br>
-        Status: ${data.status}
+      <b>${data.name}</b><br>
+      Rate: ${data.rate}<br>
+      Status: ${data.status}
 
-        <br><br>
-
-        <button onclick="stopAirdrop('${d.id}')">Stop</button>
-        <button onclick="deleteAirdrop('${d.id}')">Delete</button>
-      </div>
+      <button onclick="stopAir('${d.id}')">STOP</button>
+      <button onclick="delAir('${d.id}')">DELETE</button>
     `;
 
     list.appendChild(div);
@@ -119,100 +112,69 @@ loadBtn.onclick = async () => {
 };
 
 
-// ---------------- STOP AIRDROP ----------------
-window.stopAirdrop = async (id) => {
-  try {
-    await updateDoc(doc(db, "airdropCampaigns", id), {
-      status: "stopped"
-    });
-    alert("Stopped");
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-
-// ---------------- DELETE AIRDROP ----------------
-window.deleteAirdrop = async (id) => {
-  try {
-    await deleteDoc(doc(db, "airdropCampaigns", id));
-    alert("Deleted");
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-
-// ---------------- LOAD USERS MINING ----------------
-function loadUsers() {
-  onSnapshot(collection(db, "users"), (snap) => {
-
-    usersDiv.innerHTML = "";
-
-    snap.forEach((d) => {
-      const data = d.data();
-
-      const div = document.createElement("div");
-      div.style = "background:#111;margin:5px;padding:8px;border-radius:6px";
-
-      div.innerHTML = `
-        User: ${d.id}<br>
-        Balance: ${data.balance || 0}
-      `;
-
-      usersDiv.appendChild(div);
-    });
-
+// ---------------- GLOBAL BUTTON FIX ----------------
+window.stopAir = async (id) => {
+  await updateDoc(doc(db, "airdropCampaigns", id), {
+    status: "stopped"
   });
-}
+  alert("Stopped");
+};
+
+window.delAir = async (id) => {
+  await deleteDoc(doc(db, "airdropCampaigns", id));
+  alert("Deleted");
+};
 
 
-// ---------------- LOAD WITHDRAWALS ----------------
-function loadWithdrawals() {
-  onSnapshot(collection(db, "airdropWithdrawals"), (snap) => {
+// ---------------- USERS LIVE ----------------
+onSnapshot(collection(db, "users"), (snap) => {
+  usersDiv.innerHTML = "";
 
-    withdrawalsDiv.innerHTML = "";
+  snap.forEach((d) => {
+    const data = d.data();
 
-    snap.forEach((d) => {
-      const data = d.data();
+    usersDiv.innerHTML += `
+      <div class="box">
+        <b>User:</b> ${d.id}<br>
+        Balance: ${data.balance || 0}
+      </div>
+    `;
+  });
+});
 
-      const div = document.createElement("div");
-      div.style = "background:#111;margin:5px;padding:8px;border-radius:6px";
 
-      div.innerHTML = `
+// ---------------- WITHDRAWALS LIVE ----------------
+onSnapshot(collection(db, "airdropWithdrawals"), (snap) => {
+
+  withdrawalsDiv.innerHTML = "";
+
+  snap.forEach((d) => {
+    const data = d.data();
+
+    withdrawalsDiv.innerHTML += `
+      <div class="box">
         User: ${data.userId}<br>
-        Airdrop: ${data.airdropId}<br>
         Status: ${data.status || "pending"}
 
-        <br>
-
-        <button onclick="approve('${d.id}')">Approve</button>
-        <button onclick="reject('${d.id}')">Reject</button>
-      `;
-
-      withdrawalsDiv.appendChild(div);
-    });
-
+        <button onclick="approve('${d.id}')">APPROVE</button>
+        <button onclick="reject('${d.id}')">REJECT</button>
+      </div>
+    `;
   });
-}
+});
 
 
-// ---------------- APPROVE ----------------
+// ---------------- APPROVE / REJECT ----------------
 window.approve = async (id) => {
   await updateDoc(doc(db, "airdropWithdrawals", id), {
     status: "approved"
   });
 };
 
-
-// ---------------- REJECT ----------------
 window.reject = async (id) => {
   await updateDoc(doc(db, "airdropWithdrawals", id), {
     status: "rejected"
   });
 };
 
-
-// ---------------- AUTO LOAD USERS + WITHDRAWALS ----------------
-loadUsers();
-loadWithdrawals();
+}); // END LOAD

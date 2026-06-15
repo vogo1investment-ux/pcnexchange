@@ -2,60 +2,78 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Airdrop Admin</title>
-<link rel="stylesheet" href="airdrop.css">
+<title>Airdrop Admin Fixed</title>
+
+<style>
+body{
+  background:#0b1220;
+  color:white;
+  font-family:Arial;
+  padding:10px;
+}
+
+.box{
+  background:#111a2e;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+}
+
+input, button{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  background:gold;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.smallbtn{
+  background:#3b82f6;
+  color:white;
+}
+
+.red{ background:red; color:white; }
+.green{ background:green; color:white; }
+</style>
 </head>
 
 <body>
 
-<div class="admin">
+<h2>⚙️ ADMIN AIRDROP PANEL</h2>
 
-<h1>⚙️ AIRDROP ADMIN PANEL</h1>
-
-<!-- CREATE AIRDROP -->
 <div class="box">
+<h3>Create Airdrop</h3>
 
-<h2>Create Airdrop</h2>
-
-<input id="name" placeholder="Airdrop Name">
+<input id="name" placeholder="Name">
 <input id="desc" placeholder="Description">
-<input id="rate" placeholder="Rate (e.g 0.00000001)">
+<input id="rate" placeholder="Rate (0.00000001)">
 <input id="amount" placeholder="Amount">
-
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button id="create">CREATE AIRDROP</button>
-
+<button id="createBtn">CREATE AIRDROP</button>
 </div>
 
-<!-- CONTROL -->
 <div class="box">
-
-<h2>Airdrop Control</h2>
-
-<button id="load">LOAD AIRDROPS</button>
-
+<h3>Airdrops</h3>
+<button id="loadBtn" class="smallbtn">LOAD AIRDROPS</button>
 <div id="list"></div>
-
 </div>
 
-<!-- USERS -->
 <div class="box">
-
-<h2>Users Mining</h2>
+<h3>Users</h3>
 <div id="users"></div>
-
 </div>
 
-<!-- WITHDRAWALS -->
 <div class="box">
-
-<h2>Withdrawals</h2>
+<h3>Withdrawals</h3>
 <div id="withdrawals"></div>
-
-</div>
-
 </div>
 
 <script type="module" src="airdrop.js"></script>
