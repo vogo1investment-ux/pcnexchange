@@ -36,17 +36,17 @@ const searchBtn = document.getElementById("searchAirdropsBtn");
 const listEl = document.getElementById("airdropList");
 const loading = document.getElementById("loadingBox");
 
-// LOGIN CHECK
+// LOGIN
 onAuthStateChanged(auth, async (u) => {
 if (!u) return;
 
 user = u;
 
 await initBalance();
-await autoResume();
+await resumeMining();
 });
 
-// INIT BALANCE (START ZERO ALWAYS)
+// INIT BALANCE (ALWAYS SAFE)
 async function initBalance() {
 
 const ref = doc(db, "users", user.uid);
@@ -75,14 +75,20 @@ snap.forEach(docSnap => {
 
 const d = docSnap.data();
 
+// FIX INVALID DATE ISSUE
+const start = d.startTime ? new Date(Number(d.startTime)) : null;
+const end = d.endTime ? new Date(Number(d.endTime)) : null;
+
 const card = document.createElement("div");
 card.className = "airdrop-card";
 
 card.innerHTML = `
-<h2>${d.name}</h2>
-<p>Rate: ${d.rate}</p>
-<p>Start: ${new Date(d.startTime).toLocaleString()}</p>
-<p>End: ${new Date(d.endTime).toLocaleString()}</p>
+<h3>${d.name || "Airdrop"}</h3>
+
+<p>Rate: ${d.rate || 0}</p>
+
+<p>Start: ${start ? start.toLocaleString() : "Not set"}</p>
+<p>End: ${end ? end.toLocaleString() : "Not set"}</p>
 
 <button class="start">START MINING</button>
 <button class="stop">STOP MINING</button>
@@ -118,8 +124,8 @@ const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 await setDoc(stateRef, {
 active: true,
 campaignId: id,
-rate: parseFloat(rate),
-endTime: endTime,
+rate: Number(rate || 0),
+endTime: Number(endTime || Date.now() + 100000),
 startedAt: Date.now()
 });
 
@@ -142,10 +148,9 @@ interval = null;
 }
 
 alert("Mining stopped");
-
 }
 
-// MINING ENGINE (FIXED)
+// MINING ENGINE (FIXED CORE)
 async function runMining() {
 
 const stateRef = doc(db, "users", user.uid, "airdropState", "main");
@@ -165,7 +170,7 @@ interval = null;
 return;
 }
 
-if (Date.now() > st.endTime) {
+if (Date.now() > Number(st.endTime)) {
 await updateDoc(stateRef, { active: false });
 clearInterval(interval);
 interval = null;
@@ -175,12 +180,13 @@ return;
 const userRef = doc(db, "users", user.uid);
 const userSnap = await getDoc(userRef);
 
-let bal = parseFloat(userSnap.data().airdropBalance || 0);
-let rate = parseFloat(st.rate || 0);
+let bal = Number(userSnap.data().airdropBalance || 0);
+let rate = Number(st.rate || 0);
 
 if (isNaN(bal)) bal = 0;
 if (isNaN(rate)) rate = 0;
 
+// ADD BALANCE
 bal += rate;
 
 await updateDoc(userRef, {
@@ -193,8 +199,8 @@ balanceEl.innerText = bal.toFixed(8);
 
 }
 
-// AUTO RESUME
-async function autoResume() {
+// AUTO RESUME MINING
+async function resumeMining() {
 
 const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 

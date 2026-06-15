@@ -5,21 +5,25 @@ background: #0b0f14;
 color: white;
 }
 
-.container {
-text-align: center;
+.wrapper {
+max-width: 900px;
+margin: auto;
 padding: 20px;
+text-align: center;
 }
 
-h1 {
+.title {
 color: #00ff88;
+font-size: 22px;
+margin-bottom: 20px;
 }
 
-.balance-box {
-margin: 20px auto;
-padding: 15px;
+.balance {
 background: #111;
+padding: 15px;
 border-radius: 10px;
 font-size: 20px;
+margin-bottom: 20px;
 }
 
 #airdropBalance {
@@ -28,39 +32,38 @@ color: #00ff88;
 }
 
 button {
-padding: 10px 15px;
-margin: 10px;
+padding: 12px;
 border: none;
 border-radius: 8px;
-cursor: pointer;
 background: #00ff88;
 font-weight: bold;
+cursor: pointer;
+margin: 10px 0;
+width: 100%;
+max-width: 300px;
 }
 
 #loadingBox {
 display: none;
 color: yellow;
+margin: 10px;
 }
 
 .airdrop-card {
 background: #111;
-margin: 15px auto;
 padding: 15px;
+margin: 15px 0;
 border-radius: 10px;
-max-width: 400px;
+text-align: left;
 }
 
-.airdrop-card h2 {
+.airdrop-card h3 {
 color: #00ff88;
-}
-
-.airdrop-card p {
-margin: 5px 0;
 }
 
 .airdrop-card button {
 width: 100%;
-margin-top: 5px;
+margin-top: 8px;
 }
 
 .stop {
@@ -70,4 +73,16 @@ color: white;
 
 .withdraw {
 background: orange;
+color: white;
+}
+
+/* MOBILE FIX */
+@media (max-width: 600px) {
+.title {
+font-size: 18px;
+}
+
+.balance {
+font-size: 16px;
+}
 }
