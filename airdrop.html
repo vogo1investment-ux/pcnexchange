@@ -2,66 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCN Exchange Airdrops</title>
-
+<title>Airdrop System</title>
 <link rel="stylesheet" href="airdrop.css">
-
 </head>
+
 <body>
 
 <div class="container">
 
-    <div class="header">
-        <h1>PCN AIRDROP CENTER</h1>
-    </div>
+<h1>💰 AIRDROP MINING</h1>
 
-    <!-- USER BALANCE -->
+<!-- BALANCE -->
+<div class="balance-box">
+BALANCE:
+<span id="airdropBalance">0.00000000</span>
+</div>
 
-    <div class="balance-box">
+<!-- SEARCH -->
+<button id="searchAirdropsBtn">SEARCH AIRDROPS</button>
 
-        <div class="balance-title">
-            Your Airdrop Balance
-        </div>
+<div id="loadingBox">Loading...</div>
 
-        <div
-            class="balance-value"
-            id="airdropBalance">
-
-            0.00000000
-
-        </div>
-
-    </div>
-
-    <!-- SEARCH BUTTON -->
-
-    <button
-        id="searchAirdropsBtn"
-        class="search-btn">
-
-        SEARCH AIRDROPS
-
-    </button>
-
-    <!-- LOADING -->
-
-    <div
-        id="loadingBox"
-        class="loading"
-        style="display:none;">
-
-        Searching available airdrops...
-
-    </div>
-
-    <!-- AIRDROP LIST -->
-
-    <div
-        id="airdropList"
-        class="airdrop-list">
-
-    </div>
+<!-- LIST -->
+<div id="airdropList"></div>
 
 </div>
 

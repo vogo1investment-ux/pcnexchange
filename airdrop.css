@@ -1,135 +1,73 @@
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
+body {
+margin: 0;
+font-family: Arial;
+background: #0b0f14;
+color: white;
 }
 
-body{
-background:#050505;
-color:white;
-padding:20px;
+.container {
+text-align: center;
+padding: 20px;
 }
 
-.container{
-max-width:1200px;
-margin:auto;
+h1 {
+color: #00ff88;
 }
 
-.header{
-text-align:center;
-margin-bottom:20px;
+.balance-box {
+margin: 20px auto;
+padding: 15px;
+background: #111;
+border-radius: 10px;
+font-size: 20px;
 }
 
-.header h1{
-color:#00ff88;
-font-size:30px;
-font-weight:bold;
+#airdropBalance {
+font-weight: bold;
+color: #00ff88;
 }
 
-.balance-box{
-background:#111;
-border:1px solid #00ff88;
-border-radius:15px;
-padding:20px;
-margin-bottom:20px;
-text-align:center;
+button {
+padding: 10px 15px;
+margin: 10px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+background: #00ff88;
+font-weight: bold;
 }
 
-.balance-title{
-font-size:18px;
-color:#aaa;
-margin-bottom:10px;
+#loadingBox {
+display: none;
+color: yellow;
 }
 
-.balance-value{
-font-size:36px;
-font-weight:bold;
-color:#00ff88;
+.airdrop-card {
+background: #111;
+margin: 15px auto;
+padding: 15px;
+border-radius: 10px;
+max-width: 400px;
 }
 
-.search-btn{
-width:100%;
-padding:15px;
-background:#00ff88;
-color:black;
-font-weight:bold;
-border:none;
-border-radius:10px;
-cursor:pointer;
-margin-bottom:20px;
+.airdrop-card h2 {
+color: #00ff88;
 }
 
-.search-btn:hover{
-opacity:0.9;
+.airdrop-card p {
+margin: 5px 0;
 }
 
-.airdrop-list{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-gap:20px;
+.airdrop-card button {
+width: 100%;
+margin-top: 5px;
 }
 
-.airdrop-card{
-background:#111;
-border:1px solid #222;
-border-radius:15px;
-padding:20px;
+.stop {
+background: red;
+color: white;
 }
 
-.airdrop-card h2{
-color:#00ff88;
-margin-bottom:10px;
-}
-
-.airdrop-info{
-margin-bottom:8px;
-font-size:14px;
-}
-
-.airdrop-buttons{
-display:flex;
-gap:10px;
-margin-top:15px;
-}
-
-.start-btn{
-flex:1;
-background:#00ff88;
-color:black;
-border:none;
-padding:12px;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.stop-btn{
-flex:1;
-background:red;
-color:white;
-border:none;
-padding:12px;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.withdraw-btn{
-width:100%;
-margin-top:15px;
-background:#0066ff;
-color:white;
-border:none;
-padding:12px;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.loading{
-text-align:center;
-padding:30px;
-color:#00ff88;
-font-size:18px;
+.withdraw {
+background: orange;
 }

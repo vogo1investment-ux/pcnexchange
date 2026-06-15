@@ -27,64 +27,49 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUser = null;
-let miningInterval = null;
+let user = null;
+let interval = null;
 
-// UI ELEMENTS
+// UI
 const balanceEl = document.getElementById("airdropBalance");
 const searchBtn = document.getElementById("searchAirdropsBtn");
 const listEl = document.getElementById("airdropList");
-const loadingEl = document.getElementById("loadingBox");
+const loading = document.getElementById("loadingBox");
 
 // LOGIN CHECK
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (u) => {
+if (!u) return;
 
-if (!user) return;
+user = u;
 
-currentUser = user;
-
-await initUserBalance();
-
-await checkAutoMining();
-
+await initBalance();
+await autoResume();
 });
 
-// INIT BALANCE (START ALWAYS FROM ZERO IF NOT EXIST)
-async function initUserBalance() {
+// INIT BALANCE (START ZERO ALWAYS)
+async function initBalance() {
 
-const ref = doc(db, "users", currentUser.uid);
+const ref = doc(db, "users", user.uid);
 const snap = await getDoc(ref);
 
 if (!snap.exists()) {
-
 await setDoc(ref, {
-airdropBalance: 0.00000000
+airdropBalance: 0
 });
-
-balanceEl.innerText = "0.00000000";
-
-return;
 }
 
-const data = snap.data();
-
-let bal = parseFloat(data.airdropBalance || 0);
-
-if (isNaN(bal)) bal = 0;
-
-balanceEl.innerText = bal.toFixed(8);
-
+balanceEl.innerText = "0.00000000";
 }
 
 // SEARCH AIRDROPS
-searchBtn.addEventListener("click", async () => {
+searchBtn.onclick = async () => {
 
-loadingEl.style.display = "block";
+loading.style.display = "block";
 listEl.innerHTML = "";
 
 const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-loadingEl.style.display = "none";
+loading.style.display = "none";
 
 snap.forEach(docSnap => {
 
@@ -94,10 +79,8 @@ const card = document.createElement("div");
 card.className = "airdrop-card";
 
 card.innerHTML = `
-<h2>${d.name || "Airdrop"}</h2>
-
+<h2>${d.name}</h2>
 <p>Rate: ${d.rate}</p>
-<p>Amount: ${d.amount}</p>
 <p>Start: ${new Date(d.startTime).toLocaleString()}</p>
 <p>End: ${new Date(d.endTime).toLocaleString()}</p>
 
@@ -125,20 +108,13 @@ window.location.href = "withdrawalairdrop.html";
 
 });
 
-});
+};
 
-// START MINING (FIXED)
+// START MINING
 async function startMining(id, rate, endTime) {
 
-const stateRef = doc(
-db,
-"users",
-currentUser.uid,
-"airdropState",
-"main"
-);
+const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 
-// reset previous
 await setDoc(stateRef, {
 active: true,
 campaignId: id,
@@ -154,104 +130,73 @@ runMining();
 // STOP MINING
 async function stopMining() {
 
-const stateRef = doc(
-db,
-"users",
-currentUser.uid,
-"airdropState",
-"main"
-);
+const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 
 await updateDoc(stateRef, {
 active: false
 });
 
-if (miningInterval) {
-clearInterval(miningInterval);
-miningInterval = null;
+if (interval) {
+clearInterval(interval);
+interval = null;
 }
 
 alert("Mining stopped");
 
 }
 
-// CORE MINING ENGINE (FIXED 100%)
+// MINING ENGINE (FIXED)
 async function runMining() {
 
-const stateRef = doc(
-db,
-"users",
-currentUser.uid,
-"airdropState",
-"main"
-);
+const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 
-// STOP OLD LOOP FIRST
-if (miningInterval) {
-clearInterval(miningInterval);
-miningInterval = null;
-}
+if (interval) clearInterval(interval);
 
-miningInterval = setInterval(async () => {
+interval = setInterval(async () => {
 
-const stateSnap = await getDoc(stateRef);
+const snap = await getDoc(stateRef);
+if (!snap.exists()) return;
 
-if (!stateSnap.exists()) return;
+const st = snap.data();
 
-const state = stateSnap.data();
-
-if (!state.active) {
-clearInterval(miningInterval);
-miningInterval = null;
+if (!st.active) {
+clearInterval(interval);
+interval = null;
 return;
 }
 
-if (Date.now() > state.endTime) {
+if (Date.now() > st.endTime) {
 await updateDoc(stateRef, { active: false });
-clearInterval(miningInterval);
-miningInterval = null;
+clearInterval(interval);
+interval = null;
 return;
 }
 
-const userRef = doc(db, "users", currentUser.uid);
+const userRef = doc(db, "users", user.uid);
 const userSnap = await getDoc(userRef);
 
-if (!userSnap.exists()) return;
+let bal = parseFloat(userSnap.data().airdropBalance || 0);
+let rate = parseFloat(st.rate || 0);
 
-const data = userSnap.data();
-
-// SAFE NUMBER FIX
-let balance = parseFloat(data.airdropBalance || 0);
-let rate = parseFloat(state.rate || 0);
-
-if (isNaN(balance)) balance = 0;
+if (isNaN(bal)) bal = 0;
 if (isNaN(rate)) rate = 0;
 
-// ADD MINING VALUE
-balance = balance + rate;
+bal += rate;
 
-// SAVE TO FIRESTORE
 await updateDoc(userRef, {
-airdropBalance: balance
+airdropBalance: bal
 });
 
-// UPDATE UI
-balanceEl.innerText = balance.toFixed(8);
+balanceEl.innerText = bal.toFixed(8);
 
 }, 1000);
 
 }
 
-// AUTO RESUME MINING AFTER LOGIN
-async function checkAutoMining() {
+// AUTO RESUME
+async function autoResume() {
 
-const stateRef = doc(
-db,
-"users",
-currentUser.uid,
-"airdropState",
-"main"
-);
+const stateRef = doc(db, "users", user.uid, "airdropState", "main");
 
 const snap = await getDoc(stateRef);
 
