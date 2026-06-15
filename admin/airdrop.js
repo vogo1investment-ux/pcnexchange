@@ -9,21 +9,33 @@ updateDoc,
 onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-/* ================= FIREBASE ================= */
-
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YTR38JRJhRlUbBoa2CIPo",
 authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+projectId: "pcnexchange"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ================= WAIT FOR DOM ================= */
+
+window.addEventListener("DOMContentLoaded", () => {
+
+console.log("Airdrop JS loaded ✅");
+
+/* ================= BUTTON CHECK ================= */
+
+const createBtn = document.getElementById("create");
+
+if (!createBtn) {
+console.error("CREATE BUTTON NOT FOUND ❌");
+return;
+}
+
 /* ================= CREATE AIRDROP ================= */
+
+createBtn.onclick = async () => {
 
 const name = document.getElementById("name");
 const desc = document.getElementById("desc");
@@ -32,12 +44,8 @@ const amount = document.getElementById("amount");
 const start = document.getElementById("start");
 const end = document.getElementById("end");
 
-const createBtn = document.getElementById("create");
-
-createBtn.onclick = async () => {
-
-if (!name.value || !rate.value) {
-alert("Fill all fields");
+if (!name || !rate) {
+alert("Missing fields");
 return;
 }
 
@@ -54,15 +62,10 @@ active: false,
 createdAt: Date.now()
 });
 
-alert("Airdrop created successfully!");
-
-name.value = "";
-desc.value = "";
-rate.value = "";
-amount.value = "";
+alert("Airdrop Created ✔");
 
 } catch (e) {
-console.log(e);
+console.error(e);
 alert("Error creating airdrop");
 }
 
@@ -72,6 +75,8 @@ alert("Error creating airdrop");
 
 const loadBtn = document.getElementById("load");
 const list = document.getElementById("list");
+
+if (loadBtn) {
 
 loadBtn.onclick = async () => {
 
@@ -86,120 +91,39 @@ snap.forEach(docSnap => {
 const d = docSnap.data();
 
 const div = document.createElement("div");
-div.className = "airdrop";
-
-const startTime = d.startTime ? new Date(d.startTime).toLocaleString() : "N/A";
-const endTime = d.endTime ? new Date(d.endTime).toLocaleString() : "N/A";
 
 div.innerHTML = `
 <h3>${d.name}</h3>
 <p>${d.description}</p>
 <p>Rate: ${d.rate}</p>
-<p>Amount: ${d.amount}</p>
-<p>Start: ${startTime}</p>
-<p>End: ${endTime}</p>
-<p>Status: ${d.active ? "🟢 ACTIVE" : "🔴 STOPPED"}</p>
+<p>Status: ${d.active ? "ACTIVE" : "STOPPED"}</p>
 
-<button class="start">START AIRDROP</button>
-<button class="stop">STOP AIRDROP</button>
+<button class="start">START</button>
+<button class="stop">STOP</button>
 `;
 
 list.appendChild(div);
 
-/* ================= START AIRDROP ================= */
-
+/* START */
 div.querySelector(".start").onclick = async () => {
-
-try {
-
 await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
 active: true
 });
-
-alert("Airdrop started");
-
-} catch (e) {
-console.log(e);
-}
-
+alert("Started");
 };
 
-/* ================= STOP AIRDROP ================= */
-
+/* STOP */
 div.querySelector(".stop").onclick = async () => {
-
-try {
-
 await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
 active: false
 });
+alert("Stopped");
+};
 
-alert("Airdrop stopped");
+});
 
-} catch (e) {
-console.log(e);
+};
+
 }
-
-};
-
-});
-
-};
-
-/* ================= LIVE USERS MINING ================= */
-
-const usersBox = document.getElementById("users");
-
-onSnapshot(collection(db, "users"), snap => {
-
-if (!usersBox) return;
-
-usersBox.innerHTML = "";
-
-snap.forEach(u => {
-
-const d = u.data();
-
-const div = document.createElement("div");
-div.className = "user";
-
-div.innerHTML = `
-<b>UID:</b> ${u.id}<br>
-Balance: ${d.balance || 0}<br>
-Mining: ${d.airdropBalance || 0}
-`;
-
-usersBox.appendChild(div);
-
-});
-
-});
-
-/* ================= LIVE WITHDRAWALS ================= */
-
-const withdrawBox = document.getElementById("withdrawals");
-
-onSnapshot(collection(db, "withdrawals"), snap => {
-
-if (!withdrawBox) return;
-
-withdrawBox.innerHTML = "";
-
-snap.forEach(w => {
-
-const d = w.data();
-
-const div = document.createElement("div");
-div.className = "user";
-
-div.innerHTML = `
-User: ${d.userId}<br>
-Amount: ${d.amount}<br>
-Status: ${d.status}
-`;
-
-withdrawBox.appendChild(div);
-
-});
 
 });
