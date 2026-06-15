@@ -1,206 +1,152 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  updateDoc,
-  serverTimestamp
+getFirestore,
+collection,
+addDoc,
+getDocs,
+doc,
+updateDoc,
+onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-/* FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+apiKey: "AIzaSyCQVHBn504Y26YTR38JRJhRlUbBoa2CIPo",
+authDomain: "pcnexchange.firebaseapp.com",
+projectId: "pcnexchange"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* =========================
-   CREATE AIRDROP
+CREATE AIRDROP
 ========================= */
-window.createAirdrop = async function () {
-  const name = document.getElementById("name").value;
-  const rate = parseFloat(document.getElementById("rate").value);
-  const start = new Date(document.getElementById("start").value).getTime();
-  const end = new Date(document.getElementById("end").value).getTime();
 
-  try {
-    await addDoc(collection(db, "airdropCampaigns"), {
-      name,
-      rate,
-      start,
-      end,
-      isActive: false,
-      createdAt: serverTimestamp()
-    });
+document.getElementById("create").onclick = async () => {
 
-    alert("✅ Airdrop Created");
-  } catch (e) {
-    alert("❌ Error creating airdrop");
-    console.error(e);
-  }
+await addDoc(collection(db, "airdropCampaigns"), {
+name: name.value,
+description: desc.value,
+rate: Number(rate.value),
+amount: Number(amount.value),
+startTime: new Date(start.value).getTime(),
+endTime: new Date(end.value).getTime(),
+active: false,
+createdAt: Date.now()
+});
+
+alert("Airdrop created!");
 };
 
 /* =========================
-   LOAD AIRDROPS
+LOAD AIRDROPS
 ========================= */
-window.loadAirdrops = async function () {
-  const list = document.getElementById("airdropList");
-  list.innerHTML = "Loading...";
 
-  try {
-    const snap = await getDocs(collection(db, "airdropCampaigns"));
+document.getElementById("load").onclick = async () => {
 
-    list.innerHTML = "";
+const list = document.getElementById("list");
+list.innerHTML = "";
 
-    snap.forEach((docSnap) => {
-      const a = docSnap.data();
-      const id = docSnap.id;
+const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-      const div = document.createElement("div");
-      div.className = "box";
+snap.forEach(docSnap => {
 
-      div.innerHTML = `
-        🚀 <b>${a.name || "Airdrop"}</b><br>
-        💰 Rate: ${a.rate || 0}<br>
-        ⏰ Start: ${new Date(a.start).toLocaleString()}<br>
-        ⏳ End: ${new Date(a.end).toLocaleString()}<br>
-        🔥 Active: ${a.isActive ? "YES" : "NO"}<br><br>
+const d = docSnap.data();
 
-        <button class="start" onclick="startAirdrop('${id}')">🟢 Start</button>
-        <button class="stop" onclick="stopAirdrop('${id}')">🔴 Stop</button>
-      `;
+const div = document.createElement("div");
+div.className = "airdrop";
 
-      list.appendChild(div);
-    });
+const start = d.startTime ? new Date(Number(d.startTime)) : null;
+const end = d.endTime ? new Date(Number(d.endTime)) : null;
 
-  } catch (e) {
-    console.error(e);
-    list.innerHTML = "Error loading airdrops";
-  }
+div.innerHTML = `
+<h3>${d.name}</h3>
+<p>${d.description}</p>
+<p>Rate: ${d.rate}</p>
+<p>Start: ${start ? start.toLocaleString() : "N/A"}</p>
+<p>End: ${end ? end.toLocaleString() : "N/A"}</p>
+
+<button class="start">START</button>
+<button class="stop">STOP</button>
+`;
+
+list.appendChild(div);
+
+/* START AIRDROP */
+div.querySelector(".start").onclick = async () => {
+await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
+active: true
+});
+alert("Started");
+};
+
+/* STOP AIRDROP */
+div.querySelector(".stop").onclick = async () => {
+await updateDoc(doc(db, "airdropCampaigns", docSnap.id), {
+active: false
+});
+alert("Stopped");
+};
+
+});
+
 };
 
 /* =========================
-   START AIRDROP
+LIVE USERS MINING
 ========================= */
-window.startAirdrop = async function (id) {
-  try {
-    await updateDoc(doc(db, "airdropCampaigns", id), {
-      isActive: true
-    });
 
-    alert("🟢 Airdrop Started");
-    loadAirdrops();
-  } catch (e) {
-    console.error(e);
-    alert("❌ Failed to start");
-  }
-};
+onSnapshot(collection(db, "users"), (snap) => {
+
+const box = document.getElementById("users");
+box.innerHTML = "";
+
+snap.forEach(u => {
+
+const d = u.data();
+
+if (d.airdropBalance > 0) {
+
+const div = document.createElement("div");
+div.className = "user";
+
+div.innerHTML = `
+UID: ${u.id} <br>
+Balance: ${d.airdropBalance}
+`;
+
+box.appendChild(div);
+
+}
+
+});
+
+});
 
 /* =========================
-   STOP AIRDROP
+WITHDRAWALS
 ========================= */
-window.stopAirdrop = async function (id) {
-  try {
-    await updateDoc(doc(db, "airdropCampaigns", id), {
-      isActive: false
-    });
 
-    alert("🔴 Airdrop Stopped");
-    loadAirdrops();
-  } catch (e) {
-    console.error(e);
-    alert("❌ Failed to stop");
-  }
-};
+onSnapshot(collection(db, "withdrawals"), (snap) => {
 
-/* =========================
-   WITHDRAWALS SYSTEM
-========================= */
-window.fetchWithdrawals = async function () {
-  const box = document.getElementById("withdrawals");
-  box.innerHTML = "Loading...";
+const box = document.getElementById("withdrawals");
+box.innerHTML = "";
 
-  try {
-    const batches = await getDocs(collection(db, "airdropWithdrawals"));
+snap.forEach(w => {
 
-    box.innerHTML = "";
+const d = w.data();
 
-    for (const batch of batches.docs) {
-      const batchId = batch.id;
+const div = document.createElement("div");
+div.className = "user";
 
-      const requests = await getDocs(
-        collection(db, "airdropWithdrawals", batchId, "requests")
-      );
+div.innerHTML = `
+User: ${d.userId} <br>
+Amount: ${d.amount} <br>
+Status: ${d.status}
+`;
 
-      const container = document.createElement("div");
-      container.className = "box";
+box.appendChild(div);
 
-      container.innerHTML = `📦 Batch: ${batchId}<br><br>`;
+});
 
-      requests.forEach((r) => {
-        const w = r.data();
-
-        const item = document.createElement("div");
-        item.innerHTML = `
-          👤 User: ${w.userId}<br>
-          💰 Amount: ${w.amount}<br>
-          📌 Status: ${w.status || "pending"}<br><br>
-
-          <button class="start" onclick="approve('${batchId}','${r.id}','${w.userId}',${w.amount})">✔ Approve</button>
-          <button class="stop" onclick="reject('${batchId}','${r.id}')">✖ Reject</button>
-          <hr>
-        `;
-
-        container.appendChild(item);
-      });
-
-      box.appendChild(container);
-    }
-
-  } catch (e) {
-    console.error(e);
-    box.innerHTML = "Error loading withdrawals";
-  }
-};
-
-/* =========================
-   APPROVE
-========================= */
-window.approve = async function (batchId, reqId, userId, amount) {
-  try {
-    await updateDoc(
-      doc(db, "airdropWithdrawals", batchId, "requests", reqId),
-      { status: "approved" }
-    );
-
-    alert("✔ Approved");
-  } catch (e) {
-    console.error(e);
-    alert("❌ Failed approve");
-  }
-};
-
-/* =========================
-   REJECT
-========================= */
-window.reject = async function (batchId, reqId) {
-  try {
-    await updateDoc(
-      doc(db, "airdropWithdrawals", batchId, "requests", reqId),
-      { status: "rejected" }
-    );
-
-    alert("✖ Rejected");
-  } catch (e) {
-    console.error(e);
-    alert("❌ Failed reject");
-  }
-};
+});

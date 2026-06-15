@@ -2,121 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Airdrop Admin Panel</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0b1220;
-  color: white;
-}
-
-.container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 15px;
-}
-
-h2 {
-  text-align: center;
-  color: gold;
-}
-
-.card {
-  background: #111a2e;
-  padding: 15px;
-  margin-top: 12px;
-  border-radius: 12px;
-}
-
-/* INPUTS */
-input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-}
-
-/* BUTTONS */
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.create { background: gold; }
-.start { background: #22c55e; }
-.stop { background: #ef4444; }
-.fetch { background: #3b82f6; }
-
-.box {
-  margin-top: 10px;
-  padding: 10px;
-  background: #0f172a;
-  border-radius: 10px;
-}
-
-/* MOBILE FIX */
-@media(max-width:600px){
-  .container { padding: 10px; }
-}
-</style>
+<title>Airdrop Admin</title>
+<link rel="stylesheet" href="airdrop.css">
 </head>
 
 <body>
 
-<div class="container">
+<div class="admin">
 
-<h2>🚀 ADMIN AIRDROP CONTROL</h2>
+<h1>⚙️ AIRDROP ADMIN PANEL</h1>
 
 <!-- CREATE AIRDROP -->
-<div class="card">
-<h3>➕ Create Airdrop</h3>
+<div class="box">
+
+<h2>Create Airdrop</h2>
 
 <input id="name" placeholder="Airdrop Name">
-<input id="rate" placeholder="Rate (0.00000001)">
+<input id="desc" placeholder="Description">
+<input id="rate" placeholder="Rate (e.g 0.00000001)">
+<input id="amount" placeholder="Amount">
+
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button class="create" onclick="createAirdrop()">Create Airdrop</button>
+<button id="create">CREATE AIRDROP</button>
+
 </div>
 
-<!-- AIRDROPS LIST -->
-<div class="card">
-<h3>📡 Active Airdrops</h3>
-<button class="fetch" onclick="loadAirdrops()">Load Airdrops</button>
+<!-- CONTROL -->
+<div class="box">
 
-<div id="airdropList"></div>
+<h2>Airdrop Control</h2>
+
+<button id="load">LOAD AIRDROPS</button>
+
+<div id="list"></div>
+
 </div>
 
-<!-- 🔥 NEW BUTTON SECTION -->
-<div class="card">
-<h3>💸 Withdrawal System</h3>
+<!-- USERS -->
+<div class="box">
 
-<!-- BUTTON 1 -->
-<button class="start" onclick="startWithdrawalBatch()">
-🟢 Start Airdrop Withdrawal Batch
-</button>
+<h2>Users Mining</h2>
+<div id="users"></div>
 
-<!-- BUTTON 2 -->
-<button class="fetch" onclick="fetchWithdrawals()">
-🔵 Fetch Withdrawals
-</button>
+</div>
 
+<!-- WITHDRAWALS -->
+<div class="box">
+
+<h2>Withdrawals</h2>
 <div id="withdrawals"></div>
-</div>
 
 </div>
 
-<script type="module" src="airdrops.js"></script>
+</div>
+
+<script type="module" src="airdrop.js"></script>
 
 </body>
 </html>

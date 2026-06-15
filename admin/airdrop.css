@@ -1,0 +1,71 @@
+body {
+margin: 0;
+font-family: Arial;
+background: #0b0f14;
+color: white;
+}
+
+.admin {
+max-width: 1000px;
+margin: auto;
+padding: 20px;
+}
+
+h1 {
+text-align: center;
+color: #00ff88;
+}
+
+.box {
+background: #111;
+padding: 15px;
+margin: 15px 0;
+border-radius: 10px;
+}
+
+input {
+width: 100%;
+padding: 10px;
+margin: 5px 0;
+border-radius: 5px;
+border: none;
+}
+
+button {
+width: 100%;
+padding: 10px;
+margin: 5px 0;
+background: #00ff88;
+border: none;
+border-radius: 5px;
+font-weight: bold;
+cursor: pointer;
+}
+
+.airdrop {
+background: #1a1a1a;
+padding: 10px;
+margin: 10px 0;
+border-radius: 8px;
+}
+
+.stop {
+background: red;
+color: white;
+}
+
+.start {
+background: green;
+color: white;
+}
+
+.user {
+background: #222;
+padding: 10px;
+margin: 5px;
+border-radius: 5px;
+}
+
+.withdraw {
+background: orange;
+}
