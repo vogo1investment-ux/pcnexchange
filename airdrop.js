@@ -34,7 +34,7 @@ const balanceEl = document.getElementById("balance");
 const listEl = document.getElementById("list");
 
 // ---------------- STATE ----------------
-let uid;
+let uid = null;
 let balance = 0;
 let miningIntervals = {};
 
@@ -52,44 +52,55 @@ onAuthStateChanged(auth, async (user) => {
 
   uid = user.uid;
 
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
+  try {
+    const ref = doc(db, "users", uid);
+    const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    await setDoc(ref, { balance: 0 });
-  } else {
-    balance = snap.data().balance || 0;
-  }
+    if (!snap.exists()) {
+      await setDoc(ref, { balance: 0 });
+      balance = 0;
+    } else {
+      balance = snap.data().balance || 0;
+    }
 
-  updateBalance();
-
-  // realtime balance
-  onSnapshot(ref, (docSnap) => {
-    const data = docSnap.data();
-    balance = data?.balance || 0;
     balanceEl.textContent = format(balance);
-  });
+
+    // realtime sync
+    onSnapshot(ref, (docSnap) => {
+      const data = docSnap.data();
+      balance = data?.balance || 0;
+      balanceEl.textContent = format(balance);
+    });
+
+  } catch (err) {
+    console.error("AUTH ERROR:", err);
+  }
 });
 
 // ---------------- UPDATE BALANCE ----------------
 async function updateBalance() {
-  balanceEl.textContent = format(balance);
-
   if (!uid) return;
 
   await updateDoc(doc(db, "users", uid), {
     balance: balance
   });
+
+  balanceEl.textContent = format(balance);
 }
 
-// ---------------- FIX: SEARCH AIRDROP BUTTON ----------------
+// ---------------- LOAD AIRDROPS (FIXED 100%) ----------------
 window.loadAirdrops = async function () {
   try {
     listEl.innerHTML = "<p>🔄 Loading airdrops...</p>";
 
+    if (!uid) {
+      alert("User not ready yet. Please wait...");
+      return;
+    }
+
     const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-    if (snap.empty) {
+    if (!snap || snap.empty) {
       listEl.innerHTML = "<p>❌ No airdrops found</p>";
       return;
     }
@@ -99,12 +110,12 @@ window.loadAirdrops = async function () {
     snap.forEach((d) => {
       const data = d.data();
 
-      // FIX TIMESTAMP (works for Firestore OR normal number)
-      const start = data.startTime?.toDate
+      // FIX TIMESTAMP (Firestore OR number)
+      const start = data.startTime?.toDate?.()
         ? data.startTime.toDate()
         : new Date(data.startTime);
 
-      const end = data.endTime?.toDate
+      const end = data.endTime?.toDate?.()
         ? data.endTime.toDate()
         : new Date(data.endTime);
 
@@ -125,7 +136,7 @@ window.loadAirdrops = async function () {
         </div>
 
         <div class="mineRow">
-          <button class="mineBtn" style="background:#ffcc00"
+          <button class="mineBtn" style="background:gold"
             onclick="withdraw('${d.id}')">
             💸 Withdraw
           </button>
@@ -134,23 +145,30 @@ window.loadAirdrops = async function () {
 
       listEl.appendChild(card);
 
-      const btn = card.querySelector(`#mine-${d.id}`);
+      const btn = document.getElementById(`mine-${d.id}`);
 
-      btn.onclick = () =>
+      btn.onclick = () => {
         startMining(
           d.id,
           Number(data.rate || 0.00000001),
           end.getTime(),
           btn
         );
+      };
     });
-  } catch (e) {
-    console.error(e);
-    listEl.innerHTML = "<p>❌ Failed to load airdrops</p>";
+
+  } catch (err) {
+    console.error("LOAD ERROR:", err);
+    listEl.innerHTML = `
+      <p style="color:red">
+        ❌ Failed to load airdrops<br>
+        ${err.message}
+      </p>
+    `;
   }
 };
 
-// ---------------- FIX: MINING ENGINE ----------------
+// ---------------- MINING ENGINE ----------------
 function startMining(id, rate, endTime, btn) {
   if (miningIntervals[id]) return;
 
@@ -167,31 +185,29 @@ function startMining(id, rate, endTime, btn) {
     }
 
     balance += rate;
-
     await updateBalance();
+
   }, 1000);
 }
 
 // ---------------- WITHDRAW ----------------
 window.withdraw = async function (airdropId) {
-  if (balance <= 0) {
-    alert("No balance to withdraw");
-    return;
-  }
-
   try {
+    if (!uid) return alert("Login required");
+    if (balance <= 0) return alert("No balance");
+
     await setDoc(doc(db, "pendingWithdrawals", uid + "_" + airdropId), {
       userId: uid,
-      airdropId: airdropId,
+      airdropId,
       amount: balance,
       status: "pending",
-      createdAt: new Date()
+      createdAt: Date.now()
     });
 
     alert("✅ Withdrawal sent to admin");
 
-  } catch (e) {
-    console.error(e);
-    alert("❌ Withdrawal failed");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Withdrawal failed: " + err.message);
   }
 };
