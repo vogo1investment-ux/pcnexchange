@@ -15,8 +15,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-
-// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -27,145 +25,142 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+console.log("🔥 AIRDROP JS LOADED");
 
-// ---------------- WAIT UNTIL DOM IS READY ----------------
+let currentUser = null;
+
+// wait until everything is ready
 window.addEventListener("DOMContentLoaded", () => {
 
-const name = document.getElementById("name");
-const desc = document.getElementById("desc");
-const rate = document.getElementById("rate");
-const amount = document.getElementById("amount");
-const start = document.getElementById("start");
-const end = document.getElementById("end");
+  console.log("✅ DOM READY");
 
-const createBtn = document.getElementById("createBtn");
-const loadBtn = document.getElementById("loadBtn");
+  const name = document.getElementById("name");
+  const desc = document.getElementById("desc");
+  const rate = document.getElementById("rate");
+  const amount = document.getElementById("amount");
+  const start = document.getElementById("start");
+  const end = document.getElementById("end");
 
-const list = document.getElementById("list");
-const users = document.getElementById("users");
-const withdrawals = document.getElementById("withdrawals");
+  const createBtn = document.getElementById("create");
+  const loadBtn = document.getElementById("load");
+  const list = document.getElementById("list");
+  const users = document.getElementById("users");
+  const withdrawals = document.getElementById("withdrawals");
 
-let user = null;
+  // AUTH
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    console.log("AUTH:", user?.uid);
+  });
 
+  // CREATE AIRDROP
+  createBtn?.addEventListener("click", async () => {
+    try {
+      if (!currentUser) return alert("Login required");
 
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, (u) => {
-  user = u;
-});
+      await addDoc(collection(db, "airdropCampaigns"), {
+        name: name.value,
+        desc: desc.value,
+        rate: Number(rate.value),
+        amount: Number(amount.value),
+        startTime: Date.now(),
+        endTime: Date.now() + 1000000,
+        status: "active",
+        createdAt: Date.now()
+      });
 
+      alert("Airdrop Created");
+    } catch (e) {
+      console.error(e);
+      alert("Error creating airdrop");
+    }
+  });
 
-// ---------------- CREATE AIRDROP ----------------
-createBtn.onclick = async () => {
-  try {
-    if (!user) return alert("Login required");
+  // LOAD AIRDROPS
+  loadBtn?.addEventListener("click", async () => {
+    try {
+      list.innerHTML = "Loading...";
 
-    await addDoc(collection(db, "airdropCampaigns"), {
-      name: name.value,
-      desc: desc.value,
-      rate: Number(rate.value),
-      amount: Number(amount.value),
-      startTime: new Date(start.value).getTime(),
-      endTime: new Date(end.value).getTime(),
-      status: "active",
-      createdAt: Date.now()
+      const snap = await getDocs(collection(db, "airdropCampaigns"));
+
+      list.innerHTML = "";
+
+      snap.forEach((d) => {
+        const data = d.data();
+
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+          <b>${data.name}</b><br>
+          Rate: ${data.rate}<br>
+          Status: ${data.status || "active"}<br><br>
+
+          <button onclick="stopAirdrop('${d.id}')">STOP</button>
+          <button onclick="deleteAirdrop('${d.id}')">DELETE</button>
+        `;
+
+        list.appendChild(div);
+      });
+
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load airdrops");
+    }
+  });
+
+  // USERS LIVE
+  onSnapshot(collection(db, "users"), (snap) => {
+    users.innerHTML = "";
+
+    snap.forEach((d) => {
+      users.innerHTML += `
+        <div class="card">
+          User: ${d.id}<br>
+          Balance: ${d.data().balance || 0}
+        </div>
+      `;
     });
-
-    alert("✅ Created");
-  } catch (e) {
-    console.log(e);
-    alert("❌ Failed");
-  }
-};
-
-
-// ---------------- LOAD AIRDROPS ----------------
-loadBtn.onclick = async () => {
-  const snap = await getDocs(collection(db, "airdropCampaigns"));
-
-  list.innerHTML = "";
-
-  snap.forEach((d) => {
-    const data = d.data();
-
-    const div = document.createElement("div");
-    div.className = "box";
-
-    div.innerHTML = `
-      <b>${data.name}</b><br>
-      Rate: ${data.rate}<br>
-      Status: ${data.status}
-
-      <button onclick="stopAir('${d.id}')">STOP</button>
-      <button onclick="deleteAir('${d.id}')">DELETE</button>
-    `;
-
-    list.appendChild(div);
   });
-};
 
+  // WITHDRAWALS LIVE
+  onSnapshot(collection(db, "airdropWithdrawals"), (snap) => {
+    withdrawals.innerHTML = "";
 
-// ---------------- GLOBAL BUTTONS (IMPORTANT FIX) ----------------
-window.stopAir = async (id) => {
-  await updateDoc(doc(db, "airdropCampaigns", id), {
-    status: "stopped"
+    snap.forEach((d) => {
+      const data = d.data();
+
+      withdrawals.innerHTML += `
+        <div class="card">
+          User: ${data.userId || "unknown"}<br>
+          Status: ${data.status || "pending"}<br>
+
+          <button onclick="approve('${d.id}')">APPROVE</button>
+          <button onclick="reject('${d.id}')">REJECT</button>
+        </div>
+      `;
+    });
   });
-  alert("Stopped");
+
+});
+
+// GLOBAL FUNCTIONS (VERY IMPORTANT)
+window.stopAirdrop = async (id) => {
+  const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
+  await updateDoc(doc(db, "airdropCampaigns", id), { status: "stopped" });
 };
 
-window.deleteAir = async (id) => {
+window.deleteAirdrop = async (id) => {
+  const { getFirestore, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
   await deleteDoc(doc(db, "airdropCampaigns", id));
-  alert("Deleted");
 };
 
-
-// ---------------- USERS LIVE ----------------
-onSnapshot(collection(db, "users"), (snap) => {
-  users.innerHTML = "";
-
-  snap.forEach((d) => {
-    const data = d.data();
-
-    users.innerHTML += `
-      <div class="box">
-        User: ${d.id}<br>
-        Balance: ${data.balance || 0}
-      </div>
-    `;
-  });
-});
-
-
-// ---------------- WITHDRAWALS LIVE ----------------
-onSnapshot(collection(db, "airdropWithdrawals"), (snap) => {
-  withdrawals.innerHTML = "";
-
-  snap.forEach((d) => {
-    const data = d.data();
-
-    withdrawals.innerHTML += `
-      <div class="box">
-        User: ${data.userId}<br>
-        Status: ${data.status || "pending"}
-
-        <button onclick="approve('${d.id}')">APPROVE</button>
-        <button onclick="reject('${d.id}')">REJECT</button>
-      </div>
-    `;
-  });
-});
-
-
-// ---------------- APPROVE / REJECT ----------------
 window.approve = async (id) => {
-  await updateDoc(doc(db, "airdropWithdrawals", id), {
-    status: "approved"
-  });
+  const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
+  await updateDoc(doc(db, "airdropWithdrawals", id), { status: "approved" });
 };
 
 window.reject = async (id) => {
-  await updateDoc(doc(db, "airdropWithdrawals", id), {
-    status: "rejected"
-  });
+  const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
+  await updateDoc(doc(db, "airdropWithdrawals", id), { status: "rejected" });
 };
-
-});
