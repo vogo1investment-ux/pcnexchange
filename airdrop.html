@@ -3,95 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop Mining</title>
+<title>User Airdrop</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0b1220;
-  color: white;
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 12px;
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
 }
 
-/* BALANCE */
-.balanceBox {
-  background: #111a2e;
-  padding: 20px;
-  border-radius: 14px;
-  text-align: center;
+.balanceBox{
+  background:#111a2e;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  font-size:28px;
+  color:#00ff88;
+  font-weight:bold;
 }
 
-.balanceTitle {
-  font-size: 14px;
-  color: #aaa;
+.card{
+  background:#111a2e;
+  padding:15px;
+  margin-top:12px;
+  border-radius:12px;
 }
 
-.balanceAmount {
-  font-size: 32px;
-  font-weight: bold;
-  color: #00ff88;
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-/* BUTTONS */
-.searchBtn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: #22c55e;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.withdrawBtn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: gold;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* CARD */
-.card {
-  background: #111a2e;
-  padding: 14px;
-  margin-top: 12px;
-  border-radius: 12px;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-top: 6px;
-  color: #ccc;
-}
-
-.mineBtn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  background: #facc15;
-  font-weight: bold;
-  cursor: pointer;
-}
+.green{background:#22c55e;}
+.gold{background:gold;}
+.blue{background:#3b82f6;}
+.red{background:#ef4444;}
 </style>
 </head>
 
@@ -99,25 +57,16 @@ body {
 
 <div class="container">
 
-  <!-- BALANCE -->
   <div class="balanceBox">
-    <div class="balanceTitle">💰 TOTAL BALANCE</div>
-    <div class="balanceAmount" id="balance">0.00000000</div>
+    💰 <span id="balance">0.00000000</span>
   </div>
 
-  <!-- ✅ UPDATED WITHDRAW BUTTON ONLY -->
-  <button class="withdrawBtn"
-  onclick="window.location.href='WithdrawAirdrop.html'">
-    💸 Withdraw Airdrop
-  </button>
+  <div class="card">
+    <button class="blue" onclick="loadAirdrops()">🔍 Search Airdrops</button>
+    <button class="gold" onclick="goWithdraw()">💸 Withdraw</button>
 
-  <!-- SEARCH -->
-  <button class="searchBtn" onclick="loadAirdrops()">
-    🔎 Search Airdrops
-  </button>
-
-  <!-- LIST -->
-  <div id="list"></div>
+    <div id="list"></div>
+  </div>
 
 </div>
 

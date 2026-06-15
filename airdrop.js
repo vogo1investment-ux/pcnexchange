@@ -4,11 +4,11 @@ import {
   collection,
   getDocs,
   doc,
+  getDoc,
   setDoc,
   updateDoc,
-  getDoc,
   addDoc,
-  onSnapshot
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -16,172 +16,98 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.firebasestorage.app",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  projectId: "pcnexchange"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ---------------- VARIABLES ----------------
 let uid = null;
+let balance = 0;
+let miningIntervals = {};
 
-// DOM
-const listEl = document.getElementById("airdropList");
-const withdrawalEl = document.getElementById("withdrawals");
+const balanceEl = document.getElementById("balance");
+const listEl = document.getElementById("list");
 
-// ---------------- AUTH SAFE GUARD ----------------
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    console.log("Not logged in yet");
-    return;
-  }
+// ---------------- AUTH ----------------
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
 
   uid = user.uid;
-  console.log("Logged in:", uid);
+
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, { balance: 0 });
+  } else {
+    balance = snap.data().balance || 0;
+  }
+
+  balanceEl.innerText = Number(balance).toFixed(8);
 });
 
-// ---------------- LOAD AIRDROPS (FIXED) ----------------
+// ---------------- LOAD AIRDROPS ----------------
 window.loadAirdrops = async function () {
-  try {
-    if (!uid) {
-      alert("Login not ready yet. Please wait...");
+  listEl.innerHTML = "Loading...";
+
+  const snap = await getDocs(collection(db, "airdropCampaigns"));
+
+  listEl.innerHTML = "";
+
+  snap.forEach((d) => {
+    const data = d.data();
+
+    const box = document.createElement("div");
+    box.className = "card";
+
+    box.innerHTML = `
+      <h3>🚀 ${data.name}</h3>
+      <p>⚡ Rate: ${data.rate}</p>
+      <p>📅 Start: ${new Date(data.startTime).toLocaleString()}</p>
+      <p>📅 End: ${new Date(data.endTime).toLocaleString()}</p>
+
+      <button class="green" onclick="startMining('${d.id}', ${data.rate}, ${data.endTime})">
+        ▶ Start Mining
+      </button>
+    `;
+
+    listEl.appendChild(box);
+  });
+};
+
+// ---------------- MINING ----------------
+window.startMining = function (id, rate, endTime) {
+
+  if (miningIntervals[id]) return;
+
+  miningIntervals[id] = setInterval(async () => {
+
+    if (Date.now() > endTime) {
+      clearInterval(miningIntervals[id]);
+      alert("Airdrop ended");
       return;
     }
 
-    listEl.innerHTML = "Loading...";
+    balance += rate;
+    balanceEl.innerText = balance.toFixed(8);
 
-    const snap = await getDocs(collection(db, "airdropCampaigns"));
-
-    listEl.innerHTML = "";
-
-    if (snap.empty) {
-      listEl.innerHTML = "No airdrops found";
-      return;
+    if (uid) {
+      await updateDoc(doc(db, "users", uid), {
+        balance: balance
+      });
     }
 
-    snap.forEach((d) => {
-      const data = d.data();
-
-      const div = document.createElement("div");
-      div.className = "box";
-
-      div.innerHTML = `
-        <h3>🚀 ${data.name}</h3>
-        <p>💰 Rate: ${data.rate}</p>
-        <p>📅 Start: ${new Date(data.startTime).toLocaleString()}</p>
-        <p>⛔ End: ${new Date(data.endTime).toLocaleString()}</p>
-
-        <button onclick="startMining('${d.id}', ${data.rate})">
-          ▶ Start Mining
-        </button>
-
-        <button onclick="withdraw('${d.id}')">
-          💸 Withdraw
-        </button>
-      `;
-
-      listEl.appendChild(div);
-    });
-
-  } catch (err) {
-    console.error(err);
-    listEl.innerHTML = "❌ Failed: " + err.message;
-  }
+  }, 1000);
 };
 
-// ---------------- CREATE WITHDRAWAL BATCH ----------------
-window.createWithdrawalBatch = async function () {
-  try {
-    const ref = doc(collection(db, "airdropWithdrawals"));
-
-    await setDoc(ref, {
-      createdAt: Date.now(),
-      status: "open",
-      createdBy: uid
-    });
-
-    alert("✅ Withdrawal batch created");
-  } catch (e) {
-    alert(e.message);
-  }
-};
-
-// ---------------- FETCH WITHDRAWALS ----------------
-window.fetchWithdrawals = async function () {
-  try {
-    withdrawalEl.innerHTML = "Loading withdrawals...";
-
-    const snap = await getDocs(collection(db, "pendingWithdrawals"));
-
-    withdrawalEl.innerHTML = "";
-
-    snap.forEach((d) => {
-      const w = d.data();
-
-      const div = document.createElement("div");
-      div.className = "box";
-
-      div.innerHTML = `
-        <p>👤 User: ${w.userId}</p>
-        <p>💰 Amount: ${w.amount}</p>
-        <p>📌 Status: ${w.status}</p>
-
-        <button onclick="approveWithdraw('${d.id}', '${w.userId}', ${w.amount})">
-          ✅ Approve
-        </button>
-
-        <button onclick="rejectWithdraw('${d.id}', '${w.userId}', ${w.amount})">
-          ❌ Reject
-        </button>
-      `;
-
-      withdrawalEl.appendChild(div);
-    });
-
-  } catch (e) {
-    alert("Fetch error: " + e.message);
-  }
-};
-
-// ---------------- APPROVE ----------------
-window.approveWithdraw = async function (id, userId, amount) {
-  await updateDoc(doc(db, "pendingWithdrawals", id), {
-    status: "approved"
-  });
-
-  alert("Approved");
-};
-
-// ---------------- REJECT ----------------
-window.rejectWithdraw = async function (id, userId, amount) {
-  await updateDoc(doc(db, "pendingWithdrawals", id), {
-    status: "rejected"
-  });
-
-  alert("Rejected");
-};
-
-// ---------------- WITHDRAW REQUEST (USER SIDE) ----------------
-window.withdraw = async function (airdropId) {
-  try {
-    if (!uid) return alert("Login first");
-
-    await addDoc(collection(db, "pendingWithdrawals"), {
-      userId: uid,
-      airdropId,
-      amount: 0,
-      status: "pending",
-      createdAt: Date.now()
-    });
-
-    alert("✅ Withdrawal sent to admin");
-  } catch (e) {
-    alert(e.message);
-  }
+// ---------------- WITHDRAW PAGE ----------------
+window.goWithdraw = function () {
+  window.location.href = "WithdrawAirdrop.html";
 };
