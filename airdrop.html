@@ -1,66 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🚀 Airdrop System</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCN Exchange Airdrops</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0b1220;
-  color:white;
-}
+<link rel="stylesheet" href="airdrop.css">
 
-.container{
-  padding:15px;
-}
-
-.card{
-  background:#111a2e;
-  padding:15px;
-  border-radius:12px;
-  margin-top:10px;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  margin-top:10px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.searchBtn{ background:#3b82f6; color:white; }
-.withdrawBtn{ background:#facc15; color:black; }
-
-.small{
-  font-size:12px;
-  opacity:0.7;
-}
-</style>
 </head>
-
 <body>
 
 <div class="container">
 
-<h2>🚀 Airdrop Dashboard</h2>
+    <div class="header">
+        <h1>PCN AIRDROP CENTER</h1>
+    </div>
 
-<!-- SEARCH BUTTON -->
-<button class="searchBtn" onclick="loadAirdrops()">
-🔎 Search Airdrops
-</button>
+    <!-- USER BALANCE -->
 
-<!-- WITHDRAW BUTTON (GLOBAL) -->
-<button class="withdrawBtn" onclick="goWithdrawPage()">
-💸 Withdraw Airdrop
-</button>
+    <div class="balance-box">
 
-<div id="list"></div>
+        <div class="balance-title">
+            Your Airdrop Balance
+        </div>
+
+        <div
+            class="balance-value"
+            id="airdropBalance">
+
+            0.00000000
+
+        </div>
+
+    </div>
+
+    <!-- SEARCH BUTTON -->
+
+    <button
+        id="searchAirdropsBtn"
+        class="search-btn">
+
+        SEARCH AIRDROPS
+
+    </button>
+
+    <!-- LOADING -->
+
+    <div
+        id="loadingBox"
+        class="loading"
+        style="display:none;">
+
+        Searching available airdrops...
+
+    </div>
+
+    <!-- AIRDROP LIST -->
+
+    <div
+        id="airdropList"
+        class="airdrop-list">
+
+    </div>
 
 </div>
 
