@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Airdrop Admin Fixed</title>
+<title>🔥 Airdrop Admin (WORKING)</title>
 
 <style>
 body{
@@ -14,7 +14,7 @@ body{
 
 .box{
   background:#111a2e;
-  padding:10px;
+  padding:12px;
   margin:10px 0;
   border-radius:10px;
 }
@@ -22,22 +22,18 @@ body{
 input, button{
   width:100%;
   padding:10px;
-  margin-top:5px;
+  margin-top:6px;
   border-radius:8px;
   border:none;
 }
 
 button{
-  background:gold;
-  font-weight:bold;
   cursor:pointer;
+  font-weight:bold;
 }
 
-.smallbtn{
-  background:#3b82f6;
-  color:white;
-}
-
+.create{ background:gold; }
+.blue{ background:#3b82f6; color:white; }
 .red{ background:red; color:white; }
 .green{ background:green; color:white; }
 </style>
@@ -45,24 +41,24 @@ button{
 
 <body>
 
-<h2>⚙️ ADMIN AIRDROP PANEL</h2>
+<h2>⚙️ AIRDROP ADMIN PANEL (FIXED)</h2>
 
 <div class="box">
 <h3>Create Airdrop</h3>
 
 <input id="name" placeholder="Name">
 <input id="desc" placeholder="Description">
-<input id="rate" placeholder="Rate (0.00000001)">
+<input id="rate" placeholder="Rate">
 <input id="amount" placeholder="Amount">
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button id="createBtn">CREATE AIRDROP</button>
+<button id="createBtn" class="create">CREATE AIRDROP</button>
 </div>
 
 <div class="box">
 <h3>Airdrops</h3>
-<button id="loadBtn" class="smallbtn">LOAD AIRDROPS</button>
+<button id="loadBtn" class="blue">LOAD AIRDROPS</button>
 <div id="list"></div>
 </div>
 
