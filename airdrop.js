@@ -2,11 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getFirestore,
   collection,
-  getDocs,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -14,7 +10,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// ---------------- CONFIG ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -25,47 +20,30 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ---------------- ELEMENTS ----------------
-const balanceEl = document.getElementById("balance");
 const listEl = document.getElementById("list");
 
-let uid = null;
-let balance = 0;
-let authReady = false;
+let ready = false;
 
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    listEl.innerHTML = "❌ Not logged in";
+    listEl.innerHTML = "❌ Login required";
     return;
   }
 
-  uid = user.uid;
-  authReady = true;
-
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, { balance: 0 });
-  } else {
-    balance = snap.data().balance || 0;
-  }
-
-  balanceEl.innerText = balance.toFixed(8);
+  ready = true;
+  listEl.innerHTML = "✅ Logged in";
 });
 
-// ---------------- LOAD AIRDROPS ----------------
 window.loadAirdrops = async function () {
 
-  if (!authReady) {
-    listEl.innerHTML = "⏳ Please wait for login...";
+  if (!ready) {
+    listEl.innerHTML = "⏳ Waiting for login...";
     return;
   }
 
-  listEl.innerHTML = "Loading airdrops...";
-
   try {
+    listEl.innerHTML = "Loading airdrops...";
+
     const snap = await getDocs(collection(db, "airdropCampaigns"));
 
     if (snap.empty) {
@@ -75,56 +53,27 @@ window.loadAirdrops = async function () {
 
     listEl.innerHTML = "";
 
-    snap.forEach((docSnap) => {
-      const data = docSnap.data();
+    snap.forEach(doc => {
+      const d = doc.data();
 
-      const card = document.createElement("div");
-      card.className = "card";
+      const div = document.createElement("div");
+      div.style.padding = "10px";
+      div.style.margin = "10px";
+      div.style.background = "#111";
+      div.style.color = "white";
 
-      card.innerHTML = `
-        <h3>🚀 ${data.name || "Airdrop"}</h3>
-        <p>⚡ Rate: ${data.rate || 0.00000001}</p>
-        <p>📅 Start: ${new Date(data.startTime).toLocaleString()}</p>
-        <p>📅 End: ${new Date(data.endTime).toLocaleString()}</p>
-
-        <button onclick="startMining('${docSnap.id}', ${data.rate || 0.00000001}, ${data.endTime})">
-          ▶ Start Mining
-        </button>
+      div.innerHTML = `
+        <h3>🚀 ${d.name || "Airdrop"}</h3>
+        <p>⚡ Rate: ${d.rate}</p>
+        <p>📅 Status: ${d.status}</p>
+        <button onclick="alert('Mining not started yet')">Start Mining</button>
       `;
 
-      listEl.appendChild(card);
+      listEl.appendChild(div);
     });
 
   } catch (err) {
     console.error(err);
-    listEl.innerHTML = "❌ Error loading airdrops (check Firestore rules or collection name)";
+    listEl.innerHTML = "❌ Firestore read failed (check login + rules)";
   }
-};
-
-// ---------------- MINING ----------------
-window.startMining = function (id, rate, endTime) {
-
-  const interval = setInterval(async () => {
-
-    if (Date.now() > endTime) {
-      clearInterval(interval);
-      alert("Airdrop ended");
-      return;
-    }
-
-    balance += rate;
-    balanceEl.innerText = balance.toFixed(8);
-
-    if (uid) {
-      await updateDoc(doc(db, "users", uid), {
-        balance: balance
-      });
-    }
-
-  }, 1000);
-};
-
-// ---------------- WITHDRAW BUTTON ----------------
-window.goWithdraw = function () {
-  window.location.href = "WithdrawAirdrop.html";
 };
