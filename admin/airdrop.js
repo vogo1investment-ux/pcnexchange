@@ -4,12 +4,10 @@ import {
   collection,
   addDoc,
   getDocs,
-  doc,
   updateDoc,
   deleteDoc,
-  onSnapshot,
-  setDoc,
-  getDoc
+  doc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -18,7 +16,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 
-// ---------------- CONFIG ----------------
+// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -30,8 +28,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 
-// ---------------- DOM WAIT FIX ----------------
-window.addEventListener("load", () => {
+// ---------------- WAIT UNTIL DOM IS READY ----------------
+window.addEventListener("DOMContentLoaded", () => {
 
 const name = document.getElementById("name");
 const desc = document.getElementById("desc");
@@ -44,23 +42,22 @@ const createBtn = document.getElementById("createBtn");
 const loadBtn = document.getElementById("loadBtn");
 
 const list = document.getElementById("list");
-const usersDiv = document.getElementById("users");
-const withdrawalsDiv = document.getElementById("withdrawals");
+const users = document.getElementById("users");
+const withdrawals = document.getElementById("withdrawals");
 
-let admin = null;
+let user = null;
 
 
 // ---------------- AUTH ----------------
-onAuthStateChanged(auth, (user) => {
-  admin = user;
+onAuthStateChanged(auth, (u) => {
+  user = u;
 });
 
 
 // ---------------- CREATE AIRDROP ----------------
 createBtn.onclick = async () => {
   try {
-
-    if (!admin) return alert("Login required");
+    if (!user) return alert("Login required");
 
     await addDoc(collection(db, "airdropCampaigns"), {
       name: name.value,
@@ -73,26 +70,21 @@ createBtn.onclick = async () => {
       createdAt: Date.now()
     });
 
-    alert("Airdrop created");
-
+    alert("✅ Created");
   } catch (e) {
     console.log(e);
-    alert("Failed to create");
+    alert("❌ Failed");
   }
 };
 
 
 // ---------------- LOAD AIRDROPS ----------------
 loadBtn.onclick = async () => {
-
-  list.innerHTML = "Loading...";
-
   const snap = await getDocs(collection(db, "airdropCampaigns"));
 
   list.innerHTML = "";
 
   snap.forEach((d) => {
-
     const data = d.data();
 
     const div = document.createElement("div");
@@ -104,7 +96,7 @@ loadBtn.onclick = async () => {
       Status: ${data.status}
 
       <button onclick="stopAir('${d.id}')">STOP</button>
-      <button onclick="delAir('${d.id}')">DELETE</button>
+      <button onclick="deleteAir('${d.id}')">DELETE</button>
     `;
 
     list.appendChild(div);
@@ -112,7 +104,7 @@ loadBtn.onclick = async () => {
 };
 
 
-// ---------------- GLOBAL BUTTON FIX ----------------
+// ---------------- GLOBAL BUTTONS (IMPORTANT FIX) ----------------
 window.stopAir = async (id) => {
   await updateDoc(doc(db, "airdropCampaigns", id), {
     status: "stopped"
@@ -120,7 +112,7 @@ window.stopAir = async (id) => {
   alert("Stopped");
 };
 
-window.delAir = async (id) => {
+window.deleteAir = async (id) => {
   await deleteDoc(doc(db, "airdropCampaigns", id));
   alert("Deleted");
 };
@@ -128,14 +120,14 @@ window.delAir = async (id) => {
 
 // ---------------- USERS LIVE ----------------
 onSnapshot(collection(db, "users"), (snap) => {
-  usersDiv.innerHTML = "";
+  users.innerHTML = "";
 
   snap.forEach((d) => {
     const data = d.data();
 
-    usersDiv.innerHTML += `
+    users.innerHTML += `
       <div class="box">
-        <b>User:</b> ${d.id}<br>
+        User: ${d.id}<br>
         Balance: ${data.balance || 0}
       </div>
     `;
@@ -145,13 +137,12 @@ onSnapshot(collection(db, "users"), (snap) => {
 
 // ---------------- WITHDRAWALS LIVE ----------------
 onSnapshot(collection(db, "airdropWithdrawals"), (snap) => {
-
-  withdrawalsDiv.innerHTML = "";
+  withdrawals.innerHTML = "";
 
   snap.forEach((d) => {
     const data = d.data();
 
-    withdrawalsDiv.innerHTML += `
+    withdrawals.innerHTML += `
       <div class="box">
         User: ${data.userId}<br>
         Status: ${data.status || "pending"}
@@ -177,4 +168,4 @@ window.reject = async (id) => {
   });
 };
 
-}); // END LOAD
+});
