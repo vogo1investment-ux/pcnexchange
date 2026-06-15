@@ -1,5 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
 import {
 getAuth,
 onAuthStateChanged
@@ -7,12 +6,12 @@ onAuthStateChanged
 
 import {
 getFirestore,
-collection,
-getDocs,
 doc,
 getDoc,
 setDoc,
-updateDoc
+updateDoc,
+collection,
+getDocs
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -28,190 +27,110 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const balanceEl =
-document.getElementById("airdropBalance");
-
-const searchBtn =
-document.getElementById("searchAirdropsBtn");
-
-const listEl =
-document.getElementById("airdropList");
-
-const loadingEl =
-document.getElementById("loadingBox");
-
 let currentUser = null;
+let miningInterval = null;
 
-onAuthStateChanged(auth, async(user)=>{
+// UI ELEMENTS
+const balanceEl = document.getElementById("airdropBalance");
+const searchBtn = document.getElementById("searchAirdropsBtn");
+const listEl = document.getElementById("airdropList");
+const loadingEl = document.getElementById("loadingBox");
 
-if(!user){
-alert("Login Required");
-return;
-}
+// LOGIN CHECK
+onAuthStateChanged(auth, async (user) => {
+
+if (!user) return;
 
 currentUser = user;
 
-await loadBalance();
+await initUserBalance();
+
+await checkAutoMining();
 
 });
 
-async function loadBalance(){
+// INIT BALANCE (START ALWAYS FROM ZERO IF NOT EXIST)
+async function initUserBalance() {
 
-const userRef =
-doc(db,"users",currentUser.uid);
+const ref = doc(db, "users", currentUser.uid);
+const snap = await getDoc(ref);
 
-const userSnap =
-await getDoc(userRef);
+if (!snap.exists()) {
 
-if(userSnap.exists()){
+await setDoc(ref, {
+airdropBalance: 0.00000000
+});
 
-const data = userSnap.data();
+balanceEl.innerText = "0.00000000";
 
-const bal =
-Number(data.airdropBalance || 0);
+return;
+}
 
-balanceEl.innerText =
-bal.toFixed(8);
+const data = snap.data();
+
+let bal = parseFloat(data.airdropBalance || 0);
+
+if (isNaN(bal)) bal = 0;
+
+balanceEl.innerText = bal.toFixed(8);
 
 }
 
-}
-
-searchBtn.addEventListener(
-"click",
-loadAirdrops
-);
-
-async function loadAirdrops(){
+// SEARCH AIRDROPS
+searchBtn.addEventListener("click", async () => {
 
 loadingEl.style.display = "block";
-
 listEl.innerHTML = "";
 
-try{
-
-const snap =
-await getDocs(
-collection(db,"airdropCampaigns")
-);
+const snap = await getDocs(collection(db, "airdropCampaigns"));
 
 loadingEl.style.display = "none";
 
-snap.forEach(docSnap=>{
+snap.forEach(docSnap => {
 
 const d = docSnap.data();
 
-const card =
-document.createElement("div");
-
-card.className =
-"airdrop-card";
+const card = document.createElement("div");
+card.className = "airdrop-card";
 
 card.innerHTML = `
-
 <h2>${d.name || "Airdrop"}</h2>
 
-<div class="airdrop-info">
-Rate:
-${Number(d.rate || 0).toFixed(8)}
-</div>
+<p>Rate: ${d.rate}</p>
+<p>Amount: ${d.amount}</p>
+<p>Start: ${new Date(d.startTime).toLocaleString()}</p>
+<p>End: ${new Date(d.endTime).toLocaleString()}</p>
 
-<div class="airdrop-info">
-Amount:
-${d.amount || 0}
-</div>
-
-<div class="airdrop-info">
-Start:
-${new Date(
-d.startTime
-).toLocaleString()}
-</div>
-
-<div class="airdrop-info">
-End:
-${new Date(
-d.endTime
-).toLocaleString()}
-</div>
-
-<div class="airdrop-buttons">
-
-<button
-class="start-btn">
-START MINING
-</button>
-
-<button
-class="stop-btn">
-STOP MINING
-</button>
-
-</div>
-
-<button
-class="withdraw-btn">
-
-WITHDRAW AIRDROP
-
-</button>
-
+<button class="start">START MINING</button>
+<button class="stop">STOP MINING</button>
+<button class="withdraw">WITHDRAW</button>
 `;
 
 listEl.appendChild(card);
 
-const startBtn =
-card.querySelector(".start-btn");
-
-const stopBtn =
-card.querySelector(".stop-btn");
-
-const withdrawBtn =
-card.querySelector(".withdraw-btn");
-
-startBtn.onclick = ()=>{
-
-startMining(
-docSnap.id,
-d.rate,
-d.endTime
-);
-
+// START
+card.querySelector(".start").onclick = () => {
+startMining(docSnap.id, d.rate, d.endTime);
 };
 
-stopBtn.onclick = ()=>{
-
+// STOP
+card.querySelector(".stop").onclick = () => {
 stopMining();
-
 };
 
-withdrawBtn.onclick = ()=>{
-
-window.location.href =
-"withdrawalairdrop.html";
-
+// WITHDRAW
+card.querySelector(".withdraw").onclick = () => {
+window.location.href = "withdrawalairdrop.html";
 };
 
 });
 
-}catch(err){
+});
 
-loadingEl.style.display = "none";
+// START MINING (FIXED)
+async function startMining(id, rate, endTime) {
 
-console.error(err);
-
-}
-
-}
-
-async function startMining(
-campaignId,
-rate,
-endTime
-){
-
-const stateRef =
-doc(
+const stateRef = doc(
 db,
 "users",
 currentUser.uid,
@@ -219,30 +138,23 @@ currentUser.uid,
 "main"
 );
 
-await setDoc(stateRef,{
-
-active:true,
-
-campaignId,
-
-rate,
-
-endTime,
-
-startedAt:Date.now()
-
+// reset previous
+await setDoc(stateRef, {
+active: true,
+campaignId: id,
+rate: parseFloat(rate),
+endTime: endTime,
+startedAt: Date.now()
 });
-
-alert("Mining Started");
 
 runMining();
 
 }
 
-async function stopMining(){
+// STOP MINING
+async function stopMining() {
 
-const stateRef =
-doc(
+const stateRef = doc(
 db,
 "users",
 currentUser.uid,
@@ -250,97 +162,23 @@ currentUser.uid,
 "main"
 );
 
-await setDoc(stateRef,{
-
-active:false
-
-},{merge:true});
-
-alert("Mining Stopped");
-
-}
-
-async function runMining(){
-
-const stateRef =
-doc(
-db,
-"users",
-currentUser.uid,
-"airdropState",
-"main"
-);
-
-const stateSnap =
-await getDoc(stateRef);
-
-if(!stateSnap.exists())
-return;
-
-const state =
-stateSnap.data();
-
-if(!state.active)
-return;
-
-setInterval(async()=>{
-
-const stateCheck =
-await getDoc(stateRef);
-
-if(!stateCheck.exists())
-return;
-
-const st =
-stateCheck.data();
-
-if(!st.active)
-return;
-
-if(Date.now() > st.endTime)
-return;
-
-const userRef =
-doc(
-db,
-"users",
-currentUser.uid
-);
-
-const userSnap =
-await getDoc(userRef);
-
-if(!userSnap.exists())
-return;
-
-const userData =
-userSnap.data();
-
-let balance =
-Number(
-userData.airdropBalance || 0
-);
-
-balance +=
-Number(st.rate || 0);
-
-await updateDoc(userRef,{
-
-airdropBalance:balance
-
+await updateDoc(stateRef, {
+active: false
 });
 
-balanceEl.innerText =
-balance.toFixed(8);
+if (miningInterval) {
+clearInterval(miningInterval);
+miningInterval = null;
+}
 
-},1000);
+alert("Mining stopped");
 
 }
 
-setTimeout(async()=>{
+// CORE MINING ENGINE (FIXED 100%)
+async function runMining() {
 
-const stateRef =
-doc(
+const stateRef = doc(
 db,
 "users",
 currentUser.uid,
@@ -348,16 +186,77 @@ currentUser.uid,
 "main"
 );
 
-const snap =
-await getDoc(stateRef);
+// STOP OLD LOOP FIRST
+if (miningInterval) {
+clearInterval(miningInterval);
+miningInterval = null;
+}
 
-if(
-snap.exists() &&
-snap.data().active
-){
+miningInterval = setInterval(async () => {
 
-runMining();
+const stateSnap = await getDoc(stateRef);
+
+if (!stateSnap.exists()) return;
+
+const state = stateSnap.data();
+
+if (!state.active) {
+clearInterval(miningInterval);
+miningInterval = null;
+return;
+}
+
+if (Date.now() > state.endTime) {
+await updateDoc(stateRef, { active: false });
+clearInterval(miningInterval);
+miningInterval = null;
+return;
+}
+
+const userRef = doc(db, "users", currentUser.uid);
+const userSnap = await getDoc(userRef);
+
+if (!userSnap.exists()) return;
+
+const data = userSnap.data();
+
+// SAFE NUMBER FIX
+let balance = parseFloat(data.airdropBalance || 0);
+let rate = parseFloat(state.rate || 0);
+
+if (isNaN(balance)) balance = 0;
+if (isNaN(rate)) rate = 0;
+
+// ADD MINING VALUE
+balance = balance + rate;
+
+// SAVE TO FIRESTORE
+await updateDoc(userRef, {
+airdropBalance: balance
+});
+
+// UPDATE UI
+balanceEl.innerText = balance.toFixed(8);
+
+}, 1000);
 
 }
 
-},1500);
+// AUTO RESUME MINING AFTER LOGIN
+async function checkAutoMining() {
+
+const stateRef = doc(
+db,
+"users",
+currentUser.uid,
+"airdropState",
+"main"
+);
+
+const snap = await getDoc(stateRef);
+
+if (snap.exists() && snap.data().active) {
+runMining();
+}
+
+}
