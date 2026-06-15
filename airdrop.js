@@ -1,12 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
   collection,
   getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  addDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
@@ -15,7 +16,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -29,185 +29,159 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ---------------- UI ----------------
-const balanceEl = document.getElementById("balance");
-const listEl = document.getElementById("list");
-
-// ---------------- STATE ----------------
 let uid = null;
-let balance = 0;
-let miningIntervals = {};
 
-// ---------------- FORMAT ----------------
-function format(num) {
-  return Number(num).toFixed(8);
-}
+// DOM
+const listEl = document.getElementById("airdropList");
+const withdrawalEl = document.getElementById("withdrawals");
 
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, async (user) => {
+// ---------------- AUTH SAFE GUARD ----------------
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    console.log("Not logged in yet");
     return;
   }
 
   uid = user.uid;
-
-  try {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
-
-    if (!snap.exists()) {
-      await setDoc(ref, { balance: 0 });
-      balance = 0;
-    } else {
-      balance = snap.data().balance || 0;
-    }
-
-    balanceEl.textContent = format(balance);
-
-    // realtime sync
-    onSnapshot(ref, (docSnap) => {
-      const data = docSnap.data();
-      balance = data?.balance || 0;
-      balanceEl.textContent = format(balance);
-    });
-
-  } catch (err) {
-    console.error("AUTH ERROR:", err);
-  }
+  console.log("Logged in:", uid);
 });
 
-// ---------------- UPDATE BALANCE ----------------
-async function updateBalance() {
-  if (!uid) return;
-
-  await updateDoc(doc(db, "users", uid), {
-    balance: balance
-  });
-
-  balanceEl.textContent = format(balance);
-}
-
-// ---------------- LOAD AIRDROPS (FIXED 100%) ----------------
+// ---------------- LOAD AIRDROPS (FIXED) ----------------
 window.loadAirdrops = async function () {
   try {
-    listEl.innerHTML = "<p>🔄 Loading airdrops...</p>";
-
     if (!uid) {
-      alert("User not ready yet. Please wait...");
+      alert("Login not ready yet. Please wait...");
       return;
     }
+
+    listEl.innerHTML = "Loading...";
 
     const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-    if (!snap || snap.empty) {
-      listEl.innerHTML = "<p>❌ No airdrops found</p>";
+    listEl.innerHTML = "";
+
+    if (snap.empty) {
+      listEl.innerHTML = "No airdrops found";
       return;
     }
-
-    listEl.innerHTML = "";
 
     snap.forEach((d) => {
       const data = d.data();
 
-      // FIX TIMESTAMP (Firestore OR number)
-      const start = data.startTime?.toDate?.()
-        ? data.startTime.toDate()
-        : new Date(data.startTime);
+      const div = document.createElement("div");
+      div.className = "box";
 
-      const end = data.endTime?.toDate?.()
-        ? data.endTime.toDate()
-        : new Date(data.endTime);
+      div.innerHTML = `
+        <h3>🚀 ${data.name}</h3>
+        <p>💰 Rate: ${data.rate}</p>
+        <p>📅 Start: ${new Date(data.startTime).toLocaleString()}</p>
+        <p>⛔ End: ${new Date(data.endTime).toLocaleString()}</p>
 
-      const card = document.createElement("div");
-      card.className = "card";
+        <button onclick="startMining('${d.id}', ${data.rate})">
+          ▶ Start Mining
+        </button>
 
-      card.innerHTML = `
-        <div class="title">🚀 ${data.name || "Airdrop"}</div>
-
-        <div class="row">📅 Start: ${start.toLocaleString()}</div>
-        <div class="row">📅 End: ${end.toLocaleString()}</div>
-        <div class="row">⚡ Rate: ${data.rate || 0.00000001} / sec</div>
-
-        <div class="mineRow">
-          <button class="mineBtn" id="mine-${d.id}">
-            ▶ Start Mining
-          </button>
-        </div>
-
-        <div class="mineRow">
-          <button class="mineBtn" style="background:gold"
-            onclick="withdraw('${d.id}')">
-            💸 Withdraw
-          </button>
-        </div>
+        <button onclick="withdraw('${d.id}')">
+          💸 Withdraw
+        </button>
       `;
 
-      listEl.appendChild(card);
-
-      const btn = document.getElementById(`mine-${d.id}`);
-
-      btn.onclick = () => {
-        startMining(
-          d.id,
-          Number(data.rate || 0.00000001),
-          end.getTime(),
-          btn
-        );
-      };
+      listEl.appendChild(div);
     });
 
   } catch (err) {
-    console.error("LOAD ERROR:", err);
-    listEl.innerHTML = `
-      <p style="color:red">
-        ❌ Failed to load airdrops<br>
-        ${err.message}
-      </p>
-    `;
+    console.error(err);
+    listEl.innerHTML = "❌ Failed: " + err.message;
   }
 };
 
-// ---------------- MINING ENGINE ----------------
-function startMining(id, rate, endTime, btn) {
-  if (miningIntervals[id]) return;
+// ---------------- CREATE WITHDRAWAL BATCH ----------------
+window.createWithdrawalBatch = async function () {
+  try {
+    const ref = doc(collection(db, "airdropWithdrawals"));
 
-  btn.innerText = "⛏ Mining...";
+    await setDoc(ref, {
+      createdAt: Date.now(),
+      status: "open",
+      createdBy: uid
+    });
 
-  miningIntervals[id] = setInterval(async () => {
-    const now = Date.now();
+    alert("✅ Withdrawal batch created");
+  } catch (e) {
+    alert(e.message);
+  }
+};
 
-    if (now >= endTime) {
-      clearInterval(miningIntervals[id]);
-      delete miningIntervals[id];
-      btn.innerText = "⛔ Ended";
-      return;
-    }
+// ---------------- FETCH WITHDRAWALS ----------------
+window.fetchWithdrawals = async function () {
+  try {
+    withdrawalEl.innerHTML = "Loading withdrawals...";
 
-    balance += rate;
-    await updateBalance();
+    const snap = await getDocs(collection(db, "pendingWithdrawals"));
 
-  }, 1000);
-}
+    withdrawalEl.innerHTML = "";
 
-// ---------------- WITHDRAW ----------------
+    snap.forEach((d) => {
+      const w = d.data();
+
+      const div = document.createElement("div");
+      div.className = "box";
+
+      div.innerHTML = `
+        <p>👤 User: ${w.userId}</p>
+        <p>💰 Amount: ${w.amount}</p>
+        <p>📌 Status: ${w.status}</p>
+
+        <button onclick="approveWithdraw('${d.id}', '${w.userId}', ${w.amount})">
+          ✅ Approve
+        </button>
+
+        <button onclick="rejectWithdraw('${d.id}', '${w.userId}', ${w.amount})">
+          ❌ Reject
+        </button>
+      `;
+
+      withdrawalEl.appendChild(div);
+    });
+
+  } catch (e) {
+    alert("Fetch error: " + e.message);
+  }
+};
+
+// ---------------- APPROVE ----------------
+window.approveWithdraw = async function (id, userId, amount) {
+  await updateDoc(doc(db, "pendingWithdrawals", id), {
+    status: "approved"
+  });
+
+  alert("Approved");
+};
+
+// ---------------- REJECT ----------------
+window.rejectWithdraw = async function (id, userId, amount) {
+  await updateDoc(doc(db, "pendingWithdrawals", id), {
+    status: "rejected"
+  });
+
+  alert("Rejected");
+};
+
+// ---------------- WITHDRAW REQUEST (USER SIDE) ----------------
 window.withdraw = async function (airdropId) {
   try {
-    if (!uid) return alert("Login required");
-    if (balance <= 0) return alert("No balance");
+    if (!uid) return alert("Login first");
 
-    await setDoc(doc(db, "pendingWithdrawals", uid + "_" + airdropId), {
+    await addDoc(collection(db, "pendingWithdrawals"), {
       userId: uid,
       airdropId,
-      amount: balance,
+      amount: 0,
       status: "pending",
       createdAt: Date.now()
     });
 
     alert("✅ Withdrawal sent to admin");
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Withdrawal failed: " + err.message);
+  } catch (e) {
+    alert(e.message);
   }
 };
