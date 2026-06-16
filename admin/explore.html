@@ -2,15 +2,97 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Explore</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>User Explorer Admin</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background:#0b1220;
+  color:white;
+}
+
+h1{
+  text-align:center;
+  padding:15px;
+  color:#22c55e;
+}
+
+.container{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:10px;
+}
+
+.card{
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 0 10px rgba(0,0,0,0.4);
+}
+
+.name{
+  font-size:20px;
+  font-weight:bold;
+  color:#38bdf8;
+  margin-bottom:10px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  border-radius:6px;
+  border:none;
+}
+
+label{
+  font-size:12px;
+  opacity:0.8;
+}
+
+button{
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  background:#22c55e;
+  border:none;
+  border-radius:8px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#16a34a;
+}
+
+.small{
+  font-size:12px;
+  opacity:0.7;
+}
+
+@media(max-width:700px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
 </head>
-<body class="bg-black text-white p-4">
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">Explore Analytics</h1>
-<div id="explore-list"></div>
+<body>
 
-<script type="module" src="explore.js"></script>
+<h1>👥 USER EXPLORER PANEL</h1>
+
+<div class="container" id="users"></div>
+
+<script type="module" src="explorer.js"></script>
+
 </body>
 </html>
