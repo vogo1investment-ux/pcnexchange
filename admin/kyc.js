@@ -30,16 +30,13 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const container = document.getElementById("kycContainer");
 
 onAuthStateChanged(auth, (user) => {
-
-  console.log("AUTH USER:", user);
-
   if (!user) {
     container.innerHTML = "❌ Please login as admin";
     return;
   }
 
   if (user.uid !== ADMIN_UID) {
-    container.innerHTML = "⛔ Access denied (not admin)";
+    container.innerHTML = "⛔ Access denied";
     return;
   }
 
@@ -52,8 +49,6 @@ function loadKYC() {
 
   onSnapshot(kycRef, (snapshot) => {
 
-    console.log("KYC SIZE:", snapshot.size);
-
     container.innerHTML = "";
 
     if (snapshot.empty) {
@@ -65,21 +60,26 @@ function loadKYC() {
 
       const data = docSnap.data();
 
-      const div = document.createElement("div");
+      const statusClass =
+        data.status === "approved" ? "approved" :
+        data.status === "rejected" ? "rejected" : "pending";
 
-      div.innerHTML = `
-        <hr>
+      const card = document.createElement("div");
+      card.className = "card";
 
-        <p>Name: ${data.fullName || "N/A"}</p>
+      card.innerHTML = `
+        <h3>${data.fullName || "No Name"}</h3>
+
         <p>Email: ${data.email || "N/A"}</p>
         <p>Phone: ${data.phone || "N/A"}</p>
         <p>UID: ${data.uid || "N/A"}</p>
         <p>ID Number: ${data.idNumber || "N/A"}</p>
-        <p>Status: ${data.status || "pending"}</p>
 
-        <img src="${data.idImage || ''}" width="180" />
+        <div class="badge ${statusClass}">
+          ${data.status || "pending"}
+        </div>
 
-        <br><br>
+        <img src="${data.idImage || ''}" />
 
         <select>
           <option value="pending">Pending</option>
@@ -87,11 +87,11 @@ function loadKYC() {
           <option value="rejected">Reject</option>
         </select>
 
-        <button>Update</button>
+        <button>Update Status</button>
       `;
 
-      const select = div.querySelector("select");
-      const btn = div.querySelector("button");
+      const select = card.querySelector("select");
+      const btn = card.querySelector("button");
 
       select.value = data.status || "pending";
 
@@ -102,17 +102,17 @@ function loadKYC() {
           });
 
           alert("KYC updated successfully");
-        } catch (e) {
-          console.error(e);
+        } catch (err) {
+          console.error(err);
           alert("Update failed");
         }
       };
 
-      container.appendChild(div);
+      container.appendChild(card);
     });
 
   }, (error) => {
-    console.error("Firestore error:", error);
+    console.error(error);
     container.innerHTML = "Error loading KYC data.";
   });
 }
