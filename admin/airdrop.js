@@ -12,30 +12,26 @@ import {
   signInAnonymously
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-
-// ✅ YOUR FIREBASE CONFIG (YOU PROVIDED THIS)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
   appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// IMPORTANT: allow Firestore access for rules
-signInAnonymously(auth).catch(console.error);
+signInAnonymously(auth);
 
+// 🔥 WAIT FOR HTML FULLY LOADED (THIS FIXES YOUR ISSUE)
+window.addEventListener("DOMContentLoaded", () => {
 
-// ======================= CREATE AIRDROP =======================
-document.getElementById("createBtn").addEventListener("click", async () => {
-  try {
+  // ================= CREATE AIRDROP =================
+  document.getElementById("createBtn").addEventListener("click", async () => {
 
     const name = document.getElementById("name").value;
     const desc = document.getElementById("desc").value;
@@ -44,111 +40,88 @@ document.getElementById("createBtn").addEventListener("click", async () => {
     const start = document.getElementById("start").value;
     const end = document.getElementById("end").value;
 
-    if (!name || !rate || !amount) {
-      alert("Fill required fields");
-      return;
+    try {
+      await addDoc(collection(db, "airdropCampaigns"), {
+        name,
+        desc,
+        rate,
+        amount,
+        start,
+        end,
+        status: "active",
+        createdAt: Date.now()
+      });
+
+      alert("Airdrop Created ✅");
+    } catch (e) {
+      console.error(e);
+      alert("Error creating airdrop ❌");
     }
+  });
 
-    await addDoc(collection(db, "airdropCampaigns"), {
-      name,
-      desc,
-      rate: Number(rate),
-      amount: Number(amount),
-      start,
-      end,
-      status: "active",
-      createdAt: Date.now()
-    });
+  // ================= LOAD AIRDROPS =================
+  document.getElementById("loadBtn").addEventListener("click", async () => {
 
-    alert("Airdrop Created ✅");
-
-  } catch (err) {
-    console.error(err);
-    alert("Error creating airdrop ❌");
-  }
-});
-
-
-// ======================= LOAD AIRDROPS =======================
-document.getElementById("loadBtn").addEventListener("click", async () => {
-
-  const list = document.getElementById("airdropList");
-  list.innerHTML = "Loading...";
-
-  try {
+    const box = document.getElementById("airdropList");
+    box.innerHTML = "Loading...";
 
     const snap = await getDocs(collection(db, "airdropCampaigns"));
 
-    list.innerHTML = "";
+    box.innerHTML = "";
 
-    snap.forEach(doc => {
-      const d = doc.data();
+    snap.forEach(d => {
+      const data = d.data();
 
-      list.innerHTML += `
-        <div style="background:#111;padding:10px;margin:8px;border-radius:8px;">
-          <b>${d.name}</b><br>
-          ${d.desc || ""}<br>
-          💰 Rate: ${d.rate}<br>
-          📦 Amount: ${d.amount}<br>
-          📌 Status: ${d.status}
+      box.innerHTML += `
+        <div class="item">
+          <b>${data.name}</b><br>
+          ${data.desc}<br>
+          Rate: ${data.rate}<br>
+          Amount: ${data.amount}
         </div>
       `;
     });
-
-  } catch (err) {
-    console.error(err);
-    list.innerHTML = "Error loading airdrops ❌";
-  }
-});
-
-
-// ======================= LIVE USERS =======================
-const userBox = document.getElementById("userList");
-
-onSnapshot(collection(db, "users"), (snap) => {
-
-  userBox.innerHTML = "";
-
-  snap.forEach(doc => {
-    const d = doc.data();
-
-    userBox.innerHTML += `
-      <div style="border:1px solid #333;padding:8px;margin:5px;">
-        👤 ${d.email || "No Email"}<br>
-        💰 Balance: ${d.balance || 0}
-      </div>
-    `;
   });
 
-});
+  // ================= USERS LIVE =================
+  onSnapshot(collection(db, "users"), (snap) => {
 
-
-// ======================= WITHDRAWALS =======================
-document.getElementById("loadWithdrawBtn").addEventListener("click", async () => {
-
-  const box = document.getElementById("withdrawList");
-  box.innerHTML = "Loading...";
-
-  try {
-
-    const snap = await getDocs(collection(db, "airdropWithdrawals"));
-
+    const box = document.getElementById("userList");
     box.innerHTML = "";
 
     snap.forEach(doc => {
       const d = doc.data();
 
       box.innerHTML += `
-        <div style="border:1px solid red;padding:10px;margin:6px;">
-          👤 User: ${d.userId || "unknown"}<br>
-          💸 Amount: ${d.amount || 0}<br>
-          📌 Status: ${d.status || "pending"}
+        <div class="item">
+          👤 ${d.email || "No email"}<br>
+          💰 ${d.balance || 0}
         </div>
       `;
     });
+  });
 
-  } catch (err) {
-    console.error(err);
-    box.innerHTML = "Error loading withdrawals ❌";
-  }
+  // ================= WITHDRAWALS =================
+  document.getElementById("loadWithdrawBtn").addEventListener("click", async () => {
+
+    const box = document.getElementById("withdrawList");
+    box.innerHTML = "Loading...";
+
+    const snap = await getDocs(collection(db, "airdropWithdrawals"));
+
+    box.innerHTML = "";
+
+    snap.forEach(d => {
+      const data = d.data();
+
+      box.innerHTML += `
+        <div class="item">
+          👤 ${data.userId}<br>
+          💸 ${data.amount}<br>
+          📌 ${data.status || "pending"}
+        </div>
+      `;
+    });
+  });
+
 });

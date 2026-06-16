@@ -29,29 +29,23 @@ input{
   width:100%;
   padding:10px;
   margin:5px 0;
-  border:none;
-  border-radius:6px;
 }
 
 button{
   width:100%;
   padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
+  margin-top:10px;
   cursor:pointer;
-  font-weight:bold;
 }
 
-.create{background:#facc15;}
-.load{background:#3b82f6;color:white;}
-.green{background:#22c55e;color:white;}
+.primary{background:gold;}
+.blue{background:#3b82f6;color:white;}
 .red{background:#ef4444;color:white;}
-.section-title{margin:15px 0 5px;}
+
 .item{
   background:#0b1220;
   padding:10px;
-  margin:8px 0;
+  margin-top:8px;
   border-radius:8px;
 }
 </style>
@@ -61,39 +55,35 @@ button{
 
 <div class="container">
 
-<h2>⚙️ AIRDROP ADMIN PANEL</h2>
+<h2>⚙️ ADMIN AIRDROP PANEL</h2>
 
-<!-- CREATE -->
 <div class="card">
 <h3>Create Airdrop</h3>
 
-<input id="name" placeholder="Airdrop Name">
-<input id="desc" placeholder="Description">
+<input id="name" placeholder="Name">
+<input id="desc" placeholder="Desc">
 <input id="rate" placeholder="Rate">
 <input id="amount" placeholder="Amount">
 <input id="start" type="datetime-local">
 <input id="end" type="datetime-local">
 
-<button id="createBtn" class="create">CREATE AIRDROP</button>
+<button id="createBtn" class="primary">CREATE AIRDROP</button>
 </div>
 
-<!-- AIRDROPS -->
 <div class="card">
-<h3 class="section-title">Airdrops</h3>
-<button id="loadBtn" class="load">LOAD AIRDROPS</button>
+<h3>Airdrops</h3>
+<button id="loadBtn" class="blue">LOAD AIRDROPS</button>
 <div id="airdropList"></div>
 </div>
 
-<!-- USERS -->
 <div class="card">
-<h3 class="section-title">Users</h3>
+<h3>Users</h3>
 <div id="userList"></div>
 </div>
 
-<!-- WITHDRAWALS -->
 <div class="card">
-<h3 class="section-title">Withdrawals</h3>
-<button id="loadWithdrawBtn" class="load">LOAD WITHDRAWALS</button>
+<h3>Withdrawals</h3>
+<button id="loadWithdrawBtn" class="red">LOAD WITHDRAWALS</button>
 <div id="withdrawList"></div>
 </div>
 
