@@ -4,15 +4,12 @@ import {
   collection,
   getDocs,
   doc,
-  setDoc,
   getDoc,
-  updateDoc
+  setDoc,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -27,136 +24,132 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let userId = null;
-let intervals = {};
-
-const airdropsDiv = document.getElementById("airdrops");
+let userId;
+let timers = {};
+let activeCount = 0;
 
 onAuthStateChanged(auth, (user) => {
-  if (!user) return;
-  userId = user.uid;
-  loadAirdrops();
+  if (user) userId = user.uid;
 });
 
-document.getElementById("loadBtn").onclick = loadAirdrops;
+document.getElementById("discoverBtn").onclick = loadAirdrops;
 
-// ---------------- LOAD AIRDROPS ----------------
 async function loadAirdrops() {
-  airdropsDiv.innerHTML = "";
-
   const snap = await getDocs(collection(db, "airdropCampaigns"));
+  const list = document.getElementById("airdropList");
 
-  snap.forEach(async (d) => {
-    const data = d.data();
-    renderAirdrop(d.id, data);
+  list.innerHTML = "";
+
+  snap.forEach(async (docSnap) => {
+    renderAirdrop(docSnap.id, docSnap.data());
   });
 }
 
-// ---------------- RENDER AIRDROP ----------------
 async function renderAirdrop(id, data) {
 
-  const userRef = doc(db, "users", userId, "airdropState", id);
-  const userSnap = await getDoc(userRef);
+  const stateRef = doc(db, "users", userId, "airdropState", id);
+  const stateSnap = await getDoc(stateRef);
 
-  let state = userSnap.exists() ? userSnap.data() : {
+  let state = stateSnap.exists() ? stateSnap.data() : {
     balance: 0,
     active: false,
-    lastUpdate: Date.now()
+    lastTime: Date.now()
   };
 
   const box = document.createElement("div");
-  box.className = "airdrop";
+  box.className = "card";
 
   box.innerHTML = `
-    <h2>${data.name}</h2>
+    <div class="title">${data.name}</div>
 
-    <div class="row">${data.description}</div>
-
-    <div class="row">💰 Rate: ${data.rate}</div>
+    <div class="row">📝 ${data.description}</div>
+    <div class="row">⚡ Rate: ${data.rate}</div>
     <div class="row">📦 Amount: ${data.amount}</div>
 
-    <div class="row">🟢 Start: ${format(data.startTime)}</div>
-    <div class="row">🔴 End: ${format(data.endTime)}</div>
+    <div class="row">🟢 Start: ${new Date(data.startTime).toLocaleString()}</div>
+    <div class="row">🔴 End: ${new Date(data.endTime).toLocaleString()}</div>
 
     <div class="balance">Balance: ${state.balance.toFixed(8)}</div>
 
-    <button class="btn green" id="start-${id}">Start Mining</button>
-    <button class="btn red" id="stop-${id}">Stop Mining</button>
-
-    <button class="btn yellow" id="withdraw-${id}">
-      Withdraw
-    </button>
+    <button class="start">Start Mining</button>
+    <button class="stop">Stop Mining</button>
+    <button class="withdraw">Withdraw</button>
 
     <div class="notice">
-      If you place withdrawal, it will be added to your withdrawable balance after admin approval.
+      Withdrawal Notice: Upon submission, your request will be reviewed and credited to your withdrawable balance after administrative approval. This action is irreversible once confirmed.
     </div>
   `;
 
-  airdropsDiv.appendChild(box);
+  document.getElementById("airdropList").appendChild(box);
 
-  // START MINING
-  document.getElementById(`start-${id}`).onclick = async () => {
+  const startBtn = box.querySelector(".start");
+  const stopBtn = box.querySelector(".stop");
+  const withdrawBtn = box.querySelector(".withdraw");
+
+  startBtn.onclick = async () => {
     state.active = true;
-    state.lastUpdate = Date.now();
-    await setDoc(userRef, state);
+    state.lastTime = Date.now();
 
-    startMining(id, data, state, userRef, box);
+    await setDoc(stateRef, state);
+
+    activeCount++;
+    document.getElementById("activeCount").innerText = activeCount;
+
+    startMining(id, data, state, stateRef, box);
   };
 
-  // STOP MINING
-  document.getElementById(`stop-${id}`).onclick = async () => {
+  stopBtn.onclick = async () => {
     state.active = false;
-    await updateDoc(userRef, state);
-    clearInterval(intervals[id]);
+    await setDoc(stateRef, state);
+
+    clearInterval(timers[id]);
+    activeCount--;
+    document.getElementById("activeCount").innerText = activeCount;
   };
 
-  // WITHDRAW (NO PAGE CHANGE)
-  document.getElementById(`withdraw-${id}`).onclick = async () => {
-    await setDoc(doc(collection(db, "airdropWithdrawals")), {
+  withdrawBtn.onclick = async () => {
+
+    // 🔥 creates withdrawal (NO new page)
+    await addDoc(collection(db, "airdropWithdrawals"), {
       userId,
       airdropId: id,
       amount: state.balance,
-      createdAt: Date.now(),
-      status: "pending"
+      status: "pending",
+      createdAt: Date.now()
     });
 
     state.balance = 0;
     state.active = false;
 
-    await setDoc(userRef, state);
+    await setDoc(stateRef, state);
 
-    alert("Withdrawal submitted successfully!");
     box.querySelector(".balance").innerText = "Balance: 0.00000000";
+
+    alert("Withdrawal submitted successfully.");
   };
 
-  // AUTO CONTINUE IF ACTIVE
   if (state.active) {
-    startMining(id, data, state, userRef, box);
+    startMining(id, data, state, stateRef, box);
   }
 }
 
-// ---------------- MINING ENGINE ----------------
 function startMining(id, data, state, ref, box) {
 
-  clearInterval(intervals[id]);
+  clearInterval(timers[id]);
 
-  intervals[id] = setInterval(async () => {
+  timers[id] = setInterval(async () => {
 
     const now = Date.now();
 
-    // stop if ended
-    if (now > data.endTime) {
-      clearInterval(intervals[id]);
-      return;
-    }
+    if (now < data.startTime || now > data.endTime) return;
 
     if (!state.active) return;
 
-    let diff = (now - state.lastUpdate) / 1000;
-    let earned = diff * Number(data.rate);
+    const diff = (now - state.lastTime) / 1000;
+    const earned = diff * Number(data.rate);
 
     state.balance += earned;
-    state.lastUpdate = now;
+    state.lastTime = now;
 
     box.querySelector(".balance").innerText =
       "Balance: " + state.balance.toFixed(8);
@@ -164,10 +157,4 @@ function startMining(id, data, state, ref, box) {
     await setDoc(ref, state);
 
   }, 2000);
-}
-
-// ---------------- FORMAT DATE ----------------
-function format(ts) {
-  if (!ts) return "Not Set";
-  return new Date(ts).toLocaleString();
 }

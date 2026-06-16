@@ -1,69 +1,85 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0b1220;
   color: white;
 }
 
 .container {
   padding: 15px;
-  max-width: 900px;
+  max-width: 1100px;
   margin: auto;
 }
 
-h1 {
+.top {
   text-align: center;
-  margin-bottom: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+.discover {
+  background: #3b82f6;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.stats {
+  margin-top: 10px;
+  opacity: 0.9;
 }
 
 .card {
-  background: #1b2435;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 10px 0;
-}
-
-.btn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  margin-top: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.blue { background: #3b82f6; color: white; }
-.green { background: #22c55e; color: white; }
-.red { background: #ef4444; color: white; }
-.yellow { background: #facc15; color: black; }
-
-.airdrop {
   background: #111827;
-  padding: 15px;
   margin-top: 15px;
+  padding: 15px;
   border-radius: 12px;
 }
 
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  color: gold;
+}
+
 .row {
-  margin: 6px 0;
+  margin-top: 6px;
+  font-size: 13px;
   opacity: 0.9;
 }
 
 .balance {
-  color: #22c55e;
-  font-size: 18px;
   margin-top: 10px;
+  color: #22c55e;
+  font-size: 16px;
 }
+
+button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.start { background: #22c55e; color: white; }
+.stop { background: #ef4444; color: white; }
+.withdraw { background: #facc15; color: black; }
 
 .notice {
-  font-size: 12px;
+  font-size: 11px;
   opacity: 0.7;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
-@media (max-width: 600px) {
-  .container {
-    padding: 10px;
-  }
+/* mobile fix */
+@media(max-width: 600px){
+  .card { font-size: 14px; }
 }
