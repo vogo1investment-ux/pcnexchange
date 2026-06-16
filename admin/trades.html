@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Trade Approval Panel</title>
+  <title>Trade Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body>
+<body style="margin:0;background:#0a0f1c;font-family:Arial;color:white;">
 
-<h2>TRADE APPROVAL PANEL (ADMIN)</h2>
+<!-- HEADER -->
+<div style="padding:15px;background:#111827;display:flex;justify-content:space-between;align-items:center;">
+  <h2 style="margin:0;color:#22c55e;">📊 Trade Admin Panel</h2>
+</div>
 
-<div id="tradeList">Loading trades...</div>
+<!-- CONTAINER -->
+<div id="tradeBox" style="
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+">
+  Loading trades...
+</div>
 
 <script type="module" src="trade.js"></script>
 

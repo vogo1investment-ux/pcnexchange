@@ -1,6 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -12,130 +19,120 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-document.addEventListener("DOMContentLoaded", () => {
-  const loadHistoryBtn = document.getElementById("loadHistoryBtn");
-  const userIdInput = document.getElementById("userIdInput");
-  const historyTableBody = document.getElementById("historyTableBody");
+const tradeBox = document.getElementById("tradeBox");
 
-  const addEntryBtn = document.getElementById("addEntryBtn");
-  const typeInput = document.getElementById("typeInput");
-  const amountInput = document.getElementById("amountInput");
-  const methodInput = document.getElementById("methodInput");
-  const statusInput = document.getElementById("statusInput");
-  const timestampInput = document.getElementById("timestampInput");
 
-  const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+// 🔥 LOAD ALL TRADES REALTIME
+onSnapshot(collection(db, "pendingTrades"), (snap) => {
 
-  onAuthStateChanged(auth, user => {
-    if (!user || user.uid !== ADMIN_UID) {
-      alert("Access Denied: Admin Only");
-      window.location.href = "admin-login.html";
-      return;
-    }
-  });
+  tradeBox.innerHTML = "";
 
-  async function loadHistory() {
-    const userId = userIdInput.value.trim();
-    if (!userId) return alert("Enter user UID");
+  snap.forEach((docSnap) => {
 
-    historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">Loading...</td></tr>`;
+    const d = docSnap.data();
+    const id = docSnap.id;
 
-    try {
-      const historyCol = collection(db, "users", userId, "history");
-      const historySnap = await getDocs(query(historyCol, orderBy("timestamp", "desc")));
+    tradeBox.innerHTML += `
+      <div style="
+        background:linear-gradient(145deg,#111827,#0f172a);
+        border:1px solid #1f2937;
+        border-radius:15px;
+        padding:15px;
+        box-shadow:0 4px 20px rgba(0,0,0,0.3);
+      ">
 
-      if (historySnap.empty) {
-        historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center">No history found.</td></tr>`;
-        return;
-      }
+        <!-- TITLE -->
+        <h2 style="margin:0;color:#38bdf8;">${d.coin}</h2>
 
-      historyTableBody.innerHTML = "";
-      historySnap.forEach(docSnap => {
-        const entry = docSnap.data();
-        const entryId = docSnap.id;
-        let date;
-        if (entry.timestamp?.toDate) date = entry.timestamp.toDate();
-        else if (entry.timestamp && typeof entry.timestamp === "number") date = new Date(entry.timestamp);
-        else date = new Date();
+        <p style="margin:5px 0;color:#cbd5e1;"><b>User UID:</b> ${d.userId}</p>
+        <p style="margin:5px 0;color:#cbd5e1;"><b>Email:</b> ${d.email}</p>
+        <p style="margin:5px 0;color:#facc15;"><b>Requested:</b> ${d.amount}</p>
 
-        historyTableBody.innerHTML += `
-          <tr data-id="${entryId}" class="bg-zinc-900 hover:bg-zinc-800">
-            <td class="p-2 border border-zinc-700">${entry.type || "-"}</td>
-            <td class="p-2 border border-zinc-700">${entry.amount || 0}</td>
-            <td class="p-2 border border-zinc-700">${entry.method || "-"}</td>
-            <td class="p-2 border border-zinc-700">${entry.status || "-"}</td>
-            <td class="p-2 border border-zinc-700">${date.toLocaleString()}</td>
-            <td class="p-2 border border-zinc-700">
-              <button class="editBtn bg-blue-500 text-black px-2 py-1 rounded">Edit</button>
-              <button class="deleteBtn bg-red-500 text-black px-2 py-1 rounded">Delete</button>
-            </td>
-          </tr>
-        `;
-      });
+        <p style="margin:5px 0;color:${d.status === "approved" ? "#22c55e" : d.status === "rejected" ? "#ef4444" : "#f59e0b"};">
+          <b>Status:</b> ${d.status}
+        </p>
 
-      // Edit/Delete Buttons
-      document.querySelectorAll(".editBtn").forEach(btn => {
-        btn.onclick = async e => {
-          const row = e.target.closest("tr");
-          const entryId = row.dataset.id;
+        <!-- STATUS -->
+        <label style="font-size:13px;color:#94a3b8;">Approve / Reject</label>
+        <select id="status-${id}" style="
+          width:100%;
+          padding:10px;
+          margin-top:5px;
+          border-radius:8px;
+          background:#0b1220;
+          color:white;
+          border:1px solid #334155;
+        ">
+          <option value="pending">Pending</option>
+          <option value="approved">Approve</option>
+          <option value="rejected">Reject</option>
+        </select>
 
-          const type = prompt("Type", row.cells[0].innerText);
-          const amount = parseFloat(prompt("Amount", row.cells[1].innerText));
-          const method = prompt("Method", row.cells[2].innerText);
-          const status = prompt("Status", row.cells[3].innerText);
-          const timestamp = new Date(prompt("DateTime (YYYY-MM-DD HH:MM)", row.cells[4].innerText));
+        <!-- COIN AMOUNT -->
+        <label style="font-size:13px;color:#94a3b8;margin-top:10px;">
+          Assign Coin to User Wallet
+        </label>
 
-          if (!type || !amount || !method || !status || !timestamp) return alert("All fields required");
-          await updateDoc(doc(db, "users", userId, "history", entryId), { type, amount, method, status, timestamp });
-          loadHistory();
-        };
-      });
+        <input id="add-${id}" value="0.00000001" style="
+          width:100%;
+          padding:10px;
+          margin-top:5px;
+          border-radius:8px;
+          background:#0b1220;
+          color:white;
+          border:1px solid #334155;
+        ">
 
-      document.querySelectorAll(".deleteBtn").forEach(btn => {
-        btn.onclick = async e => {
-          const row = e.target.closest("tr");
-          const entryId = row.dataset.id;
-          if (!confirm("Delete this history entry?")) return;
-          await deleteDoc(doc(db, "users", userId, "history", entryId));
-          loadHistory();
-        };
-      });
+        <!-- BUTTON -->
+        <button onclick="approveTrade('${id}','${d.userId}','${d.coin}')" style="
+          width:100%;
+          margin-top:12px;
+          padding:12px;
+          background:linear-gradient(90deg,#22c55e,#16a34a);
+          border:none;
+          border-radius:10px;
+          color:white;
+          font-weight:bold;
+          cursor:pointer;
+        ">
+          SAVE CHANGES
+        </button>
 
-    } catch (err) {
-      console.error(err);
-      historyTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Failed to load history. Check console.</td></tr>`;
-    }
-  }
-
-  loadHistoryBtn.addEventListener("click", loadHistory);
-
-  // Add new history entry
-  addEntryBtn.addEventListener("click", async () => {
-    const userId = userIdInput.value.trim();
-    if (!userId) return alert("Enter user UID");
-
-    const type = typeInput.value;
-    const amount = parseFloat(amountInput.value);
-    const method = methodInput.value.trim();
-    const status = statusInput.value;
-    const timestamp = timestampInput.value ? new Date(timestampInput.value) : new Date();
-
-    if (!type || !amount || !method) return alert("Enter type, amount, method");
-
-    try {
-      await addDoc(collection(db, "users", userId, "history"), { type, amount, method, status, timestamp });
-      typeInput.value = "Deposit";
-      amountInput.value = "";
-      methodInput.value = "";
-      statusInput.value = "Approved";
-      timestampInput.value = "";
-      loadHistory();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add history entry.");
-    }
+      </div>
+    `;
   });
 });
+
+
+// 🔥 APPROVE + ADD COIN TO USER WALLET
+window.approveTrade = async (id, userId, coin) => {
+
+  const status = document.getElementById(`status-${id}`).value;
+  const amount = parseFloat(document.getElementById(`add-${id}`).value);
+
+  await updateDoc(doc(db, "pendingTrades", id), {
+    status: status
+  });
+
+  if (status === "approved") {
+
+    const userRef = doc(db, "users", userId);
+    const snap = await getDoc(userRef);
+
+    let userData = snap.exists() ? snap.data() : {};
+    let coins = userData.coins || {};
+
+    coins[coin] = (coins[coin] || 0) + amount;
+
+    await setDoc(userRef, {
+      ...userData,
+      coins: coins
+    }, { merge: true });
+
+    alert("✅ Coin successfully added to user wallet!");
+  }
+
+  alert("Updated successfully!");
+};
