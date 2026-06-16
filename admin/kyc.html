@@ -3,14 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KYC</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-black text-white p-4">
+<title>KYC Admin Panel</title>
 
-<h1 class="text-emerald-400 font-bold text-xl mb-4">KYC Requests</h1>
-<div id="kyc-list"></div>
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:#fff;
+}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.card{
+  background:#121a2b;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:12px;
+  box-shadow:0 0 10px rgba(0,0,0,0.3);
+}
+
+.row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.label{
+  font-size:12px;
+  opacity:0.7;
+}
+
+.value{
+  font-weight:bold;
+}
+
+select, button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  margin-top:8px;
+}
+
+button{
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.approve{
+  background:#22c55e;
+  color:white;
+}
+
+.reject{
+  background:#ef4444;
+  color:white;
+}
+
+.status{
+  margin-top:10px;
+  font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🛡️ KYC ADMIN PANEL</h1>
+  <div id="kycList">Loading KYC submissions...</div>
+</div>
 
 <script type="module" src="kyc.js"></script>
+
 </body>
 </html>
