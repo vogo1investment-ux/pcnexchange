@@ -2,31 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Airdrop Mining</title>
+<title>User Airdrops</title>
 <link rel="stylesheet" href="airdrop.css">
 </head>
 
 <body>
 
-<div class="wrapper">
+<div class="container">
 
-<h1 class="title">💰 AIRDROP MINING SYSTEM</h1>
+<h1>🚀 Airdrop Mining</h1>
 
-<div class="balance">
-BALANCE:
-<span id="airdropBalance">0.00000000</span>
+<button id="loadAirdropsBtn">🔍 Search Airdrops</button>
+
+<div class="stats">
+Active: <span id="activeCount">0</span>
 </div>
-
-<button id="searchAirdropsBtn">SEARCH AIRDROPS</button>
-
-<div id="loadingBox">Loading airdrops...</div>
 
 <div id="airdropList"></div>
 
 </div>
 
 <script type="module" src="airdrop.js"></script>
-
 </body>
 </html>

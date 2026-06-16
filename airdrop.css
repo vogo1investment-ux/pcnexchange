@@ -1,88 +1,60 @@
 body {
-margin: 0;
-font-family: Arial;
-background: #0b0f14;
-color: white;
+  margin: 0;
+  font-family: Arial;
+  background: #0b1220;
+  color: white;
 }
 
-.wrapper {
-max-width: 900px;
-margin: auto;
-padding: 20px;
-text-align: center;
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
 }
 
-.title {
-color: #00ff88;
-font-size: 22px;
-margin-bottom: 20px;
-}
-
-.balance {
-background: #111;
-padding: 15px;
-border-radius: 10px;
-font-size: 20px;
-margin-bottom: 20px;
-}
-
-#airdropBalance {
-font-weight: bold;
-color: #00ff88;
+h1 {
+  text-align: center;
+  color: gold;
 }
 
 button {
-padding: 12px;
-border: none;
-border-radius: 8px;
-background: #00ff88;
-font-weight: bold;
-cursor: pointer;
-margin: 10px 0;
-width: 100%;
-max-width: 300px;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-#loadingBox {
-display: none;
-color: yellow;
-margin: 10px;
+#loadAirdropsBtn {
+  background: #3b82f6;
+  color: white;
 }
 
-.airdrop-card {
-background: #111;
-padding: 15px;
-margin: 15px 0;
-border-radius: 10px;
-text-align: left;
+.card {
+  background: #111a2e;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 12px;
 }
 
-.airdrop-card h3 {
-color: #00ff88;
-}
-
-.airdrop-card button {
-width: 100%;
-margin-top: 8px;
-}
-
-.stop {
-background: red;
-color: white;
-}
-
-.withdraw {
-background: orange;
-color: white;
-}
-
-/* MOBILE FIX */
-@media (max-width: 600px) {
 .title {
-font-size: 18px;
+  color: #00ff99;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.row {
+  font-size: 13px;
+  margin-top: 5px;
+  color: #cbd5e1;
 }
 
 .balance {
-font-size: 16px;
+  margin-top: 8px;
+  color: gold;
 }
-}
+
+.start { background: #22c55e; }
+.stop { background: #ef4444; }
+.withdraw { background: gold; }
