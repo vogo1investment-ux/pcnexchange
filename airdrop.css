@@ -1,120 +1,69 @@
-body{
-  margin:0;
-  font-family:system-ui;
-  background:linear-gradient(120deg,#070b1a,#0a1633);
-  color:white;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b1220;
+  color: white;
 }
 
-.wrap{
-  max-width:1100px;
-  margin:auto;
-  padding:15px;
+.container {
+  padding: 15px;
+  max-width: 900px;
+  margin: auto;
 }
 
-header{
-  text-align:center;
-  margin-bottom:15px;
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-h1{
-  font-size:22px;
+.card {
+  background: #1b2435;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 10px 0;
 }
 
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:10px;
-  flex-wrap:wrap;
-  gap:10px;
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  margin-top: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-button{
-  border:none;
-  padding:10px 14px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
+.blue { background: #3b82f6; color: white; }
+.green { background: #22c55e; color: white; }
+.red { background: #ef4444; color: white; }
+.yellow { background: #facc15; color: black; }
+
+.airdrop {
+  background: #111827;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 12px;
 }
 
-#searchBtn{
-  background:#3b82f6;
-  color:white;
+.row {
+  margin: 6px 0;
+  opacity: 0.9;
 }
 
-.stat{
-  background:#111827;
-  padding:8px 12px;
-  border-radius:10px;
+.balance {
+  color: #22c55e;
+  font-size: 18px;
+  margin-top: 10px;
 }
 
-/* CARD */
-.card{
-  background:#111827;
-  margin-top:18px;
-  padding:16px;
-  border-radius:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.4);
+.notice {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 10px;
 }
 
-.title{
-  font-size:18px;
-  font-weight:700;
-  color:#facc15;
-}
-
-.desc{
-  margin-top:5px;
-  color:#cbd5e1;
-  font-size:13px;
-  line-height:1.4;
-}
-
-/* GRID INFO */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  margin-top:12px;
-}
-
-.box{
-  background:#0b1224;
-  padding:10px;
-  border-radius:10px;
-  font-size:13px;
-}
-
-/* BALANCE */
-.balance{
-  margin-top:12px;
-  color:#22c55e;
-  font-weight:700;
-}
-
-/* BUTTONS */
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-
-.start{background:#16a34a;color:white;}
-.stop{background:#ef4444;color:white;}
-.withdraw{background:#facc15;color:black;}
-
-/* NOTE */
-.note{
-  margin-top:10px;
-  font-size:12px;
-  color:#94a3b8;
-  font-style:italic;
-}
-
-/* MOBILE */
-@media(max-width:768px){
-  .grid{
-    grid-template-columns:1fr;
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
   }
 }

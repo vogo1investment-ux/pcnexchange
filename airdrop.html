@@ -4,27 +4,24 @@
 <meta charset="UTF-8">
 <title>Airdrop Mining Center</title>
 <link rel="stylesheet" href="airdrop.css">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
 
-<div class="wrap">
+<div class="container">
 
-<header>
   <h1>🚀 Airdrop Mining Center</h1>
 
-  <div class="top">
-    <button id="searchBtn">🔎 Discover Airdrops</button>
-    <div class="stat">Active Miners: <span id="activeCount">0</span></div>
+  <div id="stats">
+    <div class="card">Active Miners: <span id="activeCount">0</span></div>
   </div>
-</header>
 
-<div id="list"></div>
+  <button id="loadBtn" class="btn blue">Discover Airdrops</button>
+
+  <div id="airdrops"></div>
 
 </div>
 
 <script type="module" src="airdrop.js"></script>
-
 </body>
 </html>
