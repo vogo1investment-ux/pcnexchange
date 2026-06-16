@@ -1,33 +1,40 @@
 body{
   margin:0;
-  font-family:Arial;
-  background:#0b1020;
-  color:#fff;
+  font-family:system-ui;
+  background:linear-gradient(120deg,#070b1a,#0a1633);
+  color:white;
 }
 
-.app{
-  max-width:1000px;
+.wrap{
+  max-width:1100px;
   margin:auto;
   padding:15px;
 }
 
 header{
   text-align:center;
+  margin-bottom:15px;
 }
 
-.topbar{
+h1{
+  font-size:22px;
+}
+
+.top{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-top:10px;
+  flex-wrap:wrap;
+  gap:10px;
 }
 
 button{
-  padding:10px 15px;
   border:none;
+  padding:10px 14px;
   border-radius:10px;
   cursor:pointer;
-  font-weight:bold;
+  font-weight:600;
 }
 
 #searchBtn{
@@ -35,60 +42,79 @@ button{
   color:white;
 }
 
-.badge{
+.stat{
   background:#111827;
   padding:8px 12px;
   border-radius:10px;
 }
 
+/* CARD */
 .card{
   background:#111827;
-  margin-top:15px;
-  padding:15px;
-  border-radius:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+  margin-top:18px;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.4);
 }
 
 .title{
   font-size:18px;
-  font-weight:bold;
+  font-weight:700;
+  color:#facc15;
 }
 
 .desc{
-  font-size:13px;
-  opacity:0.8;
   margin-top:5px;
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.4;
 }
 
+/* GRID INFO */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:8px;
-  margin-top:10px;
+  gap:10px;
+  margin-top:12px;
+}
+
+.box{
+  background:#0b1224;
+  padding:10px;
+  border-radius:10px;
   font-size:13px;
 }
 
+/* BALANCE */
 .balance{
-  margin-top:10px;
-  font-size:14px;
+  margin-top:12px;
   color:#22c55e;
+  font-weight:700;
 }
 
+/* BUTTONS */
 .actions{
   display:flex;
-  gap:8px;
-  margin-top:12px;
+  gap:10px;
   flex-wrap:wrap;
+  margin-top:12px;
 }
 
 .start{background:#16a34a;color:white;}
 .stop{background:#ef4444;color:white;}
 .withdraw{background:#facc15;color:black;}
 
-input{
-  padding:8px;
-  border-radius:8px;
-  border:none;
-  width:100%;
-  margin-top:8px;
+/* NOTE */
+.note{
+  margin-top:10px;
+  font-size:12px;
+  color:#94a3b8;
+  font-style:italic;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .grid{
+    grid-template-columns:1fr;
+  }
 }

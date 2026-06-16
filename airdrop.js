@@ -4,7 +4,8 @@ import {
   collection,
   getDocs,
   doc,
-  setDoc
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -25,8 +26,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let user = null;
+let user;
 let timers = {};
+let balances = {};
 
 const list = document.getElementById("list");
 const activeCount = document.getElementById("activeCount");
@@ -35,22 +37,34 @@ onAuthStateChanged(auth, async (u) => {
   if (!u) return;
   user = u;
 
-  await loadAirdrops();
-  await restoreMining();
+  await loadSavedStates();
+  loadAirdrops();
 });
 
 document.getElementById("searchBtn").onclick = loadAirdrops;
 
-// 🔥 LOAD AIRDROPS
+async function loadSavedStates(){
+  const snap = await getDocs(collection(db, "users", user.uid, "airdropState"));
+
+  snap.forEach(d => {
+    const data = d.data();
+    if(data.active){
+      startMining(d.id, data.rate);
+    }
+  });
+}
+
 async function loadAirdrops(){
+
   const snap = await getDocs(collection(db, "airdropCampaigns"));
 
   list.innerHTML = "";
 
-  snap.forEach(d => render(d.id, d.data()));
+  snap.forEach(d => {
+    render(d.id, d.data());
+  });
 }
 
-// 🔥 UI CARD
 function render(id, data){
 
   const card = document.createElement("div");
@@ -58,19 +72,23 @@ function render(id, data){
 
   card.innerHTML = `
     <div class="title">${data.name}</div>
-    <div class="desc">${data.description}</div>
+
+    <div class="desc">
+      ${data.description || "This airdrop campaign is active and rewards users based on mining activity."}
+    </div>
 
     <div class="grid">
-      <div>💰 Rate: ${data.rate}</div>
-      <div>📦 Amount: ${data.amount}</div>
-      <div>📅 Start: ${data.startDate || "N/A"}</div>
-      <div>⛔ End: ${data.endDate || "N/A"}</div>
-      <div>⏰ Start Time: ${data.startTime || "N/A"}</div>
-      <div>⌛ End Time: ${data.endTime || "N/A"}</div>
+
+      <div class="box">💰 Rate: ${data.rate}</div>
+      <div class="box">📦 Total Pool: ${data.amount}</div>
+
+      <div class="box">📅 Start: ${data.startDate} ${data.startTime}</div>
+      <div class="box">⛔ End: ${data.endDate} ${data.endTime}</div>
+
     </div>
 
     <div class="balance">
-      Balance: <span id="bal-${id}">0.00000000</span>
+      Mining Balance: <span id="bal-${id}">0.00000000</span>
     </div>
 
     <div class="actions">
@@ -79,89 +97,70 @@ function render(id, data){
       <button class="withdraw">Withdraw</button>
     </div>
 
-    <input id="w-${id}" placeholder="Enter withdrawal amount">
-
-    <div class="desc">
-      If you place withdrawal, it will be added to your withdrawal balance after admin approval.
+    <div class="note">
+      ⚠️ Withdrawal Notice: Once submitted, your request will be reviewed and credited to your withdrawable balance after administrative approval. This process is irreversible after confirmation.
     </div>
   `;
 
-  card.querySelector(".start").onclick = () => startMining(id, parseFloat(data.rate || 0));
+  card.querySelector(".start").onclick = () => startMining(id, parseFloat(data.rate));
   card.querySelector(".stop").onclick = () => stopMining(id);
   card.querySelector(".withdraw").onclick = () => withdraw(id);
 
   list.appendChild(card);
 }
 
-// 🔥 START MINING
 function startMining(id, rate){
 
   if(timers[id]) return;
 
-  let balance = 0;
+  balances[id] = balances[id] || 0;
 
   timers[id] = setInterval(async () => {
 
-    balance += rate;
+    balances[id] += rate;
 
-    document.getElementById("bal-" + id).innerText = balance.toFixed(8);
+    document.getElementById("bal-" + id).innerText =
+      balances[id].toFixed(8);
 
     await setDoc(doc(db, "users", user.uid, "airdropState", id), {
       active:true,
-      balance,
-      rate,
-      updatedAt: Date.now()
-    }, { merge:true });
+      balance:balances[id],
+      rate:rate,
+      updatedAt:Date.now()
+    }, {merge:true});
 
-    updateCount();
+    updateActiveCount();
 
   }, 2000);
 }
 
-// 🔥 STOP MINING
 function stopMining(id){
-
   clearInterval(timers[id]);
   delete timers[id];
 
   setDoc(doc(db, "users", user.uid, "airdropState", id), {
     active:false
-  }, { merge:true });
+  }, {merge:true});
 
-  updateCount();
+  updateActiveCount();
 }
 
-// 🔥 WITHDRAW (CLEAN + SIMPLE)
+function updateActiveCount(){
+  activeCount.innerText = Object.keys(timers).length;
+}
+
 async function withdraw(id){
 
-  const amount = document.getElementById("w-" + id).value;
+  const amount = balances[id] || 0;
 
   await setDoc(doc(collection(db, "airdropWithdrawals")), {
-    userId: user.uid,
-    airdropId: id,
-    amount: Number(amount),
-    status: "pending",
-    createdAt: Date.now()
+    userId:user.uid,
+    airdropId:id,
+    amount:amount,
+    status:"pending",
+    message:"Your withdrawal request is under administrative review and will be processed shortly.",
+    createdAt:Date.now()
   });
 
-  alert("Withdrawal submitted successfully!");
-}
-
-// 🔥 RESTORE AFTER LOGIN
-async function restoreMining(){
-
-  const snap = await getDocs(collection(db, "users", user.uid, "airdropState"));
-
-  snap.forEach(d => {
-    const data = d.data();
-    if(data.active){
-      startMining(d.id, data.rate || 0);
-    }
-  });
-
-  updateCount();
-}
-
-function updateCount(){
-  activeCount.innerText = Object.keys(timers).length;
+  alert("Withdrawal request successfully submitted for processing.");
 }
