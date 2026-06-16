@@ -9,7 +9,8 @@ import {
 
 import {
   getAuth,
-  signInAnonymously
+  signInAnonymously,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -25,13 +26,39 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
+
+let isAdmin = false;
+
+// 🔐 LOGIN FIRST
 signInAnonymously(auth);
 
-// 🔥 WAIT FOR HTML FULLY LOADED (THIS FIXES YOUR ISSUE)
-window.addEventListener("DOMContentLoaded", () => {
+// 🚨 WAIT FOR AUTH BEFORE DOING ANYTHING
+onAuthStateChanged(auth, (user) => {
 
-  // ================= CREATE AIRDROP =================
+  if (!user) {
+    alert("Not logged in");
+    return;
+  }
+
+  if (user.uid !== ADMIN_UID) {
+    alert("❌ You are not admin");
+    return;
+  }
+
+  isAdmin = true;
+
+  enableAdminPanel();
+});
+
+function enableAdminPanel() {
+
+  console.log("Admin verified ✔");
+
+  // ---------------- CREATE AIRDROP ----------------
   document.getElementById("createBtn").addEventListener("click", async () => {
+
+    if (!isAdmin) return alert("Not admin");
 
     const name = document.getElementById("name").value;
     const desc = document.getElementById("desc").value;
@@ -40,26 +67,16 @@ window.addEventListener("DOMContentLoaded", () => {
     const start = document.getElementById("start").value;
     const end = document.getElementById("end").value;
 
-    try {
-      await addDoc(collection(db, "airdropCampaigns"), {
-        name,
-        desc,
-        rate,
-        amount,
-        start,
-        end,
-        status: "active",
-        createdAt: Date.now()
-      });
+    await addDoc(collection(db, "airdropCampaigns"), {
+      name, desc, rate, amount, start, end,
+      status: "active",
+      createdAt: Date.now()
+    });
 
-      alert("Airdrop Created ✅");
-    } catch (e) {
-      console.error(e);
-      alert("Error creating airdrop ❌");
-    }
+    alert("Airdrop Created ✔");
   });
 
-  // ================= LOAD AIRDROPS =================
+  // ---------------- LOAD AIRDROPS ----------------
   document.getElementById("loadBtn").addEventListener("click", async () => {
 
     const box = document.getElementById("airdropList");
@@ -73,7 +90,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const data = d.data();
 
       box.innerHTML += `
-        <div class="item">
+        <div style="background:#111;padding:10px;margin:5px;">
           <b>${data.name}</b><br>
           ${data.desc}<br>
           Rate: ${data.rate}<br>
@@ -83,7 +100,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ================= USERS LIVE =================
+  // ---------------- USERS ----------------
   onSnapshot(collection(db, "users"), (snap) => {
 
     const box = document.getElementById("userList");
@@ -93,7 +110,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const d = doc.data();
 
       box.innerHTML += `
-        <div class="item">
+        <div style="padding:10px;border:1px solid #333;margin:5px;">
           👤 ${d.email || "No email"}<br>
           💰 ${d.balance || 0}
         </div>
@@ -101,7 +118,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ================= WITHDRAWALS =================
+  // ---------------- WITHDRAWALS ----------------
   document.getElementById("loadWithdrawBtn").addEventListener("click", async () => {
 
     const box = document.getElementById("withdrawList");
@@ -115,7 +132,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const data = d.data();
 
       box.innerHTML += `
-        <div class="item">
+        <div style="border:1px solid red;padding:10px;margin:5px;">
           👤 ${data.userId}<br>
           💸 ${data.amount}<br>
           📌 ${data.status || "pending"}
@@ -124,4 +141,4 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-});
+}
