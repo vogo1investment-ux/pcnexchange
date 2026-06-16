@@ -13,7 +13,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// 🔥 YOUR FIREBASE CONFIG (DO NOT CHANGE FORMAT)
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -32,10 +32,10 @@ const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 const userList = document.getElementById("userList");
 const userPanel = document.getElementById("userPanel");
 
-// 🔐 ADMIN CHECK
+// 🔐 CHECK ADMIN
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    userList.innerHTML = "Please login";
+    userList.innerHTML = "Login required";
     return;
   }
 
@@ -54,8 +54,8 @@ function loadUsers() {
   onSnapshot(ref, (snap) => {
     userList.innerHTML = "";
 
-    snap.forEach((docu) => {
-      const data = docu.data();
+    snap.forEach((u) => {
+      const d = u.data();
 
       const div = document.createElement("div");
       div.style = `
@@ -67,11 +67,11 @@ function loadUsers() {
       `;
 
       div.innerHTML = `
-        <b>${data.username || "No Username"}</b><br>
-        <small>${data.email || ""}</small>
+        <b>${d.username || "No Username"}</b><br>
+        <small>${d.email || ""}</small>
       `;
 
-      div.onclick = () => openUser(docu.id);
+      div.onclick = () => openUser(u.id);
 
       userList.appendChild(div);
     });
@@ -98,22 +98,76 @@ async function openUser(uid) {
     <hr>
 
     <label>Available Balance</label>
-    <input id="a" value="${d.availableBalance || 0}" style="width:100%;padding:8px;"><br><br>
+    <input id="a" value="${d.availableBalance || 0}" style="
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      background:#0f172a;
+      color:white;
+      border:1px solid #334155;
+      border-radius:8px;
+      outline:none;
+    ">
 
     <label>Withdrawal Balance</label>
-    <input id="w" value="${d.withdrawalBalance || 0}" style="width:100%;padding:8px;"><br><br>
+    <input id="w" value="${d.withdrawalBalance || 0}" style="
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      background:#0f172a;
+      color:white;
+      border:1px solid #334155;
+      border-radius:8px;
+      outline:none;
+    ">
 
     <label>Referral Commission</label>
-    <input id="r" value="${d.referralCommission || 0}" style="width:100%;padding:8px;"><br><br>
+    <input id="r" value="${d.referralCommission || 0}" style="
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      background:#0f172a;
+      color:white;
+      border:1px solid #334155;
+      border-radius:8px;
+      outline:none;
+    ">
 
     <label>Total Balance</label>
-    <input id="b" value="${d.balance || 0}" style="width:100%;padding:8px;"><br><br>
+    <input id="b" value="${d.balance || 0}" style="
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      background:#0f172a;
+      color:white;
+      border:1px solid #334155;
+      border-radius:8px;
+      outline:none;
+    ">
 
     <label>Referral By</label>
-    <input id="ref" value="${d.referralBy || ""}" style="width:100%;padding:8px;"><br><br>
+    <input id="ref" value="${d.referralBy || ""}" style="
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      background:#0f172a;
+      color:white;
+      border:1px solid #334155;
+      border-radius:8px;
+      outline:none;
+    ">
 
-    <button id="save"
-      style="width:100%;padding:10px;background:#22c55e;border:none;color:white;font-weight:bold;">
+    <button id="save" style="
+      width:100%;
+      padding:12px;
+      margin-top:15px;
+      background:#22c55e;
+      border:none;
+      color:white;
+      font-weight:bold;
+      border-radius:8px;
+      cursor:pointer;
+    ">
       SAVE CHANGES
     </button>
   `;
@@ -127,6 +181,6 @@ async function openUser(uid) {
       referralBy: document.getElementById("ref").value
     });
 
-    alert("Updated successfully");
+    alert("User updated successfully");
   };
 }
