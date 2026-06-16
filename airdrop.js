@@ -3,7 +3,10 @@ import {
   getFirestore,
   collection,
   getDocs,
-  addDoc
+  doc,
+  setDoc,
+  getDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 import {
@@ -11,9 +14,12 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
+
+// ✅ YOUR FIREBASE CONFIG (NOW CORRECTLY USED)
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
@@ -24,114 +30,140 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let uid;
-
-// per airdrop balances + intervals
-let balances = {};
+let user = null;
 let intervals = {};
-let active = 0;
 
-const list = document.getElementById("airdropList");
+const list = document.getElementById("list");
 const activeCount = document.getElementById("activeCount");
 
-// format
-const fmt = (n) => Number(n).toFixed(8);
+onAuthStateChanged(auth, async (u) => {
+  if (!u) return;
 
-// auth
-onAuthStateChanged(auth, (user) => {
-  if (!user) return;
-  uid = user.uid;
+  user = u;
+
+  await loadAirdrops();
+  await restoreMining();
 });
 
-// LOAD BUTTON
-document.getElementById("loadAirdropsBtn").addEventListener("click", loadAirdrops);
+document.getElementById("searchBtn").onclick = loadAirdrops;
 
 async function loadAirdrops() {
-
-  list.innerHTML = "Loading...";
-
   const snap = await getDocs(collection(db, "airdropCampaigns"));
 
   list.innerHTML = "";
 
-  snap.forEach(doc => {
-
-    const d = doc.data();
-    const id = doc.id;
-
-    if (!balances[id]) balances[id] = 0;
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <div class="title">🚀 ${d.name}</div>
-
-      <div class="row">📝 ${d.desc || "No description"}</div>
-      <div class="row">⚡ Rate: ${d.rate}</div>
-      <div class="row">📅 Start: ${d.start}</div>
-      <div class="row">📅 End: ${d.end}</div>
-
-      <div class="balance">
-        💰 Balance: <span id="bal-${id}">${fmt(balances[id])}</span>
-      </div>
-
-      <button class="start">▶ Start</button>
-      <button class="stop">⛔ Stop</button>
-      <button class="withdraw">💸 Withdraw</button>
-    `;
-
-    // START
-    card.querySelector(".start").onclick = () => {
-      startMining(id, d.rate);
-    };
-
-    // STOP
-    card.querySelector(".stop").onclick = () => {
-      stopMining(id);
-    };
-
-    // WITHDRAW
-    card.querySelector(".withdraw").onclick = async () => {
-
-      await addDoc(collection(db, "airdropWithdrawals"), {
-        userId: uid,
-        airdropId: id,
-        amount: balances[id],
-        status: "pending",
-        createdAt: Date.now()
-      });
-
-      window.location.href = "withdrawairdrop.html";
-    };
-
-    list.appendChild(card);
+  snap.forEach(docSnap => {
+    render(docSnap.id, docSnap.data());
   });
 }
 
-// START MINING
-function startMining(id, rate) {
+// 🔥 FIXED RENDER
+function render(id, data){
 
-  if (intervals[id]) return;
+  const div = document.createElement("div");
+  div.className = "card";
 
-  active++;
-  activeCount.innerText = active;
+  div.innerHTML = `
+    <h3>${data.name}</h3>
+    <div class="small">${data.description}</div>
 
-  intervals[id] = setInterval(() => {
+    <div class="row">
+      <div>Rate: ${data.rate}</div>
+      <div>Amount: ${data.amount}</div>
+    </div>
 
-    balances[id] += Number(rate);
+    <div class="btns">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="withdraw">Withdraw</button>
+    </div>
 
-    document.getElementById(`bal-${id}`).innerText = fmt(balances[id]);
+    <div class="small">Balance: <span id="bal-${id}">0.00000000</span></div>
 
-  }, 1000);
+    <input id="w-${id}" placeholder="Withdraw amount">
+
+    <div class="small">
+      If you place withdrawal it will go to your withdrawal balance after admin approves
+    </div>
+  `;
+
+  div.querySelector(".start").onclick = () => startMining(id, parseFloat(data.rate));
+  div.querySelector(".stop").onclick = () => stopMining(id);
+  div.querySelector(".withdraw").onclick = () => withdraw(id);
+
+  list.appendChild(div);
 }
 
-// STOP MINING
-function stopMining(id) {
+// 🔥 FIXED MINING (WORKS AFTER LOGIN)
+function startMining(id, rate){
+
+  if(intervals[id]) return;
+
+  let balance = 0;
+
+  intervals[id] = setInterval(async () => {
+
+    balance += rate;
+
+    document.getElementById("bal-" + id).innerText = balance.toFixed(8);
+
+    await setDoc(doc(db, "users", user.uid, "airdropState", id), {
+      active: true,
+      balance,
+      rate
+    }, { merge:true });
+
+    updateCount();
+
+  }, 2000);
+}
+
+// 🔥 STOP MINING
+function stopMining(id){
 
   clearInterval(intervals[id]);
   delete intervals[id];
 
-  active = Math.max(0, active - 1);
-  activeCount.innerText = active;
+  setDoc(doc(db, "users", user.uid, "airdropState", id), {
+    active:false
+  }, { merge:true });
+
+  updateCount();
+}
+
+// 🔥 FIXED WITHDRAW (WRITES CORRECT COLLECTION)
+async function withdraw(id){
+
+  const amount = document.getElementById("w-" + id).value;
+
+  await setDoc(doc(collection(db, "airdropWithdrawals")), {
+    userId: user.uid,
+    airdropId: id,
+    amount: Number(amount),
+    status: "pending",
+    createdAt: Date.now()
+  });
+
+  alert("Withdrawal sent!");
+}
+
+// 🔥 RESTORE MINING AFTER LOGIN
+async function restoreMining(){
+
+  const snap = await getDocs(collection(db, "users", user.uid, "airdropState"));
+
+  snap.forEach(docSnap => {
+
+    const data = docSnap.data();
+
+    if(data.active){
+      startMining(docSnap.id, data.rate || 0);
+    }
+  });
+
+  updateCount();
+}
+
+function updateCount(){
+  activeCount.innerText = Object.keys(intervals).length;
 }

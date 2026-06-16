@@ -1,60 +1,60 @@
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0b1220;
-  color: white;
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:white;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 15px;
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:15px;
 }
 
-h1 {
-  text-align: center;
-  color: gold;
+h2{
+  text-align:center;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
+.top{
+  display:flex;
+  gap:10px;
 }
 
-#loadAirdropsBtn {
-  background: #3b82f6;
-  color: white;
+input{
+  flex:1;
+  padding:10px;
+  border-radius:8px;
+  border:none;
 }
 
-.card {
-  background: #111a2e;
-  padding: 15px;
-  margin-top: 10px;
-  border-radius: 12px;
+button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
-.title {
-  color: #00ff99;
-  font-size: 18px;
-  font-weight: bold;
+.card{
+  background:#111a2e;
+  padding:15px;
+  margin-top:10px;
+  border-radius:10px;
 }
 
-.row {
-  font-size: 13px;
-  margin-top: 5px;
-  color: #cbd5e1;
+.row{
+  display:flex;
+  justify-content:space-between;
 }
 
-.balance {
-  margin-top: 8px;
-  color: gold;
+.btns{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
 }
 
-.start { background: #22c55e; }
-.stop { background: #ef4444; }
-.withdraw { background: gold; }
+.start{background:green;color:white;}
+.stop{background:red;color:white;}
+.withdraw{background:gold;}
+
+.small{font-size:12px;opacity:0.8;}

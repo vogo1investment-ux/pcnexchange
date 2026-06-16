@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>User Airdrops</title>
+<title>User Airdrop Panel</title>
 <link rel="stylesheet" href="airdrop.css">
 </head>
 
@@ -10,18 +10,22 @@
 
 <div class="container">
 
-<h1>🚀 Airdrop Mining</h1>
+<h2>📡 Airdrop Mining</h2>
 
-<button id="loadAirdropsBtn">🔍 Search Airdrops</button>
-
-<div class="stats">
-Active: <span id="activeCount">0</span>
+<div class="top">
+  <input id="search" placeholder="Search airdrop">
+  <button id="searchBtn">Search</button>
 </div>
 
-<div id="airdropList"></div>
+<div class="stats">
+  Active Miners: <span id="activeCount">0</span>
+</div>
+
+<div id="list"></div>
 
 </div>
 
 <script type="module" src="airdrop.js"></script>
+
 </body>
 </html>
