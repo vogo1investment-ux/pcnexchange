@@ -2,78 +2,83 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KYC Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:#0b1220;
-  color:#fff;
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:white;
 }
 
 .container{
-  max-width:1000px;
-  margin:auto;
-  padding:20px;
+max-width:1000px;
+margin:auto;
+padding:20px;
 }
 
 h1{
-  text-align:center;
-  margin-bottom:20px;
+text-align:center;
+color:#22c55e;
+margin-bottom:20px;
 }
 
 .card{
-  background:#121a2b;
-  padding:15px;
-  margin-bottom:15px;
-  border-radius:12px;
-  box-shadow:0 0 10px rgba(0,0,0,0.3);
+background:#1e293b;
+padding:15px;
+border-radius:12px;
+margin-bottom:15px;
+box-shadow:0 0 10px rgba(0,0,0,0.4);
 }
 
 .row{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:10px;
-  margin-bottom:10px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
 }
 
-.label{
-  font-size:12px;
-  opacity:0.7;
+.col{
+flex:1;
+min-width:150px;
 }
 
-.value{
-  font-weight:bold;
+img{
+width:120px;
+height:120px;
+border-radius:10px;
+object-fit:cover;
+border:2px solid #22c55e;
 }
 
 select, button{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  margin-top:8px;
+width:100%;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-top:10px;
 }
 
 button{
-  cursor:pointer;
-  font-weight:bold;
+background:#22c55e;
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 
-.approve{
-  background:#22c55e;
-  color:white;
+button.reject{
+background:#ef4444;
 }
 
-.reject{
-  background:#ef4444;
-  color:white;
+.small{
+font-size:13px;
+opacity:0.8;
 }
 
 .status{
-  margin-top:10px;
-  font-weight:bold;
+font-weight:bold;
+margin-top:5px;
 }
 </style>
 
@@ -82,8 +87,11 @@ button{
 <body>
 
 <div class="container">
-  <h1>🛡️ KYC ADMIN PANEL</h1>
-  <div id="kycList">Loading KYC submissions...</div>
+
+<h1>🛡️ KYC ADMIN PANEL</h1>
+
+<div id="kycList">Loading submissions...</div>
+
 </div>
 
 <script type="module" src="kyc.js"></script>
