@@ -2,19 +2,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getFirestore,
   collection,
-  getDocs,
-  doc,
-  updateDoc,
   onSnapshot,
-  query,
-  orderBy
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
 import {
   getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-// 🔥 YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
@@ -28,75 +25,94 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔐 ADMIN UID
 const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// DOM
-const kycContainer = document.getElementById("kycContainer");
+const container = document.getElementById("kycContainer");
 
-// CHECK ADMIN LOGIN
 onAuthStateChanged(auth, (user) => {
+
+  console.log("AUTH USER:", user);
+
   if (!user) {
-    kycContainer.innerHTML = "Please login as admin";
+    container.innerHTML = "❌ Please login as admin";
     return;
   }
 
   if (user.uid !== ADMIN_UID) {
-    kycContainer.innerHTML = "Access denied (Not admin)";
+    container.innerHTML = "⛔ Access denied (not admin)";
     return;
   }
 
   loadKYC();
 });
 
-// LOAD KYC REALTIME
 function loadKYC() {
-  const q = query(collection(db, "kyc"), orderBy("status"));
 
-  onSnapshot(q, (snapshot) => {
-    kycContainer.innerHTML = "";
+  const kycRef = collection(db, "kyc");
+
+  onSnapshot(kycRef, (snapshot) => {
+
+    console.log("KYC SIZE:", snapshot.size);
+
+    container.innerHTML = "";
+
+    if (snapshot.empty) {
+      container.innerHTML = "No KYC submissions found.";
+      return;
+    }
 
     snapshot.forEach((docSnap) => {
+
       const data = docSnap.data();
 
-      const card = document.createElement("div");
-      card.className = "kyc-card";
+      const div = document.createElement("div");
 
-      card.innerHTML = `
-        <h3>👤 ${data.fullName || "No Name"}</h3>
+      div.innerHTML = `
+        <hr>
 
-        <p>📧 Email: ${data.email || "-"}</p>
-        <p>📱 Phone: ${data.phone || "-"}</p>
-        <p>🆔 UID: ${data.uid || "-"}</p>
-        <p>🔢 ID Number: ${data.idNumber || "-"}</p>
+        <p>Name: ${data.fullName || "N/A"}</p>
+        <p>Email: ${data.email || "N/A"}</p>
+        <p>Phone: ${data.phone || "N/A"}</p>
+        <p>UID: ${data.uid || "N/A"}</p>
+        <p>ID Number: ${data.idNumber || "N/A"}</p>
+        <p>Status: ${data.status || "pending"}</p>
 
-        <img src="${data.idImage || ''}" class="kyc-img"/>
+        <img src="${data.idImage || ''}" width="180" />
 
-        <p>Status: <b>${data.status || "pending"}</b></p>
+        <br><br>
 
-        <select class="statusSelect">
+        <select>
           <option value="pending">Pending</option>
           <option value="approved">Approve</option>
           <option value="rejected">Reject</option>
         </select>
 
-        <button class="saveBtn">Update Status</button>
+        <button>Update</button>
       `;
 
-      const select = card.querySelector(".statusSelect");
-      const btn = card.querySelector(".saveBtn");
+      const select = div.querySelector("select");
+      const btn = div.querySelector("button");
 
       select.value = data.status || "pending";
 
       btn.onclick = async () => {
-        await updateDoc(doc(db, "kyc", docSnap.id), {
-          status: select.value
-        });
+        try {
+          await updateDoc(doc(db, "kyc", docSnap.id), {
+            status: select.value
+          });
 
-        alert("KYC updated!");
+          alert("KYC updated successfully");
+        } catch (e) {
+          console.error(e);
+          alert("Update failed");
+        }
       };
 
-      kycContainer.appendChild(card);
+      container.appendChild(div);
     });
+
+  }, (error) => {
+    console.error("Firestore error:", error);
+    container.innerHTML = "Error loading KYC data.";
   });
 }
