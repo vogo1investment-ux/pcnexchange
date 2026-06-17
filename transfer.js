@@ -1,75 +1,67 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-getFirestore,
-doc,
-setDoc,
-serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } 
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
+// 🔥 YOUR FIREBASE CONFIG (PCNEXCHANGE)
 const firebaseConfig = {
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
+// INIT FIREBASE
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-let userReady = null;
+// UI BUTTON
+const btn = document.getElementById("submitTransfer");
 
-// 🔥 WAIT FOR AUTH PROPERLY
-onAuthStateChanged(auth, (user) => {
-if (user) {
-userReady = user;
-console.log("User loaded:", user.uid);
-} else {
-userReady = null;
-}
-});
+btn.addEventListener("click", async () => {
 
-// ---------------- BUTTON ----------------
-document.getElementById("submitTransfer").addEventListener("click", async () => {
+  const recipient = document.getElementById("recipient").value.trim();
+  const amount = Number(document.getElementById("amount").value);
+  const password = document.getElementById("password").value;
 
-try {
+  const user = auth.currentUser;
 
-if (!userReady) {
-alert("⚠️ Please wait, user not logged in yet");
-return;
-}
+  if (!user) {
+    alert("You are not logged in");
+    return;
+  }
 
-const recipient = document.getElementById("recipient").value.trim();
-const amount = Number(document.getElementById("amount").value);
+  if (!recipient || amount <= 0) {
+    alert("Enter valid recipient and amount");
+    return;
+  }
 
-if (!recipient || !amount) {
-alert("Fill all fields");
-return;
-}
+  try {
+    btn.innerText = "Processing...";
 
-const id = Date.now().toString();
+    await addDoc(collection(db, "pendingTransactions"), {
+      userId: user.uid,          // REQUIRED BY YOUR RULE
+      targetUserId: recipient,   // receiver
+      amount: amount,
+      type: "transfer",
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
 
-// 🔥 WRITE TO FIRESTORE
-await setDoc(doc(db, "pendingTransfers", id), {
-senderId: userReady.uid,
-recipient,
-amount,
-status: "pending",
-createdAt: serverTimestamp()
-});
+    alert("Transfer submitted successfully!");
 
-alert("✅ Transfer submitted successfully!");
+    document.getElementById("recipient").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("password").value = "";
 
-} catch (error) {
-console.error("Transfer error:", error);
-alert("❌ Failed: " + error.message);
-}
+  } catch (error) {
+    console.error(error);
+    alert("Transfer failed: " + error.message);
+  }
 
+  btn.innerText = "Send Transfer";
 });
