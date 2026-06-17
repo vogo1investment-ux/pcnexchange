@@ -24,24 +24,25 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let currentUser = null;
+let userReady = null;
 
-// ✅ WAIT FOR USER SESSION
+// 🔥 WAIT FOR AUTH PROPERLY
 onAuthStateChanged(auth, (user) => {
-if (!user) {
-console.log("No user logged in");
-return;
+if (user) {
+userReady = user;
+console.log("User loaded:", user.uid);
+} else {
+userReady = null;
 }
-
-currentUser = user;
-console.log("User ready:", user.uid);
 });
 
 // ---------------- BUTTON ----------------
 document.getElementById("submitTransfer").addEventListener("click", async () => {
 
-if (!currentUser) {
-alert("Please wait for login session...");
+try {
+
+if (!userReady) {
+alert("⚠️ Please wait, user not logged in yet");
 return;
 }
 
@@ -49,17 +50,15 @@ const recipient = document.getElementById("recipient").value.trim();
 const amount = Number(document.getElementById("amount").value);
 
 if (!recipient || !amount) {
-alert("Fill all fields properly");
+alert("Fill all fields");
 return;
 }
 
-try {
-
-// 🔥 SEND TO FIRESTORE
 const id = Date.now().toString();
 
+// 🔥 WRITE TO FIRESTORE
 await setDoc(doc(db, "pendingTransfers", id), {
-senderId: currentUser.uid,
+senderId: userReady.uid,
 recipient,
 amount,
 status: "pending",
@@ -68,12 +67,9 @@ createdAt: serverTimestamp()
 
 alert("✅ Transfer submitted successfully!");
 
-document.getElementById("recipient").value = "";
-document.getElementById("amount").value = "";
-document.getElementById("password").value = "";
-
 } catch (error) {
-console.error(error);
-alert("❌ Failed to submit transfer");
+console.error("Transfer error:", error);
+alert("❌ Failed: " + error.message);
 }
+
 });
