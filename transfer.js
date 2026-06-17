@@ -2,9 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
 getFirestore,
 doc,
-getDoc,
 setDoc,
-updateDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
@@ -26,39 +24,56 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ---------------- BUTTON ----------------
-const btn = document.getElementById("submitTransfer");
+let currentUser = null;
 
-onAuthStateChanged(auth, async (user) => {
-
+// ✅ WAIT FOR USER SESSION
+onAuthStateChanged(auth, (user) => {
 if (!user) {
-console.log("Waiting for login session...");
-return; // ❌ DO NOT REDIRECT HERE
-}
-
-console.log("User logged in:", user.uid);
-
-// ---------------- TRANSFER ACTION ----------------
-btn.addEventListener("click", async () => {
-
-const recipient = document.getElementById("recipient").value;
-const amount = Number(document.getElementById("amount").value);
-const password = document.getElementById("password").value;
-
-if (!recipient || !amount) {
-alert("Fill all fields");
+console.log("No user logged in");
 return;
 }
 
-// 🔥 CREATE TRANSFER REQUEST
-await setDoc(doc(db, "pendingTransfers", Date.now().toString()), {
-senderId: user.uid,
+currentUser = user;
+console.log("User ready:", user.uid);
+});
+
+// ---------------- BUTTON ----------------
+document.getElementById("submitTransfer").addEventListener("click", async () => {
+
+if (!currentUser) {
+alert("Please wait for login session...");
+return;
+}
+
+const recipient = document.getElementById("recipient").value.trim();
+const amount = Number(document.getElementById("amount").value);
+
+if (!recipient || !amount) {
+alert("Fill all fields properly");
+return;
+}
+
+try {
+
+// 🔥 SEND TO FIRESTORE
+const id = Date.now().toString();
+
+await setDoc(doc(db, "pendingTransfers", id), {
+senderId: currentUser.uid,
 recipient,
 amount,
 status: "pending",
 createdAt: serverTimestamp()
 });
 
-alert("Transfer submitted for admin approval!");
-});
+alert("✅ Transfer submitted successfully!");
+
+document.getElementById("recipient").value = "";
+document.getElementById("amount").value = "";
+document.getElementById("password").value = "";
+
+} catch (error) {
+console.error(error);
+alert("❌ Failed to submit transfer");
+}
 });
