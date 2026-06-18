@@ -4,15 +4,14 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc,
   setDoc,
+  updateDoc,
   increment
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
   authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
   projectId: "pcnexchange",
   storageBucket: "pcnexchange.firebasestorage.app",
   messagingSenderId: "278761036604",
@@ -22,53 +21,105 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const requestsDiv = document.getElementById("requests");
 const usersDiv = document.getElementById("users");
+const requestsDiv = document.getElementById("requests");
 
-/* ---------------- FETCH COIN REQUESTS ---------------- */
-document.getElementById("fetchBtn").onclick = async () => {
+/* ---------------- LOAD EVERYTHING ---------------- */
+document.getElementById("fetchBtn").addEventListener("click", async () => {
+  loadUsers();
+  loadRequests();
+});
 
-  requestsDiv.innerHTML = "Loading...";
+/* ---------------- USERS (AUTO SHOW ALL COINS) ---------------- */
+async function loadUsers() {
+
+  const snap = await getDocs(collection(db, "users"));
+
+  usersDiv.innerHTML = "";
+
+  snap.forEach((u) => {
+
+    const div = document.createElement("div");
+    div.className = "bg-zinc-900 p-3 rounded-xl mb-3 border border-zinc-700";
+
+    div.innerHTML = `
+      <p class="text-green-400">👤 ${u.id}</p>
+
+      <input id="coin-${u.id}" placeholder="Coin (BTC, ADA)"
+        class="w-full p-2 bg-black border mt-2">
+
+      <input id="amt-${u.id}" placeholder="Amount"
+        class="w-full p-2 bg-black border mt-2">
+
+      <button class="bg-emerald-500 text-black px-3 py-2 mt-2 rounded"
+        onclick="addCoin('${u.id}')">
+        ➕ Add / Update Coin
+      </button>
+    `;
+
+    usersDiv.appendChild(div);
+  });
+}
+
+/* ---------------- ADD COIN TO USER ---------------- */
+window.addCoin = async (userId) => {
+
+  const coin = document.getElementById(`coin-${userId}`).value;
+  const amount = Number(document.getElementById(`amt-${userId}`).value);
+
+  if (!coin || !amount) return alert("Fill inputs");
+
+  const ref = doc(db, "users", userId, "coins", coin);
+
+  await setDoc(ref, {
+    balance: increment(amount)
+  }, { merge: true });
+
+  alert("Coin updated!");
+};
+
+/* ---------------- LOAD REQUESTS ---------------- */
+async function loadRequests() {
 
   const snap = await getDocs(collection(db, "pendingTransactions"));
 
   requestsDiv.innerHTML = "";
 
-  snap.forEach((docSnap) => {
-    const d = docSnap.data();
+  snap.forEach((d) => {
+
+    const data = d.data();
 
     const div = document.createElement("div");
-    div.className = "card";
+    div.className = "bg-zinc-900 p-3 rounded-xl mb-3 border border-blue-500";
 
     div.innerHTML = `
-      <p>👤 User: ${d.userId}</p>
-      <p>🪙 Coin: ${d.coinId}</p>
-      <p>💰 Amount Requested: ${d.amount}</p>
-      <p>📌 Status: ${d.status}</p>
+      <p>👤 ${data.userId}</p>
+      <p>🪙 ${data.coinId}</p>
+      <p>💰 ${data.amount}</p>
+      <p>📌 ${data.status}</p>
 
-      <input id="amt-${docSnap.id}" placeholder="Assign coin (0.00000001)"
-        style="width:100%;padding:8px;margin-top:5px;background:black;color:white;border:1px solid #333;border-radius:10px">
+      <input id="req-${d.id}" placeholder="Assign coin amount"
+        class="w-full p-2 bg-black border mt-2">
 
-      <button onclick="approve('${docSnap.id}','${d.userId}','${d.coinId}')"
-        class="btn bg-green-500 text-black mt-2">
-        ✅ Approve
+      <button class="bg-green-500 text-black px-3 py-2 mt-2 rounded"
+        onclick="approve('${d.id}','${data.userId}','${data.coinId}')">
+        Approve
       </button>
 
-      <button onclick="reject('${docSnap.id}')"
-        class="btn bg-red-500 mt-2">
-        ❌ Reject
+      <button class="bg-red-500 px-3 py-2 mt-2 rounded"
+        onclick="reject('${d.id}')">
+        Reject
       </button>
     `;
 
     requestsDiv.appendChild(div);
   });
-};
+}
 
 /* ---------------- APPROVE ---------------- */
 window.approve = async (id, userId, coinId) => {
 
-  const input = document.getElementById(`amt-${id}`);
-  const amount = Number(input.value);
+  const amount = Number(document.getElementById(`req-${id}`).value);
 
   if (!amount) return alert("Enter amount");
 
@@ -82,7 +133,7 @@ window.approve = async (id, userId, coinId) => {
     status: "approved"
   });
 
-  alert("Approved & Coin Added!");
+  alert("Approved!");
 };
 
 /* ---------------- REJECT ---------------- */
@@ -94,52 +145,3 @@ window.reject = async (id) => {
 
   alert("Rejected!");
 };
-
-/* ---------------- LOAD USERS WALLET EDITOR ---------------- */
-async function loadUsers() {
-
-  const snap = await getDocs(collection(db, "users"));
-
-  usersDiv.innerHTML = "";
-
-  snap.forEach((u) => {
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
-      <p>👤 ${u.id}</p>
-
-      <input id="coin-${u.id}" placeholder="Coin (BTC, ADA)"
-        style="padding:8px;margin:5px;background:black;color:white;border:1px solid #333">
-
-      <input id="amount-${u.id}" placeholder="Amount (0.00000001)"
-        style="padding:8px;margin:5px;background:black;color:white;border:1px solid #333">
-
-      <button onclick="addCoin('${u.id}')"
-        class="btn bg-emerald-500 text-black">
-        ➕ Add / Update Coin
-      </button>
-    `;
-
-    usersDiv.appendChild(div);
-  });
-}
-
-window.addCoin = async (userId) => {
-
-  const coin = document.getElementById(`coin-${userId}`).value;
-  const amount = Number(document.getElementById(`amount-${userId}`).value);
-
-  if (!coin || !amount) return alert("Fill fields");
-
-  const ref = doc(db, "users", userId, "coins", coin);
-
-  await setDoc(ref, {
-    balance: increment(amount)
-  }, { merge: true });
-
-  alert("User wallet updated!");
-};
-
-loadUsers();

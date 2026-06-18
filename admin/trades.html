@@ -2,49 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Trade Admin Panel</title>
+<title>Admin Trade Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-body {
-  background:#0a0a0a;
-  color:white;
-}
-
-.card {
-  background:#111;
-  border:1px solid #222;
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:10px;
-}
-
-.btn {
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
-}
-</style>
 </head>
 
-<body class="p-4">
+<body class="bg-black text-white p-4">
 
-<h1 class="text-emerald-400 text-2xl font-bold mb-4">
-📊 Coin Requests Panel
+<h1 class="text-2xl text-emerald-400 font-bold">
+📊 Admin Coin System
 </h1>
 
-<button id="fetchBtn" class="bg-emerald-500 text-black px-4 py-2 rounded-xl mb-4">
-🔄 Fetch Pending Coin Requests
+<button id="fetchBtn" class="bg-emerald-500 text-black px-4 py-2 rounded-xl mt-3">
+Load Everything
 </button>
 
-<div id="requests"></div>
-
-<hr class="my-6">
-
-<h2 class="text-emerald-400 text-xl mb-3">👤 Users Wallet Editor</h2>
-
+<h2 class="mt-6 text-yellow-400">👤 Users + Wallets</h2>
 <div id="users"></div>
 
+<h2 class="mt-6 text-blue-400">📥 Pending Coin Requests</h2>
+<div id="requests"></div>
+
 <script type="module" src="trades.js"></script>
+
 </body>
 </html>
