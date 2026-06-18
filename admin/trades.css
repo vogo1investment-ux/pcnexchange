@@ -1,23 +1,33 @@
 body{
 background:#0f172a;
 color:white;
-font-family:Arial;
-padding:20px;
+font-family:Arial,sans-serif;
 }
 
 .container{
-max-width:1000px;
+padding:20px;
+max-width:1200px;
 margin:auto;
+}
+
+h2{
+color:#00ff88;
+margin-bottom:15px;
 }
 
 button{
 background:#00ff88;
 color:black;
-padding:12px;
 border:none;
+padding:10px 15px;
 border-radius:8px;
 cursor:pointer;
+font-weight:bold;
 margin-top:10px;
+}
+
+button:hover{
+opacity:0.9;
 }
 
 select,input{
@@ -26,11 +36,25 @@ padding:12px;
 margin-top:10px;
 border-radius:8px;
 border:none;
+outline:none;
 }
 
 .request-card{
 background:#1e293b;
 padding:15px;
+border-radius:10px;
+margin-top:10px;
+}
+
+.user-card{
+background:#111827;
+padding:12px;
 margin-top:10px;
 border-radius:10px;
+}
+
+#message{
+margin-top:15px;
+color:#00ff88;
+font-weight:bold;
 }
