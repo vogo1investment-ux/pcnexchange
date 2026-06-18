@@ -34,20 +34,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (!user || user.uid !== ADMIN_UID) {
-            authStatus.innerHTML = "❌ Access Denied - Admin Only";
+            authStatus.innerHTML = "❌ Access Denied. Admin Only.";
             authStatus.className = "status error";
             return;
         }
 
-        authStatus.innerHTML = "✅ Admin Connected Successfully";
+        authStatus.innerHTML = "✅ Admin Connected";
         authStatus.className = "status success";
 
         loadAllUsers();
     });
 
-    // Load All Users + Their Coins
     async function loadAllUsers() {
-        usersList.innerHTML = "<p style='color:#00ff88'>Loading users and balances...</p>";
+        usersList.innerHTML = "<p style='color:#00ff88'>Loading users and their coins...</p>";
+
         try {
             const usersSnap = await getDocs(collection(db, "users"));
             usersList.innerHTML = "";
@@ -59,61 +59,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
             for (const userDoc of usersSnap.docs) {
                 const userId = userDoc.id;
-                const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
 
-                let coinsHTML = coinsSnap.empty 
-                    ? "<p style='color:#888'>No coins yet</p>"
-                    : Array.from(coinsSnap.docs).map(doc => `
-                        <div class="coin-balance">
-                            <strong>${doc.id}:</strong> ${doc.data().amount || 0}
-                        </div>
-                      `).join('');
+                // Get user's coins
+                let coinsHTML = "<p style='color:#888'>No coins yet</p>";
+                try {
+                    const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
+                    if (!coinsSnap.empty) {
+                        coinsHTML = coinsSnap.docs.map(d => `
+                            <div class="coin-balance">
+                                <strong>${d.id}:</strong> ${d.data().amount || 0}
+                            </div>
+                        `).join('');
+                    }
+                } catch (e) {
+                    console.error("Error loading coins for", userId, e);
+                }
 
                 const card = document.createElement("div");
                 card.className = "user-card";
                 card.innerHTML = `
                     <div class="user-header">
-                        <strong>User:</strong> ${userId}
+                        <strong>User ID:</strong> ${userId}
                     </div>
-                    <div style="margin:10px 0;">${coinsHTML}</div>
+                    <div style="margin: 10px 0;">${coinsHTML}</div>
                     <div class="add-section">
                         <select class="coin-select">
                             <option value="">Select Coin</option>
                             <option value="BTC">BTC</option>
                             <option value="ETH">ETH</option>
                             <option value="USDT">USDT</option>
+                            <option value="SOL">SOL</option>
                         </select>
                         <input type="number" step="0.00000001" placeholder="Amount" class="amount-input">
                         <button class="add-coin-btn">Add Coins</button>
                     </div>
                 `;
 
-                // Add button logic
+                // Add functionality
                 const addBtn = card.querySelector(".add-coin-btn");
-                const coinSel = card.querySelector(".coin-select");
-                const amtInput = card.querySelector(".amount-input");
+                const coinSelect = card.querySelector(".coin-select");
+                const amountInput = card.querySelector(".amount-input");
 
                 addBtn.addEventListener("click", async () => {
-                    const coinId = coinSel.value;
-                    const amount = parseFloat(amtInput.value);
+                    const coinId = coinSelect.value;
+                    const amount = parseFloat(amountInput.value);
 
                     if (!coinId || !amount || amount <= 0) {
-                        showMessage("Please select coin and amount", "error");
+                        showMessage("Please select a coin and enter amount", "error");
                         return;
                     }
 
                     try {
                         await setDoc(doc(db, `users/\( {userId}/coins/ \){coinId}`), {
-                            coinId,
+                            coinId: coinId,
                             amount: amount,
                             lastUpdated: serverTimestamp()
                         }, { merge: true });
 
-                        showMessage(`✅ Added ${amount} ${coinId} to ${userId}`, "success");
-                        loadAllUsers(); // Refresh
+                        showMessage(`✅ Successfully added ${amount} ${coinId} to ${userId}`, "success");
+                        loadAllUsers(); // Refresh the list
+                        amountInput.value = "";
                     } catch (err) {
                         console.error(err);
-                        showMessage("Error: Check console (F12)", "error");
+                        showMessage("Error adding coins. Check console (F12)", "error");
                     }
                 });
 
@@ -121,11 +129,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (err) {
             console.error(err);
-            usersList.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
+            usersList.innerHTML = `<p style="color:red">Error loading users: ${err.message}</p>`;
         }
     }
 
-    // Load Pending Requests from pendingTransactions
+    // Load Pending Coin Requests
     loadRequestsBtn.addEventListener("click", async () => {
         requestsContainer.innerHTML = "<p>Loading pending requests...</p>";
         try {
@@ -133,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
             requestsContainer.innerHTML = "";
 
             if (snap.empty) {
-                requestsContainer.innerHTML = "<p>No pending transactions found.</p>";
+                requestsContainer.innerHTML = "<p>No pending requests found.</p>";
                 return;
             }
 
@@ -151,13 +159,13 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (err) {
             console.error(err);
-            requestsContainer.innerHTML = `<p>Error loading requests: ${err.message}</p>`;
+            requestsContainer.innerHTML = `<p>Error: ${err.message}</p>`;
         }
     });
 
     function showMessage(text, type) {
         messageDiv.innerHTML = text;
         messageDiv.style.color = type === "success" ? "#00ff88" : "#ff6666";
-        setTimeout(() => messageDiv.innerHTML = "", 6000);
+        setTimeout(() => { messageDiv.innerHTML = ""; }, 5000);
     }
 });
