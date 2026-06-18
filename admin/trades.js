@@ -1,93 +1,185 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  query,
-  onSnapshot,
-  doc,
-  updateDoc
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    setDoc,
+    serverTimestamp,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-// ---------------- YOUR FIREBASE CONFIG ----------------
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-  authDomain: "pcnexchange.firebaseapp.com",
-  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
-  projectId: "pcnexchange",
-  storageBucket: "pcnexchange.appspot.com",
-  messagingSenderId: "278761036604",
-  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+    apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+    authDomain: "pcnexchange.firebaseapp.com",
+    projectId: "pcnexchange",
+    storageBucket: "pcnexchange.firebasestorage.app",
+    messagingSenderId: "278761036604",
+    appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
-// ---------------- INIT ----------------
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const tradeList = document.getElementById("tradeList");
+const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
-// ---------------- LOAD ALL TRADE REQUESTS ----------------
-// IMPORTANT: this fixes your "only 1 user shows" issue
-const q = query(collection(db, "pendingTrades"));
+document.addEventListener("DOMContentLoaded", () => {
+    const loadBtn = document.getElementById("loadRequestsBtn");
+    const coinSelect = document.getElementById("coinSelect");
+    const amountInput = document.getElementById("coinAmount");
+    const usersList = document.getElementById("usersList");
+    const messageDiv = document.getElementById("message");
+    const authStatus = document.getElementById("authStatus");
 
-onSnapshot(q, (snapshot) => {
+    let isAdmin = false;
 
-  tradeList.innerHTML = "";
+    onAuthStateChanged(auth, async (user) => {
+        if (!user || user.uid !== ADMIN_UID) {
+            authStatus.innerHTML = "❌ Access Denied. Admin only.";
+            authStatus.className = "status error";
+            return;
+        }
 
-  if (snapshot.empty) {
-    tradeList.innerHTML = "<p>No trade requests found</p>";
-    return;
-  }
+        isAdmin = true;
+        authStatus.innerHTML = "✅ Admin Access Granted";
+        authStatus.className = "status success";
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const tradeId = docSnap.id;
+        await loadCoinsDropdown();
+        await loadAllUsers();
+    });
 
-    tradeList.innerHTML += `
-      <div style="border:1px solid #333; padding:10px; margin:10px;">
-        
-        <h3>${data.coin || "COIN"}</h3>
+    // Load Coin Dropdown
+    async function loadCoinsDropdown() {
+        try {
+            const snap = await getDocs(collection(db, "coins"));
+            coinSelect.innerHTML = '<option value="">Select Coin</option>';
+            snap.forEach(d => {
+                const opt = new Option(d.id, d.id);
+                coinSelect.appendChild(opt);
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
-        <p><b>User UID:</b> ${data.userId}</p>
-        <p><b>Email:</b> ${data.email || "N/A"}</p>
-        <p><b>Amount Requested:</b> ${data.amount}</p>
-        <p><b>Status:</b> ${data.status}</p>
+    // Load All Users + Their Coins
+    async function loadAllUsers() {
+        usersList.innerHTML = "<p>Loading users...</p>";
+        try {
+            const usersSnap = await getDocs(collection(db, "users"));
+            usersList.innerHTML = "";
 
-        <label>Approve / Reject:</label>
-        <select id="status-${tradeId}">
-          <option value="pending">Pending</option>
-          <option value="approved">Approve</option>
-          <option value="rejected">Reject</option>
-        </select>
+            if (usersSnap.empty) {
+                usersList.innerHTML = "<p>No users found.</p>";
+                return;
+            }
 
-        <br><br>
+            for (const userDoc of usersSnap.docs) {
+                const userId = userDoc.id;
+                const userCoins = await getUserCoins(userId);
 
-        <label>Assign Coin Balance:</label>
-        <input id="coin-${tradeId}" value="0.00000001" />
+                const card = document.createElement("div");
+                card.className = "user-card";
+                card.innerHTML = `
+                    <div class="user-header">
+                        <strong>User ID:</strong> ${userId}
+                        <button class="add-to-this-user" data-userid="${userId}">Add Coins →</button>
+                    </div>
+                    <div class="coin-balances">
+                        ${userCoins.length ? userCoins.map(c => `
+                            <div class="coin-balance">
+                                <strong>${c.coinId}:</strong> ${c.amount}
+                            </div>
+                        `).join('') : '<p style="color:#888;">No coins yet</p>'}
+                    </div>
+                `;
 
-        <br><br>
+                // Add button handler
+                card.querySelector(".add-to-this-user").addEventListener("click", () => {
+                    addCoinsToUser(userId);
+                });
 
-        <button onclick="saveTrade('${tradeId}')">
-          SAVE
-        </button>
+                usersList.appendChild(card);
+            }
+        } catch (e) {
+            console.error(e);
+            usersList.innerHTML = `<p style="color:red;">Error loading users: ${e.message}</p>`;
+        }
+    }
 
-      </div>
-    `;
-  });
+    async function getUserCoins(userId) {
+        try {
+            const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
+            return coinsSnap.docs.map(d => ({
+                coinId: d.id,
+                amount: d.data().amount || 0
+            }));
+        } catch (e) {
+            return [];
+        }
+    }
+
+    async function addCoinsToUser(userId) {
+        const coinId = coinSelect.value;
+        const amount = parseFloat(amountInput.value);
+
+        if (!coinId || !amount || amount <= 0) {
+            showMessage("Please select coin and enter valid amount", "error");
+            return;
+        }
+
+        try {
+            const coinRef = doc(db, `users/\( {userId}/coins/ \){coinId}`);
+            await setDoc(coinRef, {
+                coinId: coinId,
+                amount: amount,
+                lastUpdated: serverTimestamp()
+            }, { merge: true });
+
+            showMessage(`✅ Added ${amount} ${coinId} to ${userId}`, "success");
+            await loadAllUsers(); // Refresh list
+            amountInput.value = "";
+        } catch (error) {
+            console.error(error);
+            showMessage(`Error: ${error.message}`, "error");
+        }
+    }
+
+    // Pending Requests
+    loadBtn.addEventListener("click", async () => {
+        const container = document.getElementById("requestsContainer");
+        container.innerHTML = "<p>Loading...</p>";
+        try {
+            const snap = await getDocs(collection(db, "pendingCoins"));
+            container.innerHTML = "";
+            if (snap.empty) {
+                container.innerHTML = "<p>No pending requests.</p>";
+                return;
+            }
+            snap.forEach(docSnap => {
+                const data = docSnap.data();
+                const div = document.createElement("div");
+                div.className = "request-card";
+                div.innerHTML = `
+                    <p><strong>User:</strong> ${data.userId}</p>
+                    <p><strong>Coin:</strong> ${data.coinId}</p>
+                    <p><strong>Amount:</strong> ${data.amount}</p>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                `;
+                container.appendChild(div);
+            });
+        } catch (e) {
+            container.innerHTML = `<p>Error: ${e.message}</p>`;
+        }
+    });
+
+    function showMessage(text, type) {
+        messageDiv.innerHTML = text;
+        messageDiv.style.color = type === "success" ? "#00ff88" : "#ff6666";
+        setTimeout(() => messageDiv.innerHTML = "", 6000);
+    }
 });
-
-
-// ---------------- SAVE UPDATE ----------------
-window.saveTrade = async function(tradeId) {
-
-  const status = document.getElementById(`status-${tradeId}`).value;
-  const coinAmount = document.getElementById(`coin-${tradeId}`).value;
-
-  const tradeRef = doc(db, "pendingTrades", tradeId);
-
-  await updateDoc(tradeRef, {
-    status: status,
-    assignedCoin: parseFloat(coinAmount)
-  });
-
-  alert("Updated successfully!");
-};
