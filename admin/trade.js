@@ -1,124 +1,129 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
-getFirestore,
-collection,
-getDocs,
-doc,
-updateDoc,
-getDoc,
-setDoc
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  setDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import {
-getAuth,
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
-authDomain: "pcnexchange.firebaseapp.com",
-projectId: "pcnexchange",
-storageBucket: "pcnexchange.firebasestorage.app",
-messagingSenderId: "278761036604",
-appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  databaseURL: "https://pcnexchange-default-rtdb.firebaseio.com",
+  projectId: "pcnexchange",
+  storageBucket: "pcnexchange.firebasestorage.app",
+  messagingSenderId: "278761036604",
+  appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-
-const ADMIN_UID = "XphWRwjVK6NWEtHw9XeoNxXsfT12";
 
 const list = document.getElementById("list");
+const loadBtn = document.getElementById("loadBtn");
 
-// ---------------- LOAD REQUESTS ----------------
-async function loadRequests() {
-list.innerHTML = "Loading...";
+loadBtn.addEventListener("click", async () => {
+  list.innerHTML = "Loading...";
 
-const snap = await getDocs(collection(db, "coinRequests"));
+  const snap = await getDocs(collection(db, "pendingCoinBuys"));
 
-list.innerHTML = "";
+  list.innerHTML = "";
 
-snap.forEach(docSnap => {
-const data = docSnap.data();
+  snap.forEach((d) => {
+    const data = d.data();
 
-const div = document.createElement("div");
-div.className = "card";
+    const div = document.createElement("div");
+    div.className = "card p-4 rounded-2xl glow";
 
-div.innerHTML = `
-<b>User:</b> ${data.userId}<br>
-<b>Coin:</b> ${data.coin}<br>
-<b>Amount:</b> ${data.amount}<br>
-<b>Status:</b> ${data.status || "pending"}<br>
+    div.innerHTML = `
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="text-emerald-400 font-bold">🪙 ${data.coin}</h2>
+        <span class="text-xs px-2 py-1 rounded bg-yellow-600">
+          ${data.status}
+        </span>
+      </div>
 
-<input type="number" placeholder="Add Coin Amount" id="amt-${docSnap.id}">
+      <p class="text-sm text-gray-300">
+        👤 User: <b>${data.username || data.userId}</b>
+      </p>
 
-<br>
+      <p class="text-sm text-gray-300 mb-2">
+        💰 Requested: <b>${data.amount}</b>
+      </p>
 
-<button class="approve" onclick="approve('${docSnap.id}', '${data.userId}', '${data.coin}')">
-Approve
-</button>
+      <input id="amt-${d.id}"
+        class="w-full p-2 rounded bg-black border border-gray-700 mb-3 text-white"
+        placeholder="Enter approved amount (0.00000001)"
+      />
 
-<button class="reject" onclick="reject('${docSnap.id}')">
-Reject
-</button>
-`;
+      <div class="flex gap-2">
 
-list.appendChild(div);
-});
-}
+        <button class="approve btn bg-green-500 px-3 py-2 rounded-xl w-full text-black font-bold"
+          data-id="${d.id}"
+          data-user="${data.userId}"
+          data-coin="${data.coin}">
+          ✅ Approve
+        </button>
 
-// ---------------- APPROVE ----------------
-window.approve = async (id, userId, coin) => {
-const amountInput = document.getElementById(`amt-${id}`);
-const amount = Number(amountInput.value || 0);
+        <button class="reject btn bg-red-500 px-3 py-2 rounded-xl w-full font-bold"
+          data-id="${d.id}">
+          ❌ Reject
+        </button>
 
-if (!amount) {
-alert("Enter coin amount to credit");
-return;
-}
+      </div>
+    `;
 
-// 1. update request status
-await updateDoc(doc(db, "coinRequests", id), {
-status: "approved",
-approvedAmount: amount
-});
+    list.appendChild(div);
+  });
 
-// 2. add coin to user wallet
-const coinRef = doc(db, "users", userId, "coins", coin);
-const snap = await getDoc(coinRef);
-
-let old = 0;
-if (snap.exists()) old = snap.data().balance || 0;
-
-await setDoc(coinRef, {
-balance: old + amount
-}, { merge: true });
-
-alert("Approved & Coins added!");
-loadRequests();
-};
-
-// ---------------- REJECT ----------------
-window.reject = async (id) => {
-await updateDoc(doc(db, "coinRequests", id), {
-status: "rejected"
+  attachActions();
 });
 
-alert("Rejected!");
-loadRequests();
-};
+function attachActions() {
 
-// ---------------- AUTH CHECK ----------------
-onAuthStateChanged(auth, (user) => {
-if (!user) {
-alert("Login required");
-return;
+  document.querySelectorAll(".approve").forEach(btn => {
+    btn.onclick = async () => {
+
+      const id = btn.dataset.id;
+      const userId = btn.dataset.user;
+      const coin = btn.dataset.coin;
+
+      const amountInput = document.getElementById(`amt-${id}`);
+      const amount = Number(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        alert("Enter valid coin amount");
+        return;
+      }
+
+      const coinRef = doc(db, "users", userId, "coins", coin);
+
+      await setDoc(coinRef, {
+        balance: increment(amount)
+      }, { merge: true });
+
+      await updateDoc(doc(db, "pendingCoinBuys", id), {
+        status: "approved",
+        approvedAmount: amount
+      });
+
+      alert("✅ Approved successfully!");
+    };
+  });
+
+  document.querySelectorAll(".reject").forEach(btn => {
+    btn.onclick = async () => {
+
+      const id = btn.dataset.id;
+
+      await updateDoc(doc(db, "pendingCoinBuys", id), {
+        status: "rejected"
+      });
+
+      alert("❌ Rejected!");
+    };
+  });
 }
-
-if (user.uid !== ADMIN_UID) {
-alert("Not admin");
-return;
-}
-
-loadRequests();
-});
