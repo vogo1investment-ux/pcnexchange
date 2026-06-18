@@ -1,8 +1,4 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,7 +8,7 @@ body {
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
     background: #1a1a2e;
     padding: 25px;
@@ -20,10 +16,7 @@ body {
     box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
 }
 
-h1, h2 {
-    color: #00ff88;
-    margin-bottom: 15px;
-}
+h1, h2 { color: #00ff88; margin-bottom: 15px; }
 
 button {
     background: #00ff88;
@@ -33,48 +26,59 @@ button {
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    margin: 8px 0;
 }
 
-button:hover {
-    background: #00cc6a;
-}
+button:hover { background: #00cc6a; }
 
 select, input {
     padding: 10px;
-    margin: 8px 5px 8px 0;
+    margin: 5px;
     border-radius: 6px;
     border: 1px solid #333;
     background: #16213e;
     color: #e0e0e0;
 }
 
-.requests-container {
+.users-list {
     margin-top: 15px;
 }
 
+.user-card {
+    background: #16213e;
+    padding: 15px;
+    margin: 12px 0;
+    border-radius: 8px;
+    border-left: 5px solid #00ff88;
+}
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.coin-balance {
+    background: #0f3460;
+    padding: 8px;
+    border-radius: 6px;
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.manual-credit-header {
+    margin-bottom: 15px;
+}
+
+.status { padding: 10px; margin-bottom: 15px; border-radius: 6px; font-weight: bold; }
+.success { background: #004d26; color: #00ff88; }
+.error { background: #4d0000; color: #ff6666; }
+
+.requests-container { margin-top: 15px; }
 .request-card {
     background: #16213e;
     padding: 15px;
     margin: 10px 0;
     border-radius: 8px;
     border-left: 4px solid #00ff88;
-}
-
-.status {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    font-weight: bold;
-}
-
-.success { background: #004d26; color: #00ff88; }
-.error { background: #4d0000; color: #ff6666; }
-
-.manual-credit {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
 }
