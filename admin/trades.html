@@ -1,28 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Admin Trade Panel</title>
+<title>Admin Coin Requests</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-black text-white p-4">
 
-<h1 class="text-2xl text-emerald-400 font-bold">
-📊 Admin Coin System
-</h1>
+<h1 class="text-2xl text-emerald-400 font-bold mb-4">Pending Coin Requests</h1>
 
-<button id="fetchBtn" class="bg-emerald-500 text-black px-4 py-2 rounded-xl mt-3">
-Load Everything
+<button onclick="loadRequests()" class="bg-emerald-500 px-4 py-2 rounded-xl mb-4">
+Fetch Requests
 </button>
 
-<h2 class="mt-6 text-yellow-400">👤 Users + Wallets</h2>
-<div id="users"></div>
-
-<h2 class="mt-6 text-blue-400">📥 Pending Coin Requests</h2>
 <div id="requests"></div>
 
-<script type="module" src="trades.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  getDoc,
+  increment
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
+  authDomain: "pcnexchange.firebaseapp.com",
+  projectId: "pcnexchange",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadRequests() {
+
+  const snap = await getDocs(collection(db, "pendingTransactions"));
+  const box = document.getElementById("requests");
+
+  box.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+
+    if (d.status !== "pending") return;
+
+    box.innerHTML += `
+      <div class="bg-zinc-900 p-4 rounded-xl mb-3 border border-zinc-700">
+        <p>User: ${d.userId}</p>
+        <p>Coin: ${d.coinId}</p>
+        <p>Amount: ${d.amount}</p>
+
+        <button onclick="approve('${docSnap.id}', '${d.userId}', '${d.coinId}', ${d.amount})"
+        class="bg-green-500 px-3 py-1 rounded mt-2">
+          Approve
+        </button>
+      </div>
+    `;
+  });
+}
+
+window.loadRequests = loadRequests;
+
+window.approve = async (id, userId, coinId, amount) => {
+
+  // 1. update user coin balance
+  const coinRef = doc(db, "users", userId, "coins", coinId);
+
+  const snap = await getDoc(coinRef);
+
+  if (!snap.exists()) {
+    await updateDoc(coinRef, {
+      balance: amount
+    });
+  } else {
+    await updateDoc(coinRef, {
+      balance: increment(amount)
+    });
+  }
+
+  // 2. mark request approved
+  await updateDoc(doc(db, "pendingTransactions", id), {
+    status: "approved"
+  });
+
+  alert("Approved Successfully!");
+  loadRequests();
+};
+
+</script>
 
 </body>
 </html>
