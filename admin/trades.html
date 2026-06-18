@@ -1,50 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Coin Requests Admin</title>
-<link rel="stylesheet" href="trades.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Requests Admin</title>
+    <link rel="stylesheet" href="trades.css">
 </head>
-
 <body>
+    <div class="container">
+        <h1>🛠️ Admin Panel - Coin Management</h1>
 
-<div class="container">
+        <div id="authStatus" class="status"></div>
 
-<h2>Pending Coin Purchases</h2>
+        <h2>Pending Coin Purchase Requests</h2>
+        <button id="loadRequestsBtn">Fetch Pending Requests</button>
+        <div id="requestsContainer" class="requests-container"></div>
 
-<button id="loadRequestsBtn">
-Fetch Requests
-</button>
+        <hr>
 
-<div id="requestsContainer"></div>
+        <h2>Manual Coin Credit</h2>
+        <div class="manual-credit">
+            <select id="userSelect">
+                <option value="">Select User</option>
+            </select>
 
-<hr>
+            <select id="coinSelect">
+                <option value="">Select Coin</option>
+            </select>
 
-<h2>Manual Coin Credit</h2>
+            <input id="coinAmount" type="number" step="0.00000001" placeholder="Amount">
+            
+            <button id="addCoinBtn">Add / Credit Coins</button>
+        </div>
 
-<select id="userSelect">
-<option value="">Select User</option>
-</select>
+        <div id="message"></div>
+    </div>
 
-<select id="coinSelect">
-<option value="">Select Coin</option>
-</select>
-
-<input
-id="coinAmount"
-type="number"
-step="0.00000001"
-placeholder="Amount">
-
-<button id="addCoinBtn">
-Add Coin
-</button>
-
-<div id="message"></div>
-
-</div>
-
-<script type="module" src="trades.js"></script>
-
+    <script type="module" src="trades.js"></script>
 </body>
 </html>

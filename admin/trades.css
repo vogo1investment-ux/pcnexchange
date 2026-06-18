@@ -1,53 +1,80 @@
-body{
-background:#111827;
-color:white;
-font-family:Arial;
-padding:20px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.container{
-max-width:1000px;
-margin:auto;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    padding: 20px;
 }
 
-button{
-background:#2563eb;
-color:white;
-border:none;
-padding:10px;
-border-radius:8px;
-margin:5px;
-cursor:pointer;
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #1a1a2e;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
 }
 
-button:hover{
-background:#1d4ed8;
+h1, h2 {
+    color: #00ff88;
+    margin-bottom: 15px;
 }
 
-select,input{
-width:100%;
-padding:10px;
-margin:10px 0;
-border-radius:8px;
-border:none;
+button {
+    background: #00ff88;
+    color: #000;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 8px 0;
 }
 
-.request{
-background:#1f2937;
-padding:15px;
-margin-top:10px;
-border-radius:10px;
+button:hover {
+    background: #00cc6a;
 }
 
-.approve{
-background:green;
+select, input {
+    padding: 10px;
+    margin: 8px 5px 8px 0;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #16213e;
+    color: #e0e0e0;
 }
 
-.reject{
-background:red;
+.requests-container {
+    margin-top: 15px;
 }
 
-#message{
-margin-top:15px;
-font-weight:bold;
+.request-card {
+    background: #16213e;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border-left: 4px solid #00ff88;
+}
+
+.status {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.success { background: #004d26; color: #00ff88; }
+.error { background: #4d0000; color: #ff6666; }
+
+.manual-credit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
 }
