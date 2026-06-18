@@ -3,55 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <title>Trade Admin Panel</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
 body {
-  background: #0a0a0a;
-  font-family: Arial;
-}
-
-.glow {
-  box-shadow: 0 0 15px rgba(0,255,140,0.2);
+  background:#0a0a0a;
+  color:white;
 }
 
 .card {
-  background: #111;
-  border: 1px solid #1f1f1f;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: scale(1.01);
-  border-color: #00ff88;
+  background:#111;
+  border:1px solid #222;
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:10px;
 }
 
 .btn {
-  transition: 0.2s;
-}
-
-.btn:hover {
-  transform: scale(1.05);
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
 }
 </style>
-
 </head>
 
-<body class="text-white p-4">
+<body class="p-4">
 
-<h1 class="text-2xl font-bold text-emerald-400 mb-4">
-📊 Coin Buy Requests (Admin Panel)
+<h1 class="text-emerald-400 text-2xl font-bold mb-4">
+📊 Coin Requests Panel
 </h1>
 
-<button id="loadBtn"
-class="bg-emerald-500 px-4 py-2 rounded-xl mb-6 glow btn text-black font-bold">
-🔄 Load Requests
+<button id="fetchBtn" class="bg-emerald-500 text-black px-4 py-2 rounded-xl mb-4">
+🔄 Fetch Pending Coin Requests
 </button>
 
-<div id="list" class="grid gap-4"></div>
+<div id="requests"></div>
+
+<hr class="my-6">
+
+<h2 class="text-emerald-400 text-xl mb-3">👤 Users Wallet Editor</h2>
+
+<div id="users"></div>
 
 <script type="module" src="trades.js"></script>
-
 </body>
 </html>

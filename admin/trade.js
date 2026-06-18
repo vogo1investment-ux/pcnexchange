@@ -22,108 +22,124 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const list = document.getElementById("list");
-const loadBtn = document.getElementById("loadBtn");
+const requestsDiv = document.getElementById("requests");
+const usersDiv = document.getElementById("users");
 
-loadBtn.addEventListener("click", async () => {
-  list.innerHTML = "Loading...";
+/* ---------------- FETCH COIN REQUESTS ---------------- */
+document.getElementById("fetchBtn").onclick = async () => {
 
-  const snap = await getDocs(collection(db, "pendingCoinBuys"));
+  requestsDiv.innerHTML = "Loading...";
 
-  list.innerHTML = "";
+  const snap = await getDocs(collection(db, "pendingTransactions"));
 
-  snap.forEach((d) => {
-    const data = d.data();
+  requestsDiv.innerHTML = "";
+
+  snap.forEach((docSnap) => {
+    const d = docSnap.data();
 
     const div = document.createElement("div");
-    div.className = "card p-4 rounded-2xl glow";
+    div.className = "card";
 
     div.innerHTML = `
-      <div class="flex justify-between items-center mb-2">
-        <h2 class="text-emerald-400 font-bold">🪙 ${data.coin}</h2>
-        <span class="text-xs px-2 py-1 rounded bg-yellow-600">
-          ${data.status}
-        </span>
-      </div>
+      <p>👤 User: ${d.userId}</p>
+      <p>🪙 Coin: ${d.coinId}</p>
+      <p>💰 Amount Requested: ${d.amount}</p>
+      <p>📌 Status: ${d.status}</p>
 
-      <p class="text-sm text-gray-300">
-        👤 User: <b>${data.username || data.userId}</b>
-      </p>
+      <input id="amt-${docSnap.id}" placeholder="Assign coin (0.00000001)"
+        style="width:100%;padding:8px;margin-top:5px;background:black;color:white;border:1px solid #333;border-radius:10px">
 
-      <p class="text-sm text-gray-300 mb-2">
-        💰 Requested: <b>${data.amount}</b>
-      </p>
+      <button onclick="approve('${docSnap.id}','${d.userId}','${d.coinId}')"
+        class="btn bg-green-500 text-black mt-2">
+        ✅ Approve
+      </button>
 
-      <input id="amt-${d.id}"
-        class="w-full p-2 rounded bg-black border border-gray-700 mb-3 text-white"
-        placeholder="Enter approved amount (0.00000001)"
-      />
-
-      <div class="flex gap-2">
-
-        <button class="approve btn bg-green-500 px-3 py-2 rounded-xl w-full text-black font-bold"
-          data-id="${d.id}"
-          data-user="${data.userId}"
-          data-coin="${data.coin}">
-          ✅ Approve
-        </button>
-
-        <button class="reject btn bg-red-500 px-3 py-2 rounded-xl w-full font-bold"
-          data-id="${d.id}">
-          ❌ Reject
-        </button>
-
-      </div>
+      <button onclick="reject('${docSnap.id}')"
+        class="btn bg-red-500 mt-2">
+        ❌ Reject
+      </button>
     `;
 
-    list.appendChild(div);
+    requestsDiv.appendChild(div);
+  });
+};
+
+/* ---------------- APPROVE ---------------- */
+window.approve = async (id, userId, coinId) => {
+
+  const input = document.getElementById(`amt-${id}`);
+  const amount = Number(input.value);
+
+  if (!amount) return alert("Enter amount");
+
+  const coinRef = doc(db, "users", userId, "coins", coinId);
+
+  await setDoc(coinRef, {
+    balance: increment(amount)
+  }, { merge: true });
+
+  await updateDoc(doc(db, "pendingTransactions", id), {
+    status: "approved"
   });
 
-  attachActions();
-});
+  alert("Approved & Coin Added!");
+};
 
-function attachActions() {
+/* ---------------- REJECT ---------------- */
+window.reject = async (id) => {
 
-  document.querySelectorAll(".approve").forEach(btn => {
-    btn.onclick = async () => {
-
-      const id = btn.dataset.id;
-      const userId = btn.dataset.user;
-      const coin = btn.dataset.coin;
-
-      const amountInput = document.getElementById(`amt-${id}`);
-      const amount = Number(amountInput.value);
-
-      if (!amount || amount <= 0) {
-        alert("Enter valid coin amount");
-        return;
-      }
-
-      const coinRef = doc(db, "users", userId, "coins", coin);
-
-      await setDoc(coinRef, {
-        balance: increment(amount)
-      }, { merge: true });
-
-      await updateDoc(doc(db, "pendingCoinBuys", id), {
-        status: "approved",
-        approvedAmount: amount
-      });
-
-      alert("✅ Approved successfully!");
-    };
+  await updateDoc(doc(db, "pendingTransactions", id), {
+    status: "rejected"
   });
 
-  document.querySelectorAll(".reject").forEach(btn => {
-    btn.onclick = async () => {
+  alert("Rejected!");
+};
 
-      const id = btn.dataset.id;
+/* ---------------- LOAD USERS WALLET EDITOR ---------------- */
+async function loadUsers() {
 
-      await updateDoc(doc(db, "pendingCoinBuys", id), {
-        status: "rejected"
-      });
+  const snap = await getDocs(collection(db, "users"));
 
-      alert("❌ Rejected!");
-    };
+  usersDiv.innerHTML = "";
+
+  snap.forEach((u) => {
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <p>👤 ${u.id}</p>
+
+      <input id="coin-${u.id}" placeholder="Coin (BTC, ADA)"
+        style="padding:8px;margin:5px;background:black;color:white;border:1px solid #333">
+
+      <input id="amount-${u.id}" placeholder="Amount (0.00000001)"
+        style="padding:8px;margin:5px;background:black;color:white;border:1px solid #333">
+
+      <button onclick="addCoin('${u.id}')"
+        class="btn bg-emerald-500 text-black">
+        ➕ Add / Update Coin
+      </button>
+    `;
+
+    usersDiv.appendChild(div);
   });
 }
+
+window.addCoin = async (userId) => {
+
+  const coin = document.getElementById(`coin-${userId}`).value;
+  const amount = Number(document.getElementById(`amount-${userId}`).value);
+
+  if (!coin || !amount) return alert("Fill fields");
+
+  const ref = doc(db, "users", userId, "coins", coin);
+
+  await setDoc(ref, {
+    balance: increment(amount)
+  }, { merge: true });
+
+  alert("User wallet updated!");
+};
+
+loadUsers();
