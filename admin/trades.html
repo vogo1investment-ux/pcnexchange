@@ -8,25 +8,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛠️ PCN Exchange Admin - Coin Management</h1>
-
+        <h1>🛠️ PCN Exchange Admin Panel</h1>
         <div id="authStatus" class="status"></div>
 
-        <h2>Pending Coin Purchase Requests</h2>
-        <button id="loadRequestsBtn">Fetch Pending Requests</button>
+        <h2>Pending Coin Requests (from pendingTransactions)</h2>
+        <button id="loadRequestsBtn">Load Pending Requests</button>
         <div id="requestsContainer" class="requests-container"></div>
 
         <hr>
 
-        <h2>Manual Coin Credit</h2>
-        
-        <div class="manual-credit-header">
-            <select id="coinSelect">
-                <option value="">Select Coin</option>
-            </select>
-            <input id="coinAmount" type="number" step="0.00000001" placeholder="Amount">
-        </div>
-
+        <h2>All Users + Coin Balances</h2>
         <div id="usersList" class="users-list"></div>
 
         <div id="message"></div>
