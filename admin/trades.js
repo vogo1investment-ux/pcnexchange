@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (!user || user.uid !== ADMIN_UID) {
-            authStatus.innerHTML = "❌ Access Denied. Admin Only.";
+            authStatus.innerHTML = "❌ Access Denied";
             authStatus.className = "status error";
             return;
         }
@@ -45,83 +45,74 @@ document.addEventListener("DOMContentLoaded", () => {
         loadAllUsers();
     });
 
+    // Load Users + Their Coins
     async function loadAllUsers() {
-        usersList.innerHTML = "<p style='color:#00ff88'>Loading users and their coins...</p>";
-
+        usersList.innerHTML = "<p>Loading users...</p>";
         try {
-            const usersSnap = await getDocs(collection(db, "users"));
+            const usersSnap = await getDocs(collection(db, "users"));   // ← Looking here for users
+
             usersList.innerHTML = "";
 
             if (usersSnap.empty) {
-                usersList.innerHTML = "<p>No users found.</p>";
+                usersList.innerHTML = "<p>No users found in 'users' collection.</p>";
                 return;
             }
 
             for (const userDoc of usersSnap.docs) {
                 const userId = userDoc.id;
 
-                // Get user's coins
+                // Load coins for this user
                 let coinsHTML = "<p style='color:#888'>No coins yet</p>";
                 try {
-                    const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));
+                    const coinsSnap = await getDocs(collection(db, `users/${userId}/coins`));  // ← Looking here for coins
                     if (!coinsSnap.empty) {
                         coinsHTML = coinsSnap.docs.map(d => `
-                            <div class="coin-balance">
-                                <strong>${d.id}:</strong> ${d.data().amount || 0}
-                            </div>
+                            <div class="coin-balance"><strong>${d.id}:</strong> ${d.data().amount || 0}</div>
                         `).join('');
                     }
-                } catch (e) {
-                    console.error("Error loading coins for", userId, e);
-                }
+                } catch(e) { console.error(e); }
 
                 const card = document.createElement("div");
                 card.className = "user-card";
                 card.innerHTML = `
-                    <div class="user-header">
-                        <strong>User ID:</strong> ${userId}
-                    </div>
-                    <div style="margin: 10px 0;">${coinsHTML}</div>
+                    <div class="user-header"><strong>User:</strong> ${userId}</div>
+                    <div style="margin:10px 0;">${coinsHTML}</div>
                     <div class="add-section">
                         <select class="coin-select">
                             <option value="">Select Coin</option>
                             <option value="BTC">BTC</option>
                             <option value="ETH">ETH</option>
                             <option value="USDT">USDT</option>
-                            <option value="SOL">SOL</option>
                         </select>
                         <input type="number" step="0.00000001" placeholder="Amount" class="amount-input">
                         <button class="add-coin-btn">Add Coins</button>
                     </div>
                 `;
 
-                // Add functionality
                 const addBtn = card.querySelector(".add-coin-btn");
-                const coinSelect = card.querySelector(".coin-select");
-                const amountInput = card.querySelector(".amount-input");
+                const coinSel = card.querySelector(".coin-select");
+                const amtInput = card.querySelector(".amount-input");
 
                 addBtn.addEventListener("click", async () => {
-                    const coinId = coinSelect.value;
-                    const amount = parseFloat(amountInput.value);
+                    const coinId = coinSel.value;
+                    const amount = parseFloat(amtInput.value);
 
                     if (!coinId || !amount || amount <= 0) {
-                        showMessage("Please select a coin and enter amount", "error");
+                        showMessage("Select coin and amount", "error");
                         return;
                     }
 
                     try {
                         await setDoc(doc(db, `users/\( {userId}/coins/ \){coinId}`), {
-                            coinId: coinId,
                             amount: amount,
                             lastUpdated: serverTimestamp()
                         }, { merge: true });
 
-                        showMessage(`✅ Successfully added ${amount} ${coinId} to ${userId}`, "success");
-                        loadAllUsers(); // Refresh the list
-                        amountInput.value = "";
+                        showMessage(`✅ Added ${amount} ${coinId} to ${userId}`, "success");
+                        loadAllUsers();
                     } catch (err) {
                         console.error(err);
-                        showMessage("Error adding coins. Check console (F12)", "error");
+                        showMessage("Failed to add coins", "error");
                     }
                 });
 
@@ -129,19 +120,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (err) {
             console.error(err);
-            usersList.innerHTML = `<p style="color:red">Error loading users: ${err.message}</p>`;
+            usersList.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
         }
     }
 
-    // Load Pending Coin Requests
+    // Load Pending Transactions
     loadRequestsBtn.addEventListener("click", async () => {
-        requestsContainer.innerHTML = "<p>Loading pending requests...</p>";
+        requestsContainer.innerHTML = "<p>Loading from pendingTransactions...</p>";
         try {
-            const snap = await getDocs(collection(db, "pendingTransactions"));
+            const snap = await getDocs(collection(db, "pendingTransactions"));   // ← Looking here for pending requests
             requestsContainer.innerHTML = "";
 
             if (snap.empty) {
-                requestsContainer.innerHTML = "<p>No pending requests found.</p>";
+                requestsContainer.innerHTML = "<p>No pending transactions found.</p>";
                 return;
             }
 
@@ -153,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p><strong>User:</strong> ${data.userId || 'N/A'}</p>
                     <p><strong>Coin:</strong> ${data.coinId || 'N/A'}</p>
                     <p><strong>Amount:</strong> ${data.amount || 'N/A'}</p>
-                    <p><strong>Status:</strong> ${data.status || 'pending'}</p>
                 `;
                 requestsContainer.appendChild(div);
             });
@@ -166,6 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function showMessage(text, type) {
         messageDiv.innerHTML = text;
         messageDiv.style.color = type === "success" ? "#00ff88" : "#ff6666";
-        setTimeout(() => { messageDiv.innerHTML = ""; }, 5000);
+        setTimeout(() => messageDiv.innerHTML = "", 5000);
     }
 });
