@@ -2,17 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Coin Requests</title>
+<title>Coin Requests Admin</title>
 <link rel="stylesheet" href="trades.css">
 </head>
+
 <body>
 
 <div class="container">
 
-<h2>Pending Coin Requests</h2>
+<h2>Pending Coin Purchases</h2>
 
 <button id="loadRequestsBtn">
-Fetch Pending Coin Requests
+Fetch Requests
 </button>
 
 <div id="requestsContainer"></div>
@@ -30,10 +31,10 @@ Fetch Pending Coin Requests
 </select>
 
 <input
+id="coinAmount"
 type="number"
 step="0.00000001"
-id="coinAmount"
-placeholder="0.00000000">
+placeholder="Amount">
 
 <button id="addCoinBtn">
 Add Coin

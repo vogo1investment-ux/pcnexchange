@@ -6,8 +6,10 @@ collection,
 getDocs,
 doc,
 getDoc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+updateDoc,
+setDoc
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyCQVHBn504Y26YtR38JRJhRlUbBoa2CIPo",
@@ -20,10 +22,6 @@ appId: "1:278761036604:web:a02e2d2ac7a9379d6f9c39"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-setTimeout(initTrades,500);
-
-async function initTrades(){
 
 const requestsContainer =
 document.getElementById("requestsContainer");
@@ -43,129 +41,151 @@ document.getElementById("loadRequestsBtn");
 const message =
 document.getElementById("message");
 
-if(
-!requestsContainer ||
-!userSelect ||
-!coinSelect ||
-!addCoinBtn ||
-!loadRequestsBtn
-){
-console.error("Trades page not loaded");
-return;
-}
+loadUsers();
+loadCoins();
 
-await loadUsers();
-await loadCoins();
+loadRequestsBtn.onclick =
+loadRequests;
 
-loadRequestsBtn.addEventListener(
-"click",
-loadRequests
-);
-
-addCoinBtn.addEventListener(
-"click",
-addCoin
-);
+addCoinBtn.onclick =
+addCoinManually;
 
 async function loadUsers(){
+
+const snap =
+await getDocs(collection(db,"users"));
 
 userSelect.innerHTML =
 '<option value="">Select User</option>';
 
-const usersSnap =
-await getDocs(collection(db,"users"));
+snap.forEach(d=>{
 
-usersSnap.forEach(userDoc=>{
+userSelect.innerHTML +=
+`<option value="${d.id}">
+${d.id}
 
-const option =
-document.createElement("option");
-
-option.value =
-userDoc.id;
-
-option.textContent =
-userDoc.id;
-
-userSelect.appendChild(option);
-
-});
+</option>`;});
 
 }
 
 async function loadCoins(){
 
+const snap =
+await getDocs(collection(db,"coins"));
+
 coinSelect.innerHTML =
 '<option value="">Select Coin</option>';
 
-const coinsSnap =
-await getDocs(collection(db,"coins"));
+snap.forEach(d=>{
 
-coinsSnap.forEach(coinDoc=>{
+coinSelect.innerHTML +=
+`<option value="${d.id}">
+${d.id}
 
-const option =
-document.createElement("option");
-
-option.value =
-coinDoc.id;
-
-option.textContent =
-coinDoc.id;
-
-coinSelect.appendChild(option);
-
-});
+</option>`;});
 
 }
 
 async function loadRequests(){
 
 requestsContainer.innerHTML =
-"Loading requests...";
+"Loading...";
 
 const snap =
-await getDocs(collection(db,"pendingCoins"));
+await getDocs(
+collection(db,"pendingTransactions")
+);
 
 requestsContainer.innerHTML="";
 
-if(snap.empty){
+snap.forEach(d=>{
 
-requestsContainer.innerHTML =
-"No pending requests.";
+const data =
+d.data();
 
+if(data.status !== "pending")
 return;
-}
-
-snap.forEach(docSnap=>{
-
-const d =
-docSnap.data();
 
 const div =
 document.createElement("div");
 
-div.className =
-"request-card";
+div.className="request";
 
-div.innerHTML = `
+div.innerHTML=`
 
-<p><b>User:</b> ${d.userId || ""}</p>
-<p><b>Coin:</b> ${d.coin || ""}</p>
-<p><b>Amount:</b> ${d.amount || 0}</p>
-<p><b>Status:</b> ${d.status || "pending"}</p>
-`;const approveBtn =
-document.createElement("button");
+<p>User:
+${data.userId}</p><p>Coin:
+${data.coinId}</p><p>Amount:
+${data.amount}</p><p>Status:
+${data.status}</p><button class="approve"
+onclick="approveRequest(
+'${d.id}',
+'${data.userId}',
+'${data.coinId}',
+${data.amount}
+)">
+Approve
+</button>
 
-approveBtn.textContent =
-"Approve";
+`;
 
-approveBtn.addEventListener(
-"click",
-async()=>{
+requestsContainer.appendChild(div);
+
+});
+
+}
+
+window.approveRequest =
+async function(
+requestId,
+userId,
+coinId,
+amount
+){
 
 try{
 
+const coinRef =
+doc(
+db,
+"users",
+userId,
+"coins",
+coinId
+);
+
+const coinSnap =
+await getDoc(coinRef);
+
+let currentBalance = 0;
+
+if(coinSnap.exists()){
+
+currentBalance =
+parseFloat(
+coinSnap.data().balance || 0
+);
+
+}
+
+await setDoc(
+coinRef,
+{
+balance:
+Number(
+currentBalance +
+parseFloat(amount)
+).toFixed(8)
+},
+{merge:true}
+);
+
 await updateDoc(
-doc(db,"pendingCoins",docSnap.id),
+doc(
+db,
+"pendingTransactions",
+requestId
+),
 {
 status:"approved"
 }
@@ -175,30 +195,17 @@ alert("Approved");
 
 loadRequests();
 
-}catch(err){
+}catch(error){
 
-console.error(err);
+console.error(error);
 
-alert("Approval failed");
-
-}
-
-}
-);
-
-div.appendChild(
-approveBtn
-);
-
-requestsContainer.appendChild(
-div
-);
-
-});
+alert(error.message);
 
 }
 
-async function addCoin(){
+};
+
+async function addCoinManually(){
 
 const uid =
 userSelect.value;
@@ -208,7 +215,9 @@ coinSelect.value;
 
 const amount =
 parseFloat(
-document.getElementById("coinAmount").value
+document.getElementById(
+"coinAmount"
+).value
 );
 
 if(
@@ -216,63 +225,48 @@ if(
 !coin ||
 isNaN(amount)
 ){
+
 alert("Fill all fields");
-return;
-}
-
-try{
-
-const userRef =
-doc(db,"users",uid);
-
-const userSnap =
-await getDoc(userRef);
-
-if(!userSnap.exists()){
-
-alert("User not found");
 
 return;
+
 }
 
-const data =
-userSnap.data();
-
-const coins =
-data.coins || {};
-
-const current =
-parseFloat(
-coins[coin] || 0
+const coinRef =
+doc(
+db,
+"users",
+uid,
+"coins",
+coin
 );
 
-coins[coin] =
+const coinSnap =
+await getDoc(coinRef);
+
+let current = 0;
+
+if(coinSnap.exists()){
+
+current =
+parseFloat(
+coinSnap.data().balance || 0
+);
+
+}
+
+await setDoc(
+coinRef,
+{
+balance:
 Number(
 current + amount
-).toFixed(8);
-
-await updateDoc(
-userRef,
-{
-coins:coins
-}
+).toFixed(8)
+},
+{merge:true}
 );
 
 message.innerText =
-amount +
-" " +
-coin +
-" added successfully";
-
-}catch(err){
-
-console.error(err);
-
-message.innerText =
-"Failed to add coin";
-
-}
-
-}
+"Coin Added Successfully";
 
 }
